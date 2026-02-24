@@ -158,6 +158,8 @@ function FileUploadZone({
 export default function Step3Documents({ defaultValues, onNext, onBack }: Props) {
   const [ktpFile, setKtpFile] = useState<File | null>(defaultValues.ktp_image || null)
   const [ktpError, setKtpError] = useState('')
+  const [selfieFile, setSelfieFile] = useState<File | null>(defaultValues.selfie_image || null)
+  const [selfieError, setSelfieError] = useState('')
 
   const { register, handleSubmit, formState: { errors } } = useForm<FormData>({
     resolver: zodResolver(schema),
@@ -170,7 +172,12 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
       return
     }
     setKtpError('')
-    onNext({ ...data, ktp_image: ktpFile })
+    if (!selfieFile) {
+      setSelfieError('Foto selfie wajib diupload')
+      return
+    }
+    setSelfieError('')
+    onNext({ ...data, ktp_image: ktpFile, selfie_image: selfieFile })
   }
 
   return (
@@ -205,6 +212,22 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
         />
         {errors.nik && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.nik.message}</p>}
       </div>
+
+      {/* Selfie Upload */}
+      <FileUploadZone
+        label="Upload Selfie with Identity Card"
+        description="Hold your ID card next to your face and take a clear photo."
+        accept=".jpg,.jpeg,.png"
+        acceptLabels={['JPG', 'PNG']}
+        requirements={[
+          'Ensure your face and identity card are clearly visible',
+          'Max file size: 5MB',
+          'Image must not be blurry',
+        ]}
+        value={selfieFile}
+        onChange={(f) => { setSelfieFile(f); setSelfieError('') }}
+        error={selfieError}
+      />
 
       {/* Buttons */}
       <form onSubmit={handleSubmit(onSubmit)}>

@@ -25,6 +25,7 @@ export type RegisterData = {
   // Step 3
   nik: string
   ktp_image: File | null
+  selfie_image: File | null
   // Step 4
   email: string
   password: string
