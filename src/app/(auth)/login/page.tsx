@@ -70,24 +70,31 @@ export default function LoginPage() {
         password: data.password,
       })
 
-      const expiryDays = data.rememberMe ? 7 : 1
-
-      Cookies.set('access_token', res.data.access, { expires: expiryDays })
+      Cookies.set('access_token', res.data.access, { expires: data.rememberMe ? 7 : 1 })
       Cookies.set('refresh_token', res.data.refresh, { expires: 7 })
-      Cookies.set('user_role', res.data.role, { expires: expiryDays })
-      Cookies.set('user_email', res.data.email, { expires: expiryDays })
+      Cookies.set('user_role', res.data.role, { expires: data.rememberMe ? 7 : 1 })
+      Cookies.set('user_email', res.data.email, { expires: data.rememberMe ? 7 : 1 })
 
       toast.success('Login berhasil!')
-
-      const redirectPath = ROLE_REDIRECT[res.data.role] || '/dashboard'
-      router.push(redirectPath)
+      router.push(ROLE_REDIRECT[res.data.role] || '/dashboard')
 
     } catch (err: any) {
-      const msg =
-        err.response?.data?.non_field_errors?.[0] ||
-        err.response?.data?.detail ||
-        'Email atau password salah'
-      toast.error(msg)
+      const message = err.response?.data?.message || 'Login gagal'
+
+      // Kalau pending/rejected, arahkan ke halaman status
+      if (message.includes('belum diverifikasi')) {
+        toast.error(message)
+        setTimeout(() => router.push(`/status?email=${data.email}`), 1500)
+        return
+      }
+
+      if (message.includes('ditolak')) {
+        toast.error(message)
+        setTimeout(() => router.push(`/status?email=${data.email}`), 1500)
+        return
+      }
+
+      toast.error(message)
     } finally {
       setLoading(false)
     }
