@@ -54,9 +54,6 @@ export default function Navbar() {
             Login
           </Link>
           <Link href="/register">
-            {/* Menambahkan class 'text-text-primary' untuk mengubah warna teks menjadi 
-                hitam kebiruan (#242F43) sesuai variabel di globals.css 
-            */}
             <Button 
               size="sm" 
               className="rounded-xl px-6 bg-secondary-500 hover:bg-secondary-300 active:bg-secondary-600 text-text-primary"

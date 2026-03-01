@@ -1,31 +1,68 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
 import Button from '@/components/ui/Button'
-
-const FAQ_DATA = [
-  {
-    question: 'Bagaimana cara menjadi anggota?',
-    answer: 'Untuk menjadi anggota SI-MAPAN, Anda dapat melakukan pendaftaran melalui aplikasi mobile kami atau mengunjungi kantor cabang terdekat dengan membawa kartu identitas (KTP) yang sah serta melengkapi formulir pendaftaran dan membayar simpanan pokok sesuai ketentuan yang berlaku.'
-  },
-  {
-    question: 'Berapa minimal simpanan sukarela?',
-    answer: 'Simpanan sukarela tidak memiliki batasan minimal yang kaku, namun kami menyarankan mulai dari Rp10.000 agar pertumbuhan aset Anda lebih terasa. Anda dapat menyetor kapan saja melalui transfer bank.'
-  },
-  {
-    question: 'Berapa lama proses verifikasi pinjaman?',
-    answer: 'Proses verifikasi pinjaman biasanya memakan waktu 1-3 hari kerja setelah semua dokumen persyaratan lengkap diterima oleh tim analis kami.'
-  },
-  {
-    question: 'Apakah data saya aman?',
-    answer: 'Keamanan data Anda adalah prioritas utama kami. SI-MAPAN menggunakan enkripsi standar industri dan diawasi oleh otoritas terkait untuk memastikan seluruh informasi pribadi dan transaksi Anda tetap terjaga kerahasiaannya.'
-  },
-]
+import api from '@/lib/axios'
 
 export default function FAQPage() {
+  const [faqList, setFaqList] = useState<any[]>([])
   const [activeIndex, setActiveIndex] = useState<number | null>(0)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchFAQs = async () => {
+      try {
+        setLoading(true)
+        // Memanggil endpoint faq yang sudah didaftarkan di config/urls.py
+        const res = await api.get('/config/faq/')
+        setFaqList(res.data)
+        setError(false)
+      } catch (err) {
+        console.error("Gagal memuat FAQ:", err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchFAQs()
+  }, [])
+
+  // 1. Handling Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-950 rounded-full animate-spin"></div>
+          <p className="text-p2 font-bold text-primary-950 tracking-wide">Loading SI-MAPAN...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 2. Handling Error State (Sesuai PBI: Content unavailable)
+  if (error) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg text-center px-6">
+        <div className="max-w-md">
+          <h1 className="text-h3 font-bold text-error mb-4">Content unavailable</h1>
+          <p className="text-p2 text-text-secondary mb-8">
+            Maaf, daftar pertanyaan tidak dapat dimuat saat ini. Silakan coba beberapa saat lagi.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="border-primary-950 text-primary-950"
+          >
+            Refresh Halaman
+          </Button>
+        </div>
+      </div>
+    )
+  }
 
   return (
     <div className="min-h-screen bg-bg">
@@ -40,35 +77,39 @@ export default function FAQPage() {
           </p>
         </section>
 
-        {/* --- FAQ ACCORDION --- */}
+        {/* --- FAQ ACCORDION (Dynamic from API) --- */}
         <section className="max-w-3xl mx-auto px-12 mb-24">
           <div className="space-y-4">
-            {FAQ_DATA.map((item, index) => (
-              <div 
-                key={index} 
-                className="bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all shadow-sm hover:shadow-md"
-              >
-                <button
-                  onClick={() => setActiveIndex(activeIndex === index ? null : index)}
-                  className="w-full px-8 py-6 flex items-center justify-between text-left"
-                >
-                  <span className="font-bold text-text-primary text-p2">{item.question}</span>
-                  <svg 
-                    className={`w-5 h-5 text-text-tertiary transition-transform duration-300 ${activeIndex === index ? 'rotate-180' : ''}`} 
-                    fill="none" stroke="currentColor" viewBox="0 0 24 24"
-                  >
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
-                  </svg>
-                </button>
+            {faqList.length > 0 ? (
+              faqList.map((item, index) => (
                 <div 
-                  className={`px-8 overflow-hidden transition-all duration-300 ease-in-out ${activeIndex === index ? 'max-h-96 pb-8' : 'max-h-0'}`}
+                  key={index} 
+                  className="bg-white rounded-2xl border border-gray-100 overflow-hidden transition-all shadow-sm hover:shadow-md"
                 >
-                  <p className="text-text-secondary text-p2 leading-relaxed border-t border-gray-50 pt-6">
-                    {item.answer}
-                  </p>
+                  <button
+                    onClick={() => setActiveIndex(activeIndex === index ? null : index)}
+                    className="w-full px-8 py-6 flex items-center justify-between text-left"
+                  >
+                    <span className="font-bold text-text-primary text-p2">{item.question}</span>
+                    <svg 
+                      className={`w-5 h-5 text-text-tertiary transition-transform duration-300 ${activeIndex === index ? 'rotate-180' : ''}`} 
+                      fill="none" stroke="currentColor" viewBox="0 0 24 24"
+                    >
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M19 9l-7 7-7-7" />
+                    </svg>
+                  </button>
+                  <div 
+                    className={`px-8 overflow-hidden transition-all duration-300 ease-in-out ${activeIndex === index ? 'max-h-96 pb-8' : 'max-h-0'}`}
+                  >
+                    <p className="text-text-secondary text-p2 leading-relaxed border-t border-gray-50 pt-6">
+                      {item.answer}
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ))}
+              ))
+            ) : (
+              <p className="text-center text-text-tertiary italic">Belum ada pertanyaan yang tersedia.</p>
+            )}
           </div>
         </section>
 
@@ -115,7 +156,6 @@ export default function FAQPage() {
                 referrerPolicy="no-referrer-when-downgrade"
               ></iframe>
               
-              {/* Overlay Label Kantor Pusat */}
               <div className="absolute bottom-6 left-6 right-6 bg-white/90 backdrop-blur-sm p-4 rounded-2xl shadow-lg border border-white/20">
                 <p className="text-[10px] text-text-tertiary uppercase font-bold mb-0.5">Kantor Pusat</p>
                 <p className="text-p3 text-text-primary font-bold">Denpasar</p>
@@ -125,10 +165,8 @@ export default function FAQPage() {
         </section>
       </main>
 
-      {/* --- FOOTER SECTION --- */}
       <footer className="bg-primary-950 text-white py-20 mt-10">
         <div className="max-w-6xl mx-auto px-12">
-          {/* --- CONTACT CTA SECTION --- */}
           <div className="text-center mb-24 animate-fade-in">
             <h2 className="text-h3 font-bold mb-4">Masih punya pertanyaan? Hubungi kami</h2>
             <p className="text-p2 text-primary-100 opacity-80 mb-5 mx-auto leading-relaxed font-semibold">
@@ -144,37 +182,29 @@ export default function FAQPage() {
             </Link>
           </div>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            
-            {/* Kolom 1: Brand & Info */}
             <div className="flex flex-col gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalizing financial management for a more prosperous community.
               </p>
             </div>
-
-            {/* Kolom 2: Navigation */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigation</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
+              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/" className="hover:text-white transition-all">Home</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-all">About Us</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-
-            {/* Kolom 3: Member Portal */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Member Portal</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
+              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/status" className="hover:text-white transition-all">Check Status</Link></li>
                 <li><Link href="/login" className="hover:text-white transition-all">Member Login</Link></li>
                 <li><Link href="/register" className="hover:text-white transition-all">Register</Link></li>
               </ul>
             </div>
           </div>
-
-          {/* Bottom Bar*/}
           <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 SI-MAPAN System. All rights reserved.

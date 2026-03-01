@@ -1,7 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Navbar from '@/components/layout/Navbar'
+import Button from '@/components/ui/Button'
+import api from '@/lib/axios'
 
 const VALUES = [
   { 
@@ -40,6 +43,61 @@ const VALUES = [
 ]
 
 export default function AboutPage() {
+  const [data, setData] = useState<any>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchAboutContent = async () => {
+      try {
+        setLoading(true)
+        const res = await api.get('/config/about/')
+        setData(res.data)
+        setError(false)
+      } catch (err) {
+        console.error("Gagal memuat konten about:", err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchAboutContent()
+  }, [])
+
+  // 1. Handling Loading State
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-950 rounded-full animate-spin"></div>
+          <p className="text-p2 font-bold text-primary-950 tracking-wide">Loading SI-MAPAN...</p>
+        </div>
+      </div>
+    )
+  }
+
+  // 2. Handling Error State (Sesuai PBI: Content unavailable)
+  if (error || !data) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg text-center px-6">
+        <div className="max-w-md">
+          <h1 className="text-h3 font-bold text-error mb-4">Content unavailable</h1>
+          <p className="text-p2 text-text-secondary mb-8">
+            Maaf, konten Visi & Misi tidak dapat dimuat saat ini. Silakan periksa koneksi Anda atau hubungi admin.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="border-primary-950 text-primary-950"
+          >
+            Refresh Halaman
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <Navbar />
@@ -47,7 +105,6 @@ export default function AboutPage() {
       <main className="pb-20">
         {/* --- HERO SECTION: Minimalist Style --- */}
         <section className="relative w-full h-[350px] flex items-center justify-center bg-primary-950 overflow-hidden">
-          {/* Subtle decorative elements to prevent it from looking empty */}
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary-500/10 rounded-full -ml-20 -mb-20 blur-3xl" />
           
@@ -55,26 +112,23 @@ export default function AboutPage() {
             <h1 className="text-h2 md:text-h1 text-white font-bold mb-4 tracking-tight">
               Tentang <span className="text-secondary-300">SI-MAPAN</span>
             </h1>
-            {/* Signature Accent Line */}
             <div className="w-24 h-1.5 bg-secondary-500 mx-auto rounded-full" />
           </div>
         </section>
 
         <div className="max-w-7xl mx-auto px-12 -mt-16 relative z-20">
-          {/* --- VISI & MISI: Raised Cards --- */}
+          {/* --- VISI & MISI: Raised Cards (Dynamic from API) --- */}
           <div className="grid md:grid-cols-2 gap-8 mb-24">
             <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
               <h2 className="text-h3 text-text-primary mb-6 font-bold">Visi</h2>
               <p className="text-p2 text-text-secondary leading-relaxed">
-                Menjadi koperasi digital terdepan yang mengintegrasikan teknologi terkini untuk memberikan 
-                solusi finansial yang inklusif dan berkelanjutan bagi seluruh lapisan masyarakat.
+                {data.vision}
               </p>
             </div>
             <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
               <h2 className="text-h3 text-text-primary mb-6 font-bold">Misi</h2>
               <p className="text-p2 text-text-secondary leading-relaxed">
-                Mensejahterakan anggota melalui pemanfaatan teknologi, transparansi tata kelola, dan penyediaan 
-                produk finansial yang mudah diakses serta kompetitif.
+                {data.mission}
               </p>
             </div>
           </div>
@@ -120,19 +174,15 @@ export default function AboutPage() {
         </div>
       </main>
 
-      {/* --- FOOTER SECTION --- */}
       <footer className="bg-primary-950 text-white py-20 mt-10">
         <div className="max-w-6xl mx-auto px-12">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            {/* Kolom 1: Brand & Info */}
             <div className="flex flex-col gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalizing financial management for a more prosperous community.
               </p>
             </div>
-
-            {/* Kolom 2: Navigation */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigation</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
@@ -141,8 +191,6 @@ export default function AboutPage() {
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-
-            {/* Kolom 3: Member Portal */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Member Portal</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
@@ -152,8 +200,6 @@ export default function AboutPage() {
               </ul>
             </div>
           </div>
-
-          {/* Bottom Bar*/}
           <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 SI-MAPAN System. All rights reserved.
