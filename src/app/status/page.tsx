@@ -13,6 +13,13 @@ const STATUS_CONFIG: Record<string, {
   desc: string
   icon: string
 }> = {
+  NOT_FOUND: {
+    label: 'Belum Terdaftar',
+    color: '#374151',
+    bg: '#F3F4F6',
+    desc: 'Email ini belum terdaftar di sistem SI-MAPAN. Pastikan penulisan email sudah benar atau silakan melakukan pendaftaran.',
+    icon: '🔍',
+  },
   PENDING: {
     label: 'Menunggu Verifikasi',
     color: '#92400E',
@@ -63,25 +70,24 @@ function StatusContent() {
       setResult(res.data)
     } catch (err: any) {
       if (err.response?.status === 404) {
-        toast.error('Email tidak ditemukan')
+        // Jika email tidak ditemukan, tampilkan card status NOT_FOUND
+        setResult({ email: emailToCheck, status: 'NOT_FOUND' })
       } else {
         toast.error('Terjadi kesalahan, coba lagi')
+        setResult(null)
       }
-      setResult(null)
     } finally {
       setLoading(false)
     }
   }
 
-  // Auto-fill dan auto-check kalau ada ?email= di URL
-  // (dipanggil otomatis saat redirect dari halaman login)
   useEffect(() => {
     const emailFromUrl = searchParams.get('email')
     if (emailFromUrl) {
       setEmail(emailFromUrl)
       checkStatus(emailFromUrl)
     }
-  }, [])
+  }, [searchParams])
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault()
@@ -105,7 +111,7 @@ function StatusContent() {
           </p>
         </div>
 
-        {/* Form */}
+        {/* Form Input Email */}
         <form onSubmit={handleSubmit} className="bg-white rounded-2xl p-8"
           style={{ border: '1px solid #f3f4f6' }}>
           <label className="block text-sm font-semibold mb-1.5"
@@ -130,9 +136,9 @@ function StatusContent() {
           </button>
         </form>
 
-        {/* Result card */}
+        {/* Result Card (Muncul setelah klik cek status) */}
         {result && config && (
-          <div className="mt-6 bg-white rounded-2xl p-8"
+          <div className="mt-6 bg-white rounded-2xl p-8 animate-in fade-in slide-in-from-top-4 duration-300"
             style={{ border: '1px solid #f3f4f6' }}>
             <p className="text-sm mb-4" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               Status untuk{' '}
@@ -148,13 +154,28 @@ function StatusContent() {
               </span>
             </div>
 
-            {/* Deskripsi */}
-            <p className="text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+            {/* Deskripsi Status */}
+            <p className="text-sm leading-relaxed" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
               {config.desc}
             </p>
 
-            {/* CTA button sesuai status */}
-            <div className="mt-5">
+            {/* Tombol Aksi Sesuai Status */}
+            <div className="mt-6 flex flex-col gap-3">
+              {result.status === 'NOT_FOUND' && (
+                <>
+                  <a href="/register"
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center transition-all bg-primary-950 hover:bg-primary-500">
+                    Daftar Sekarang
+                  </a>
+                  <button
+                    onClick={() => checkStatus(result.email)}
+                    disabled={loading}
+                    className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50 border border-gray-200 text-gray-600 hover:bg-gray-50">
+                    {loading ? 'Memeriksa...' : 'Coba Lagi'}
+                  </button>
+                </>
+              )}
+
               {(result.status === 'VERIFIED' || result.status === 'ACTIVE') && (
                 <a href="/login"
                   className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center transition-all"
@@ -162,6 +183,7 @@ function StatusContent() {
                   Login Sekarang
                 </a>
               )}
+
               {result.status === 'REJECTED' && (
                 <a href="mailto:support@si-mapan.com"
                   className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all"
@@ -173,7 +195,8 @@ function StatusContent() {
                   Hubungi Petugas
                 </a>
               )}
-              {result.status === 'PENDING' && (
+
+              {(result.status === 'PENDING' || result.status === 'INACTIVE') && (
                 <button
                   onClick={() => checkStatus(result.email)}
                   disabled={loading}
