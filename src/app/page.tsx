@@ -34,7 +34,7 @@ export default function LandingPage() {
           {/* Hero Image */}
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-xl">
             <Image
-              src="/images/stockfamily.jpg"
+              src="/images/stockfamily.png"
               alt="Happy Family using SI-MAPAN"
               fill
               className="object-cover"
