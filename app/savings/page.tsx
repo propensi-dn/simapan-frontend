@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import api from "@/lib/axios";
-import { clearAuth, isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/auth";
 
 type SavingItem = {
   id: number;
@@ -65,11 +65,6 @@ export default function SavingsOverviewPage() {
     return "Kelola dan lacak simpanan wajib dan sukarela kamu.";
   }, [data]);
 
-  const onLogout = () => {
-    clearAuth();
-    window.location.href = "/login";
-  };
-
   const statusLabel = (status: SavingItem["status"]) => {
     if (status === "SUCCESS") return "Success";
     if (status === "PENDING") return "Pending";
@@ -97,12 +92,12 @@ export default function SavingsOverviewPage() {
         </div>
 
         <div className="flex gap-2">
-          <button
+          {/* <button
             onClick={onLogout}
             className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700"
           >
             Logout
-          </button>
+          </button> */}
           <Link
             href="/savings/deposit"
             className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"

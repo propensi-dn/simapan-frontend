@@ -1,6 +1,5 @@
 "use client";
 
-import Link from "next/link";
 import { FormEvent, useEffect, useState } from "react";
 
 import api from "@/lib/axios";
@@ -114,15 +113,7 @@ export default function DepositPage() {
   return (
     <div className="mx-auto max-w-[1100px]">
       <div className="mb-6">
-        <div className="flex items-center gap-2 text-sm font-medium text-zinc-500">
-          <Link href="/savings" className="hover:text-zinc-700">
-            ← Back to Dashboard
-          </Link>
-          <span className="text-zinc-300">|</span>
-          <span className="text-zinc-800">Deposit Form</span>
-        </div>
-
-        <h1 className="mt-5 text-[44px] font-bold leading-tight text-zinc-900">Member Deposit Form</h1>
+        <h1 className="text-[44px] font-bold leading-tight text-zinc-900">Member Deposit Form</h1>
         <p className="mt-1 text-zinc-500">Please follow the instructions below to submit your deposit proof. Our team will verify your transaction within 24 hours.</p>
       </div>
 
