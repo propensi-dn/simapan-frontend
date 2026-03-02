@@ -4,24 +4,51 @@ import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import Button from '@/components/ui/Button'
 import api from '@/lib/axios'
+import toast from 'react-hot-toast'
 
 export default function ChangePasswordPage() {
   const [formData, setFormData] = useState({ oldPassword: '', newPassword: '', confirmPassword: '' })
   const [error, setError] = useState<string | null>(null)
+  const [submitting, setSubmitting] = useState(false)
   const router = useRouter()
 
   const handleUpdate = async (e: React.FormEvent) => {
     e.preventDefault()
+    setError(null)
+
     if (formData.newPassword !== formData.confirmPassword) {
-      setError("Konfirmasi password tidak cocok.")
+      const message = "Konfirmasi password tidak cocok."
+      setError(message)
+      toast.error(message)
       return
     }
 
+    setSubmitting(true)
     try {
-      await api.post('/users/change-password/', formData)
-      router.push('/profile')
-    } catch (err: any) {
-      setError(err.response?.data?.message || "Terjadi kesalahan.")
+      await api.post('/auth/change-password/', {
+        old_password: formData.oldPassword,
+        new_password: formData.newPassword,
+        confirm_password: formData.confirmPassword,
+      })
+      toast.success('Password berhasil diperbarui')
+      router.push('/dashboard/member/profile')
+    } catch (err: unknown) {
+      const apiError = err as {
+        response?: {
+          data?: {
+            message?: string
+            non_field_errors?: string[]
+          }
+        }
+      }
+      const message =
+        apiError.response?.data?.message ||
+        apiError.response?.data?.non_field_errors?.[0] ||
+        "Terjadi kesalahan."
+      setError(message)
+      toast.error(message)
+    } finally {
+      setSubmitting(false)
     }
   }
 
@@ -62,8 +89,12 @@ export default function ChangePasswordPage() {
           </div>
           
           <div className="pt-4 space-y-3">
-            <Button type="submit" className="w-full bg-primary-950 text-white rounded-xl py-4">Pembarui Kata Sandi</Button>
-            <Button onClick={() => router.back()} variant="outline" className="w-full rounded-xl py-4 border-gray-200">Batal</Button>
+            <Button type="submit" disabled={submitting} className="w-full bg-primary-950 text-white rounded-xl py-4">
+              {submitting ? 'Memproses...' : 'Pembarui Kata Sandi'}
+            </Button>
+            <Button type="button" onClick={() => router.back()} disabled={submitting} variant="outline" className="w-full rounded-xl py-4 border-gray-200">
+              Batal
+            </Button>
           </div>
         </form>
       </div>
