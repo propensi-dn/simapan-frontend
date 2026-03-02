@@ -1,11 +1,82 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 import Image from 'next/image'
 import Navbar from '@/components/layout/Navbar'
 import Button from '@/components/ui/Button'
+import api from '@/lib/axios'
+// Menggunakan lucide-react untuk icon yang modern dan ringan
+import { Wallet, Banknote, Landmark, HelpCircle, ShieldCheck } from 'lucide-react'
+
+// 1. Mapping Icon: Menghubungkan teks dari Django Admin ke Komponen Icon
+const iconMap: Record<string, any> = {
+  'pi-wallet': Wallet,
+  'pi-money-bill': Banknote,
+  'pi-landmark': Landmark,
+  'pi-shield': ShieldCheck,
+};
 
 export default function LandingPage() {
+  const [hero, setHero] = useState<any>(null)
+  const [services, setServices] = useState<any[]>([])
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState(false)
+
+  useEffect(() => {
+    const fetchLandingData = async () => {
+      try {
+        setLoading(true)
+        const [heroRes, servicesRes] = await Promise.all([
+          api.get('/config/hero/'),
+          api.get('/config/services/')
+        ])
+        
+        setHero(heroRes.data)
+        setServices(servicesRes.data)
+        setError(false)
+      } catch (err) {
+        console.error("Gagal memuat konten:", err)
+        setError(true)
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchLandingData()
+  }, [])
+
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg">
+        <div className="flex flex-col items-center gap-4">
+          <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-950 rounded-full animate-spin"></div>
+          <p className="text-p2 font-bold text-primary-950 tracking-wide">Loading SI-MAPAN...</p>
+        </div>
+      </div>
+    )
+  }
+
+  if (error || !hero) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-bg text-center px-6">
+        <div className="max-w-md">
+          <h1 className="text-h3 font-bold text-error mb-4">Content unavailable</h1>
+          <p className="text-p2 text-text-secondary mb-8">
+            Maaf, kami sedang mengalami kendala teknis dalam memuat informasi utama. Silakan coba beberapa saat lagi.
+          </p>
+          <Button 
+            onClick={() => window.location.reload()} 
+            variant="outline" 
+            className="border-primary-950 text-primary-950"
+          >
+            Refresh Halaman
+          </Button>
+        </div>
+      </div>
+    )
+  }
+
   return (
     <div className="min-h-screen bg-bg">
       <Navbar />
@@ -15,27 +86,25 @@ export default function LandingPage() {
         <section className="max-w-7xl mx-auto px-12 py-20 grid md:grid-cols-2 gap-12 items-center">
           <div className="animate-slide-up">
             <h1 className="text-h2 leading-tight text-text-primary">
-              Empowering Your Financial Future with
+              {hero.title}
             </h1>
             <h1 className="text-h2 leading-tight mb-6 text-text-accent">
-              SI-MAPAN
+              {hero.brand_name}
             </h1>
             <p className="text-p2 text-text-secondary mb-10 max-w-lg leading-relaxed">
-              A secure and transparent platform for managing community savings and loans. 
-              Access financial services with ease and clarity.
+              {hero.description}
             </p>
             <Link href="/register">
-              <Button size="lg" className="rounded-xl px-10 bg-primary-950 hover:bg-primary-500 active:bg-primary-950">
-                Register as Member
+              <Button size="lg" className="rounded-xl px-10 bg-primary-950 hover:bg-primary-500 active:bg-primary-950 text-white">
+                {hero.cta_text || 'Register as Member'}
               </Button>
             </Link>
           </div>
           
-          {/* Hero Image */}
-          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-xl">
+          <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-xl bg-gray-100">
             <Image
-              src="/images/stockfamily.jpg"
-              alt="Happy Family using SI-MAPAN"
+              src={hero.hero_image || "/images/stockfamily.png"}
+              alt="SI-MAPAN Hero"
               fill
               className="object-cover"
               priority
@@ -43,9 +112,8 @@ export default function LandingPage() {
           </div>
         </section>
 
-        {/* --- OUR SERVICES SECTION --- */}
+        {/* --- DYNAMIC SERVICES SECTION --- */}
         <section id="services" className="bg-white py-20 border-t border-gray-50">
-          {/* Menggunakan px-12 atau px-16 sesuai permintaanmu untuk margin samping yang lebih lega */}
           <div className="max-w-6xl mx-auto px-12 text-center"> 
             <div className="mb-12">
               <h2 className="text-h3 text-text-primary mb-3">Our Services</h2>
@@ -53,50 +121,41 @@ export default function LandingPage() {
             </div>
 
             <div className="grid md:grid-cols-2 gap-6">
-              {/* Savings Card */}
-              <div className="p-8 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all text-left">
-                <div className="w-12 h-12 bg-bg-sections rounded-xl flex items-center justify-center mb-6">
-                  <svg className="w-6 h-6 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M3 10h18M7 15h1m4 0h1m-7 4h12a3 3 0 003-3V8a3 3 0 00-3-3H6a3 3 0 00-3 3v8a3 3 0 003 3z" />
-                  </svg>
-                </div>
-                <h3 className="text-h4 text-text-primary mb-3">Savings</h3>
-                <p className="text-p2 text-text-secondary leading-relaxed">
-                  Securely grow your wealth with our flexible savings programs. Monitor your balance and history in real-time through our digital dashboard.
-                </p>
-              </div>
+              {services.length > 0 ? (
+                services.map((service, index) => {
+                  // 2. Logika Pemilihan Icon
+                  const IconComponent = iconMap[service.icon_name] || HelpCircle;
 
-              {/* Loans Card */}
-              <div className="p-8 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all text-left">
-                <div className="w-12 h-12 bg-bg-sections rounded-xl flex items-center justify-center mb-6">
-                  <svg className="w-6 h-6 text-text-secondary" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="1.8" d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                  </svg>
-                </div>
-                <h3 className="text-h4 text-text-primary mb-3">Loans</h3>
-                <p className="text-p2 text-text-secondary leading-relaxed">
-                  Access affordable credit for your business or personal needs. Transparent application process with quick status tracking.
-                </p>
-              </div>
+                  return (
+                    <div key={index} className="p-8 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all text-left group">
+                      <div className="w-12 h-12 bg-bg-sections rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-100 transition-colors">
+                        {/* Merender icon secara dinamis */}
+                        <IconComponent className="w-6 h-6 text-text-secondary group-hover:text-primary-600 transition-colors" />
+                      </div>
+                      <h3 className="text-h4 text-text-primary mb-3 font-bold">{service.title}</h3>
+                      <p className="text-p2 text-text-secondary leading-relaxed">
+                        {service.description}
+                      </p>
+                    </div>
+                  );
+                })
+              ) : (
+                <p className="col-span-2 text-text-tertiary">Informasi layanan sedang diperbarui.</p>
+              )}
             </div>
           </div>
         </section>
       </main>
 
-      {/* --- FOOTER SECTION --- */}
       <footer className="bg-primary-950 text-white py-20 mt-10">
         <div className="max-w-6xl mx-auto px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            
-            {/* Kolom 1: Brand & Info */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 border-t border-primary-900 pt-16">
             <div className="flex flex-col gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalizing financial management for a more prosperous community.
               </p>
             </div>
-
-            {/* Kolom 2: Navigation */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigation</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
@@ -105,8 +164,6 @@ export default function LandingPage() {
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-
-            {/* Kolom 3: Member Portal */}
             <div className="flex flex-col gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Member Portal</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
@@ -116,8 +173,6 @@ export default function LandingPage() {
               </ul>
             </div>
           </div>
-
-          {/* Bottom Bar*/}
           <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 SI-MAPAN System. All rights reserved.
