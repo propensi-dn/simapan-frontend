@@ -54,7 +54,7 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
           </label>
           <input
             {...register('phone_number')}
-            placeholder="e.g. +62 812..."
+            placeholder="e.g. 0812..."
             inputMode="numeric"
             className="input-base"
           />
