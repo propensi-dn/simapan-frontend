@@ -19,7 +19,7 @@ type BankAccount = {
 }
 
 type MemberProfile = {
-  member_id: string
+  member_id: string | null
   full_name: string
   nik: string
   email: string
@@ -54,6 +54,7 @@ export default function ProfilePage() {
   })
   const [selectedProfilePicture, setSelectedProfilePicture] = useState<File | null>(null)
   const fileInputRef = useRef<HTMLInputElement | null>(null)
+  const memberIdLabel = profile?.member_id ? `#${profile.member_id}` : 'No Member ID'
 
   useEffect(() => {
     const fetchProfile = async () => {
@@ -273,7 +274,7 @@ export default function ProfilePage() {
     <DashboardLayout
       role="MEMBER"
       userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : undefined}
+      userID={memberIdLabel}
       avatarUrl={profile?.profile_picture || undefined}
     >
       <DashboardHeader
@@ -336,7 +337,7 @@ export default function ProfilePage() {
               
               <h2 className="text-h4 font-bold text-text-primary mb-1">{profile?.full_name}</h2>
               <p className="text-p3 font-bold text-text-tertiary mb-4 tracking-tight">
-                {profile?.member_id ? `#${profile.member_id}` : 'Generating ID...'}
+                {memberIdLabel}
               </p>
               <span className="px-4 py-1.5 bg-green-50 text-green-600 text-[10px] font-bold rounded-full uppercase tracking-widest border border-green-100">
                 Active Member
@@ -364,7 +365,7 @@ export default function ProfilePage() {
               <div className="grid md:grid-cols-2 gap-6">
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">Member ID</label>
-                  <input type="text" value={profile?.member_id} disabled className="w-full p-4 bg-bg border border-gray-100 rounded-2xl text-text-secondary font-medium cursor-not-allowed opacity-70" />
+                  <input type="text" value={profile?.member_id || 'No Member ID'} disabled className="w-full p-4 bg-bg border border-gray-100 rounded-2xl text-text-secondary font-medium cursor-not-allowed opacity-70" />
                 </div>
                 <div className="space-y-2">
                   <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">NIK (Identity Number)</label>
@@ -486,7 +487,7 @@ export default function ProfilePage() {
               
               {profile?.bank_accounts?.length ? (
                 profile.bank_accounts.map((account: BankAccount) => (
-                  <div key={account.id} className="p-6 bg-bg border border-gray-50 rounded-[24px] flex flex-col md:flex-row justify-between items-center gap-4 mb-4 last:mb-0">
+                  <div key={account.id} className="p-6 bg-bg border border-gray-50 rounded-[24px] mb-4 last:mb-0">
                     {editingBankId === account.id ? (
                       <div className="w-full space-y-4">
                         <div className="grid md:grid-cols-2 gap-4">
@@ -544,23 +545,25 @@ export default function ProfilePage() {
                         </div>
                       </div>
                     ) : (
-                      <>
-                        <div className="text-center md:text-left">
+                      <div className="w-full grid grid-cols-1 md:grid-cols-12 gap-4 md:items-center">
+                        <div className="md:col-span-3 text-left">
                           <p className="text-[10px] text-text-tertiary uppercase font-bold mb-1">Nama Bank</p>
                           <p className="text-p3 font-bold text-text-primary">{account.bank_name}</p>
                         </div>
-                        <div className="text-center md:text-left">
+                        <div className="md:col-span-3 text-left">
                           <p className="text-[10px] text-text-tertiary uppercase font-bold mb-1">Nomor Rekening</p>
                           <p className="text-p3 font-bold text-text-primary">{account.account_number}</p>
                         </div>
-                        <div className="flex items-center gap-2">
+                        <div className="md:col-span-2 flex md:justify-start">
                           {account.is_primary && (
                             <span className="px-4 py-1.5 bg-primary-950 text-white text-[10px] font-bold rounded-xl uppercase tracking-widest">Primary</span>
                           )}
+                        </div>
+                        <div className="md:col-span-4 flex items-center gap-2 md:justify-end">
                           <Button variant="ghost" size="sm" onClick={() => startEditBankAccount(account)}>Edit</Button>
                           <Button variant="danger" size="sm" onClick={() => handleDeleteBankAccount(account.id)} loading={deletingBankId === account.id}>Hapus</Button>
                         </div>
-                      </>
+                      </div>
                     )}
                   </div>
                 ))
