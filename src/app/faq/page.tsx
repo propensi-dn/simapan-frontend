@@ -138,7 +138,7 @@ export default function FAQPage() {
                   </div>
                   <div>
                     <p className="text-[10px] text-text-tertiary uppercase tracking-widest font-bold">Email</p>
-                    <p className="font-bold text-text-primary">support@si-mapan.id</p>
+                    <p className="font-bold text-text-primary">propensi.ksb@gmail.com</p>
                   </div>
                 </div>
               </div>

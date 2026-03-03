@@ -185,7 +185,7 @@ function StatusContent() {
               )}
 
               {result.status === 'REJECTED' && (
-                <a href="mailto:support@si-mapan.com"
+                <a href="mailto:propensi.ksb@gmail.com"
                   className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all"
                   style={{
                     border: '1.5px solid #242F43',
