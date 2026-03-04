@@ -19,7 +19,7 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
                 ← Back to Dashboard
               </Link> */}
               <Link href="/savings" className="hover:text-zinc-900">
-                ← Back to Savings
+                ← Back to Savings Overview
               </Link>
               <span className="text-zinc-300">|</span>
               <span className="text-zinc-900">Deposit Form</span>

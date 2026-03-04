@@ -1,6 +1,7 @@
 "use client";
 
 import { FormEvent, useEffect, useState } from "react";
+import Image from "next/image";
 
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
@@ -28,9 +29,24 @@ export default function DepositPage() {
   const [memberBankName, setMemberBankName] = useState("");
   const [memberAccountNumber, setMemberAccountNumber] = useState("");
   const [proofFile, setProofFile] = useState<File | null>(null);
+  const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+
+  useEffect(() => {
+    if (!proofFile || !proofFile.type.startsWith("image/")) {
+      setProofPreviewUrl(null);
+      return;
+    }
+
+    const objectUrl = URL.createObjectURL(proofFile);
+    setProofPreviewUrl(objectUrl);
+
+    return () => {
+      URL.revokeObjectURL(objectUrl);
+    };
+  }, [proofFile]);
 
   useEffect(() => {
     const fetchOverview = async () => {
@@ -208,9 +224,24 @@ export default function DepositPage() {
           <div>
             <label className="mb-1 block text-sm font-semibold text-zinc-700">Bukti Transfer (Transfer Proof)</label>
             <label className="grid cursor-pointer place-items-center rounded-xl border border-dashed border-zinc-300 px-4 py-10 text-center">
-              <span className="mb-2 grid h-10 w-10 place-items-center rounded-full bg-zinc-100 text-zinc-500">☁</span>
-              <span className="text-sm font-medium text-zinc-700">Click to upload or drag and drop</span>
-              <span className="text-xs text-zinc-400">PNG, JPG or PDF (Max 2MB)</span>
+              {proofPreviewUrl ? (
+                <Image
+                  src={proofPreviewUrl}
+                  alt="Preview bukti transfer"
+                  width={360}
+                  height={176}
+                  unoptimized
+                  className="mb-3 max-h-44 w-auto rounded-lg border border-zinc-200 object-contain"
+                />
+              ) : (
+                <span className="mb-2 grid h-10 w-10 place-items-center rounded-full bg-zinc-100 text-zinc-500">☁</span>
+              )}
+              <span className="text-sm font-medium text-zinc-700">
+                {proofFile ? "File selected. Click to change" : "Click to upload or drag and drop"}
+              </span>
+              <span className="text-xs text-zinc-400">
+                {proofFile ? proofFile.name : "PNG, JPG or PDF (Max 2MB)"}
+              </span>
               <input
                 type="file"
                 accept=".png,.jpg,.jpeg,.pdf"
