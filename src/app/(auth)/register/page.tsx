@@ -199,8 +199,8 @@ export default function RegisterPage() {
         {/* Footer */}
         <p className="text-center text-sm mt-10" style={{ color: '#9ca3af', fontFamily: 'Inter, sans-serif' }}>
           Need help? Contact our support at{' '}
-          <a href="mailto:support@si-mapan.com" style={{ color: '#11447D', textDecoration: 'underline' }}>
-            support@si-mapan.com
+          <a href="mailto:propensi.ksb@gmail.com" style={{ color: '#11447D', textDecoration: 'underline' }}>
+            propensi.ksb@gmail.com
           </a>
         </p>
       </main>

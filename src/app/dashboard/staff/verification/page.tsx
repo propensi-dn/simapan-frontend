@@ -222,7 +222,7 @@ export default function PendingMembersPage() {
 
                       <td className="px-6 py-4">
                         <button
-                          onClick={() => router.push(`/dashboard/staff/members/${m.id}/verify`)}
+                          onClick={() => router.push(`/dashboard/staff/verification/${m.id}/verify`)}
                           className="text-sm font-bold transition-all hover:opacity-70 underline-offset-2 hover:underline"
                           style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
                           Lihat Detail
