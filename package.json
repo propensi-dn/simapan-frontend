@@ -10,16 +10,10 @@
   },
   "dependencies": {
     "@hookform/resolvers": "^5.2.2",
-<<<<<<< HEAD
     "axios": "^1.13.6",
     "clsx": "^2.1.1",
     "js-cookie": "^3.0.5",
-=======
-    "axios": "^1.13.5",
-    "clsx": "^2.1.1",
-    "js-cookie": "^3.0.5",
     "lucide-react": "^0.575.0",
->>>>>>> origin/development
     "next": "16.1.6",
     "react": "19.2.3",
     "react-dom": "19.2.3",

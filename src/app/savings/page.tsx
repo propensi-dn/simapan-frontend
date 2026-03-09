@@ -14,6 +14,7 @@ type SavingItem = {
   amount: string;
   status: "PENDING" | "SUCCESS" | "REJECTED";
   submitted_at: string;
+  transfer_proof_url?: string | null;
 };
 
 type OverviewResponse = {
@@ -36,6 +37,7 @@ export default function SavingsOverviewPage() {
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +47,9 @@ export default function SavingsOverviewPage() {
       }
 
       try {
-        const response = await api.get<OverviewResponse>("/savings/overview/");
+        const response = await api.get<OverviewResponse>("/savings/overview/", {
+          params: { page },
+        });
         setData(response.data);
       } catch {
         setError("Gagal mengambil data simpanan.");
@@ -55,7 +59,7 @@ export default function SavingsOverviewPage() {
     };
 
     fetchData();
-  }, []);
+  }, [page]);
 
   const summaryText = useMemo(() => {
     if (!data) return "";
@@ -142,6 +146,7 @@ export default function SavingsOverviewPage() {
                   <th className="px-5 py-3">Type</th>
                   <th className="px-5 py-3">Amount</th>
                   <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
@@ -171,6 +176,20 @@ export default function SavingsOverviewPage() {
                         {statusLabel(item.status)}
                       </span>
                     </td>
+                    <td className="px-5 py-3 text-zinc-800">
+                      {item.transfer_proof_url ? (
+                        <a
+                          href={item.transfer_proof_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-50"
+                        >
+                          Lihat Bukti
+                        </a>
+                      ) : (
+                        <span className="text-xs text-zinc-400">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -181,8 +200,20 @@ export default function SavingsOverviewPage() {
         <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-3 text-sm text-zinc-500">
           <p>Showing {Math.min(data.results.length, 5)} of {data.count} transactions</p>
           <div className="flex gap-2">
-            <button className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1">Previous</button>
-            <button className="rounded-md border border-zinc-200 bg-white px-3 py-1 font-semibold text-zinc-900">Next</button>
+            <button
+              className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={!data.previous}
+            >
+              Previous
+            </button>
+            <button
+              className="rounded-md border border-zinc-200 bg-white px-3 py-1 font-semibold text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={!data.next}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
