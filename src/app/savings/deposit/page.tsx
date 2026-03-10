@@ -6,6 +6,7 @@ import axios from "axios";
 
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
+import Modal from "@/components/ui/Modal";
 
 type MemberStatus = "VERIFIED" | "ACTIVE" | "PENDING" | "REJECTED";
 type SavingType = "POKOK" | "WAJIB" | "SUKARELA";
@@ -38,6 +39,7 @@ export default function DepositPage() {
   const [message, setMessage] = useState("");
   const [error, setError] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
 
   const canDeposit = memberStatus === "VERIFIED" || memberStatus === "ACTIVE";
   const primaryBankAccount = bankAccount;
@@ -158,7 +160,8 @@ export default function DepositPage() {
         await api.post("/savings/deposits/", formData);
       }
 
-      setMessage("Setoran berhasil dikirim dan menunggu verifikasi petugas.");
+      setMessage("");
+      setIsSuccessModalOpen(true);
       setProofFile(null);
       setMemberBankName("");
       setMemberAccountNumber("");
@@ -180,8 +183,9 @@ export default function DepositPage() {
   };
 
   return (
-    <div className="mx-auto max-w-[1100px]">
-      <div className="mb-6">
+    <>
+      <div className="mx-auto max-w-[1100px]">
+        <div className="mb-6">
         <h1 className="text-[44px] font-bold leading-tight text-zinc-900">Member Deposit Form</h1>
         <p className="mt-1 text-zinc-500">Please follow the instructions below to submit your deposit proof. Our team will verify your transaction within 24 hours.</p>
         {memberStatus && !canDeposit ? (
@@ -191,7 +195,7 @@ export default function DepositPage() {
         ) : null}
       </div>
 
-      <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
+        <div className="rounded-xl border border-zinc-200 bg-white p-5 shadow-sm">
         <p className="text-xs font-semibold uppercase tracking-wider text-zinc-400">Bank Account Information</p>
         <div className="mt-4 grid gap-6 md:grid-cols-[1fr_1fr_110px]">
           <div>
@@ -216,9 +220,9 @@ export default function DepositPage() {
 
           <div className="grid h-[110px] place-items-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-300">▩</div>
         </div>
-      </div>
+        </div>
 
-      <form onSubmit={onSubmit} className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+        <form onSubmit={onSubmit} className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
         <div className="border-b border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-semibold text-zinc-800">Transaction Details</div>
 
         <div className="space-y-4 px-5 py-4">
@@ -331,7 +335,22 @@ export default function DepositPage() {
             </button>
           </div>
         </div>
-      </form>
-    </div>
+        </form>
+      </div>
+
+      <Modal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        icon={
+          <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
+          </svg>
+        }
+        title="Simpanan berhasil disimpan"
+        description="Setoran berhasil dikirim dan menunggu verifikasi petugas."
+        cancelLabel="I Understand"
+        size="sm"
+      />
+    </>
   );
 }
