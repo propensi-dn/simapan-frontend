@@ -27,7 +27,10 @@ Saya bertanggung jawab atas antarmuka dan logika yang berkaitan dengan proses ve
 - **Deskripsi:** Membuat form bagi anggota untuk menarik simpanan sukarela dengan validasi limit saldo secara real-time.
 - **Tujuan:** Memfasilitasi anggota mengakses dana tabungan mereka secara aman.
 
-<<<<<<< HEAD
+### 6. PBI-19: Update Status Pengajuan Penarikan Dana (Priority: Should Have)
+- **Deskripsi:** Mengembangkan logika petugas untuk memproses transfer penarikan dan memotong saldo anggota yang berstatus `PENDING` menjadi `COMPLETED`.
+- **Tujuan:** Memastikan pencatatan kas keluar akurat dan saldo anggota terpotong dengan benar.
+
 To learn more about Next.js, take a look at the following resources:
 
 - [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
@@ -69,8 +72,4 @@ Saya bertanggung jawab penuh atas modul mutasi simpanan rutin (masuk), pengelola
 ### 5. PBI-23: Lihat Estimasi SHU (Priority: Should Have)
 - **Deskripsi:** Membuat kalkulator dasbor yang mengagregasi seluruh pendapatan jasa pinjaman dikurangi biaya operasional untuk menghasilkan angka Sisa Hasil Usaha (SHU) sementara.
 - **Tujuan:** Menampilkan gambaran profitabilitas koperasi secara *real-time*.
-=======
-### 6. PBI-19: Update Status Pengajuan Penarikan Dana (Priority: Should Have)
-- **Deskripsi:** Mengembangkan logika petugas untuk memproses transfer penarikan dan memotong saldo anggota yang berstatus `PENDING` menjadi `COMPLETED`.
-- **Tujuan:** Memastikan pencatatan kas keluar akurat dan saldo anggota terpotong dengan benar.
->>>>>>> origin/development
+
