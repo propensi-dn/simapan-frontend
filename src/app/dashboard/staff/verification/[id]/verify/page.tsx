@@ -143,7 +143,7 @@ export default function VerifyMemberPage({ params }: { params: Promise<{ id: str
       <DashboardHeader
         variant="detail"
         parentLabel="Calon Anggota"
-        parentHref="/dashboard/staff/members"
+        parentHref="/dashboard/staff/verification"
         currentLabel="Verifikasi Anggota"
         notifCount={0}
         notifHref="/dashboard/staff/notifications"
@@ -361,7 +361,7 @@ export default function VerifyMemberPage({ params }: { params: Promise<{ id: str
 
               {/* Back button */}
               <button
-                onClick={() => router.push('/dashboard/staff/members')}
+                onClick={() => router.push('/dashboard/staff/verification')}
                 className="text-sm font-semibold transition-colors hover:opacity-70 text-center"
                 style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                 ← Kembali ke daftar
