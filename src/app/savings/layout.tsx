@@ -1,20 +1,75 @@
-import Sidebar from "@/components/layout/Sidebar";
+"use client";
+
+import { useEffect, useMemo, useState } from "react";
+import { usePathname } from "next/navigation";
+import DashboardLayout from "@/components/layout/DashboardLayout";
+import DashboardHeader from "@/components/layout/DashboardHeader";
+import api from "@/lib/axios";
+
+type BankAccount = {
+  id: number;
+  bank_name: string;
+  account_number: string;
+  account_holder: string;
+  is_primary: boolean;
+};
+
+type MemberProfile = {
+  member_id: string | null;
+  full_name: string;
+  profile_picture: string | null;
+  bank_accounts: BankAccount[];
+};
 
 export default function SavingsLayout({ children }: { children: React.ReactNode }) {
-  return (
-    <div className="flex min-h-screen bg-zinc-100 text-zinc-900">
-      <Sidebar />
-      <div className="flex min-h-screen flex-1 flex-col">
-        <header className="flex h-14 items-center justify-between border-b border-zinc-200 bg-zinc-50 px-6">
-          <p className="text-sm font-semibold text-zinc-700">Savings</p>
-          <div className="flex items-center gap-2">
-            <button className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500">🔔</button>
-            <button className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200 bg-white text-zinc-500">⚙️</button>
-          </div>
-        </header>
+  const pathname = usePathname();
+  const isDepositPage = pathname.startsWith("/savings/deposit");
+  const [profile, setProfile] = useState<MemberProfile | null>(null);
 
-        <main className="flex-1 p-6">{children}</main>
-      </div>
-    </div>
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const response = await api.get<MemberProfile>("/members/profile/");
+        setProfile(response.data);
+      } catch {
+        setProfile(null);
+      }
+    };
+
+    fetchProfile();
+  }, []);
+
+  const memberIdLabel = useMemo(() => {
+    if (!profile?.member_id) return "No Member ID";
+    return `#${profile.member_id}`;
+  }, [profile]);
+
+  return (
+    <DashboardLayout
+      role="MEMBER"
+      userName={profile?.full_name || "Member"}
+      userID={memberIdLabel}
+      avatarUrl={profile?.profile_picture || undefined}
+    >
+      {isDepositPage ? (
+        <DashboardHeader
+          variant="form"
+          title="Deposit Form"
+          backLabel="Back to Savings Overview"
+          backHref="/savings"
+          notifCount={2}
+        />
+      ) : (
+        <DashboardHeader
+          variant="detail"
+          parentLabel="Dashboard"
+          parentHref="/dashboard/member"
+          currentLabel="Savings"
+          notifCount={2}
+        />
+      )}
+
+      <main className="flex-1 overflow-y-auto p-8">{children}</main>
+    </DashboardLayout>
   );
 }

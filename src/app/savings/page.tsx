@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 
 import api from "@/lib/axios";
-import { clearAuth, isAuthenticated } from "@/lib/auth";
+import { isAuthenticated } from "@/lib/auth";
 
 type SavingItem = {
   id: number;
@@ -14,6 +14,7 @@ type SavingItem = {
   amount: string;
   status: "PENDING" | "SUCCESS" | "REJECTED";
   submitted_at: string;
+  transfer_proof_url?: string | null;
 };
 
 type OverviewResponse = {
@@ -36,6 +37,10 @@ export default function SavingsOverviewPage() {
   const [data, setData] = useState<OverviewResponse | null>(null);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(1);
+  const [statusFilter, setStatusFilter] = useState<"ALL" | SavingItem["status"]>("ALL");
+  const [typeFilter, setTypeFilter] = useState<"ALL" | SavingItem["saving_type"]>("ALL");
+  const [dateSortOrder, setDateSortOrder] = useState<"desc" | "asc">("desc");
 
   useEffect(() => {
     const fetchData = async () => {
@@ -45,7 +50,9 @@ export default function SavingsOverviewPage() {
       }
 
       try {
-        const response = await api.get<OverviewResponse>("/savings/overview/");
+        const response = await api.get<OverviewResponse>("/savings/overview/", {
+          params: { page },
+        });
         setData(response.data);
       } catch {
         setError("Gagal mengambil data simpanan.");
@@ -55,7 +62,7 @@ export default function SavingsOverviewPage() {
     };
 
     fetchData();
-  }, []);
+  }, [page]);
 
   const summaryText = useMemo(() => {
     if (!data) return "";
@@ -65,10 +72,21 @@ export default function SavingsOverviewPage() {
     return "Kelola dan lacak simpanan wajib dan sukarela kamu.";
   }, [data]);
 
-  const onLogout = () => {
-    clearAuth();
-    window.location.href = "/login";
-  };
+  const visibleTransactions = useMemo(() => {
+    if (!data) return [];
+
+    const filtered = data.results.filter((item) => {
+      const statusMatch = statusFilter === "ALL" || item.status === statusFilter;
+      const typeMatch = typeFilter === "ALL" || item.saving_type === typeFilter;
+      return statusMatch && typeMatch;
+    });
+
+    return [...filtered].sort((a, b) => {
+      const aTime = new Date(a.submitted_at).getTime();
+      const bTime = new Date(b.submitted_at).getTime();
+      return dateSortOrder === "desc" ? bTime - aTime : aTime - bTime;
+    });
+  }, [data, statusFilter, typeFilter, dateSortOrder]);
 
   const statusLabel = (status: SavingItem["status"]) => {
     if (status === "SUCCESS") return "Success";
@@ -97,12 +115,12 @@ export default function SavingsOverviewPage() {
         </div>
 
         <div className="flex gap-2">
-          <button
+          {/* <button
             onClick={onLogout}
             className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700"
           >
             Logout
-          </button>
+          </button> */}
           <Link
             href="/savings/deposit"
             className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
@@ -130,27 +148,60 @@ export default function SavingsOverviewPage() {
       <div className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
         <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
           <h2 className="text-[32px] font-semibold leading-tight text-zinc-900">Recent Savings History</h2>
-          <div className="flex items-center gap-2 text-zinc-400">
-            <button className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200">☰</button>
-            <button className="grid h-8 w-8 place-items-center rounded-md border border-zinc-200">⇩</button>
+          <div className="flex items-center gap-2">
+            <select
+              className="h-8 rounded-md border border-zinc-200 px-2 text-xs text-zinc-700"
+              value={typeFilter}
+              onChange={(event) => setTypeFilter(event.target.value as "ALL" | SavingItem["saving_type"])}
+            >
+              <option value="ALL">Semua Tipe</option>
+              <option value="POKOK">Pokok</option>
+              <option value="WAJIB">Wajib</option>
+              <option value="SUKARELA">Sukarela</option>
+            </select>
+
+            <select
+              className="h-8 rounded-md border border-zinc-200 px-2 text-xs text-zinc-700"
+              value={statusFilter}
+              onChange={(event) => setStatusFilter(event.target.value as "ALL" | SavingItem["status"])}
+            >
+              <option value="ALL">Semua Status</option>
+              <option value="SUCCESS">Success</option>
+              <option value="PENDING">Pending</option>
+              <option value="REJECTED">Rejected</option>
+            </select>
           </div>
         </div>
 
-        {data.results.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-zinc-500">Belum ada transaksi simpanan.</p>
+        {visibleTransactions.length === 0 ? (
+          <p className="px-5 py-8 text-sm text-zinc-500">
+            {data.results.length === 0
+              ? "Belum ada transaksi simpanan."
+              : "Tidak ada transaksi yang sesuai filter."}
+          </p>
         ) : (
           <div className="overflow-x-auto">
             <table className="min-w-full text-sm">
               <thead className="bg-zinc-50 text-left text-xs uppercase text-zinc-500">
                 <tr>
-                  <th className="px-5 py-3">Date</th>
+                  <th className="px-5 py-3">
+                    <button
+                      type="button"
+                      className="inline-flex items-center gap-1 font-semibold"
+                      onClick={() => setDateSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
+                    >
+                      <span>Date</span>
+                      <span>{dateSortOrder === "desc" ? "↓" : "↑"}</span>
+                    </button>
+                  </th>
                   <th className="px-5 py-3">Type</th>
                   <th className="px-5 py-3">Amount</th>
                   <th className="px-5 py-3">Status</th>
+                  <th className="px-5 py-3">Action</th>
                 </tr>
               </thead>
               <tbody>
-                {data.results.map((item) => (
+                {visibleTransactions.map((item) => (
                   <tr key={item.id} className="border-t border-zinc-100">
                     <td className="px-5 py-3 text-zinc-800">
                       {new Date(item.submitted_at).toLocaleDateString("id-ID", {
@@ -176,6 +227,20 @@ export default function SavingsOverviewPage() {
                         {statusLabel(item.status)}
                       </span>
                     </td>
+                    <td className="px-5 py-3 text-zinc-800">
+                      {item.transfer_proof_url ? (
+                        <a
+                          href={item.transfer_proof_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-50"
+                        >
+                          Lihat Bukti
+                        </a>
+                      ) : (
+                        <span className="text-xs text-zinc-400">-</span>
+                      )}
+                    </td>
                   </tr>
                 ))}
               </tbody>
@@ -184,10 +249,22 @@ export default function SavingsOverviewPage() {
         )}
 
         <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-3 text-sm text-zinc-500">
-          <p>Showing {Math.min(data.results.length, 5)} of {data.count} transactions</p>
+          <p>Showing {visibleTransactions.length} of {data.count} transactions</p>
           <div className="flex gap-2">
-            <button className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1">Previous</button>
-            <button className="rounded-md border border-zinc-200 bg-white px-3 py-1 font-semibold text-zinc-900">Next</button>
+            <button
+              className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setPage((prev) => Math.max(1, prev - 1))}
+              disabled={!data.previous}
+            >
+              Previous
+            </button>
+            <button
+              className="rounded-md border border-zinc-200 bg-white px-3 py-1 font-semibold text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
+              onClick={() => setPage((prev) => prev + 1)}
+              disabled={!data.next}
+            >
+              Next
+            </button>
           </div>
         </div>
       </div>
