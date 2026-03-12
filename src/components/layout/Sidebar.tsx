@@ -32,6 +32,12 @@ const VerificationIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
   </svg>
 )
+
+const SavingsVerifIcon = () => (
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
+  </svg>
+)
 const WithdrawalIcon = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.898m0 0l3.182-5.511m-3.182 5.51l-5.511-3.181" />
@@ -84,23 +90,26 @@ const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: 'Profile',    href: '/dashboard/member/profile', icon: <ProfileIcon />,   group: 'ACCOUNT' },
   ],
   STAFF: [
-    { label: 'Dashboard',           href: '/dashboard/staff',                    icon: <DashboardIcon />,   group: 'OVERVIEW' },
-    { label: 'Verification Queue',  href: '/dashboard/staff/verification',       icon: <VerificationIcon />, group: 'MEMBER & SAVINGS' },
-    { label: 'Withdrawal Requests', href: '/dashboard/staff/withdrawals',        icon: <WithdrawalIcon />,  group: 'MEMBER & SAVINGS' },
-    { label: 'Disbursement',        href: '/dashboard/staff/disbursement',       icon: <DisburseIcon />,    group: 'LOANS' },
-    { label: 'Installment Payment', href: '/dashboard/staff/installments',       icon: <InstallmentIcon />, group: 'LOANS' },
+    { label: 'Dashboard',            href: '/dashboard/staff',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
+    // ── MEMBER & SAVINGS ──
+    { label: 'Member Verification',  href: '/dashboard/staff/verification',  icon: <VerificationIcon />, group: 'MEMBER & SAVINGS' },
+    { label: 'Savings Verification', href: '/dashboard/staff/verifications/savings',       icon: <SavingsVerifIcon />, group: 'MEMBER & SAVINGS' },
+    { label: 'Withdrawal Requests',  href: '/dashboard/staff/withdrawals',   icon: <WithdrawalIcon />,   group: 'MEMBER & SAVINGS' },
+    // ── LOANS ──
+    { label: 'Disbursement',         href: '/dashboard/staff/disbursement',  icon: <DisburseIcon />,     group: 'LOANS' },
+    { label: 'Installment Payment',  href: '/dashboard/staff/installments',  icon: <InstallmentIcon />,  group: 'LOANS' },
   ],
   MANAGER: [
-    { label: 'Dashboard',      href: '/dashboard/manager',              icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    { label: 'Loan Approvals', href: '/dashboard/manager/loans',        icon: <LoanApprovalIcon />, group: 'MANAGERIAL' },
-    { label: 'Resign Approvals', href: '/dashboard/manager/resignations', icon: <ResignIcon />,     group: 'MANAGERIAL' },
-    { label: 'Credit Monitoring', href: '/dashboard/manager/credit',    icon: <CreditIcon />,       group: 'REPORTING' },
-    { label: 'Financial Reports', href: '/dashboard/manager/finance',   icon: <FinanceIcon />,      group: 'REPORTING' },
+    { label: 'Dashboard',        href: '/dashboard/manager',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
+    { label: 'Loan Approvals',   href: '/dashboard/manager/loans',         icon: <LoanApprovalIcon />, group: 'MANAGERIAL' },
+    { label: 'Resign Approvals', href: '/dashboard/manager/resignations',  icon: <ResignIcon />,       group: 'MANAGERIAL' },
+    { label: 'Credit Monitoring',href: '/dashboard/manager/credit',        icon: <CreditIcon />,       group: 'REPORTING' },
+    { label: 'Financial Reports',href: '/dashboard/manager/finance',       icon: <FinanceIcon />,      group: 'REPORTING' },
   ],
   CHAIRMAN: [
-    { label: 'Dashboard',      href: '/dashboard/chairman',             icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    { label: 'Financial Reports', href: '/dashboard/chairman/finance',  icon: <FinanceIcon />,      group: 'REPORTING' },
-    { label: 'Credit Monitoring', href: '/dashboard/chairman/credit',   icon: <CreditIcon />,       group: 'REPORTING' },
+    { label: 'Dashboard',        href: '/dashboard/chairman',              icon: <DashboardIcon />,  group: 'OVERVIEW' },
+    { label: 'Financial Reports',href: '/dashboard/chairman/finance',      icon: <FinanceIcon />,    group: 'REPORTING' },
+    { label: 'Credit Monitoring',href: '/dashboard/chairman/credit',       icon: <CreditIcon />,     group: 'REPORTING' },
   ],
 }
 
@@ -119,9 +128,9 @@ interface SidebarProps {
 }
 
 export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: SidebarProps) {
-  const pathname = usePathname()
+  const pathname  = usePathname()
   const [logoutOpen, setLogoutOpen] = useState(false)
-  const navItems = NAV_CONFIG[role] || []
+  const navItems  = NAV_CONFIG[role] || []
 
   // Group nav items
   const groups: Record<string, NavItem[]> = {}
@@ -130,6 +139,17 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
     if (!groups[g]) groups[g] = []
     groups[g].push(item)
   })
+
+  // Active check: savings detail pages should also highlight "Savings Verification"
+  const isActive = (href: string) => {
+    if (href === '/dashboard/staff/verifications/savings') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/verifications/savings/')
+    }
+    if (href === '/dashboard/staff/verification') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/verification/')
+    }
+    return pathname === href
+  }
 
   return (
     <>
@@ -169,20 +189,20 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
               </p>
               <div className="space-y-0.5">
                 {items.map(item => {
-                  const isActive = pathname === item.href
+                  const active = isActive(item.href)
                   return (
                     <Link
                       key={item.href}
                       href={item.href}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium"
                       style={{
-                        backgroundColor: isActive ? '#F1F5F9' : 'transparent',
-                        color: isActive ? '#11447D' : '#525E71',
+                        backgroundColor: active ? '#F1F5F9' : 'transparent',
+                        color: active ? '#11447D' : '#525E71',
                         fontFamily: 'Inter, sans-serif',
-                        fontWeight: isActive ? 600 : 400,
+                        fontWeight: active ? 600 : 400,
                       }}
                     >
-                      <span style={{ color: isActive ? '#11447D' : '#8E99A8' }}>
+                      <span style={{ color: active ? '#11447D' : '#8E99A8' }}>
                         {item.icon}
                       </span>
                       {item.label}
