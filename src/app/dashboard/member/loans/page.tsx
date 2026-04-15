@@ -11,6 +11,7 @@ import {
   type LoanSummary,
   type LoanStatus,
 } from '@/lib/loans-api'
+import { useRouter } from 'next/navigation'
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -100,6 +101,7 @@ function CreditScoreBar({ score, label }: { score: number; label: string }) {
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function LoanOverviewPage() {
+  const router = useRouter()
   const [summary,      setSummary]      = useState<LoanSummary | null>(null)
   const [loans,        setLoans]        = useState<Loan[]>([])
   const [loading,      setLoading]      = useState(true)
@@ -107,13 +109,30 @@ export default function LoanOverviewPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [searchText,   setSearchText]   = useState('')
   const [searchQ,      setSearchQ]      = useState('')
+  const [memberStatus, setMemberStatus] = useState<string | null>(null)
+  const [hasBadDebt,   setHasBadDebt]   = useState(false)
+  const [blockModal,   setBlockModal]   = useState<'inactive' | 'bad_debt' | null>(null)
+
 
   // profile for sidebar
   const [profile, setProfile] = useState<{ full_name: string; member_id: string | null; profile_picture: string | null } | null>(null)
 
   useEffect(() => {
-    api.get('/members/profile/').then(r => setProfile(r.data)).catch(() => {})
+    api.get('/members/profile/').then(r => {
+      setProfile(r.data)
+      setMemberStatus(r.data.status)
+    }).catch(() => {})
+
+    api.get('/loans/create/').then(r => {
+      setHasBadDebt(r.data.has_bad_debt)
+    }).catch(() => {})
   }, [])
+
+  function handleAjukanPinjaman() {
+    if (hasBadDebt) { setBlockModal('bad_debt'); return }
+    if (memberStatus !== 'ACTIVE') { setBlockModal('inactive'); return }
+    router.push('/dashboard/member/loans/apply')
+}
 
   const load = useCallback(async (status: string, q: string) => {
     setLoading(true); setError('')
@@ -155,8 +174,8 @@ export default function LoanOverviewPage() {
               Manage and track your active loan applications and payments.
             </p>
           </div>
-          <Link
-            href="/dashboard/member/loans/apply"
+          <button
+            onClick={handleAjukanPinjaman}
             className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
             style={{ backgroundColor: '#242F43', color: '#fff', fontFamily: 'Montserrat, sans-serif' }}
           >
@@ -164,7 +183,7 @@ export default function LoanOverviewPage() {
               <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
             </svg>
             Ajukan Pinjaman
-          </Link>
+          </button>
         </div>
 
         {/* Summary Cards */}
@@ -288,11 +307,11 @@ export default function LoanOverviewPage() {
                 {searchQ ? `Tidak ada pinjaman untuk "${searchQ}"` : 'Belum ada pinjaman.'}
               </p>
               {!searchQ && (
-                <Link href="/dashboard/member/loans/apply"
+                <button onClick={handleAjukanPinjaman}
                   className="inline-block text-sm font-bold underline"
                   style={{ color: '#11447D' }}>
                   Ajukan pinjaman pertama →
-                </Link>
+                </button>
               )}
             </div>
           ) : (
@@ -372,6 +391,51 @@ export default function LoanOverviewPage() {
             Loans with &quot;Pending&quot; status usually take 1–3 business days for initial review by the board.
           </p>
         </div>
+
+        {blockModal && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4"
+            style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
+            <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
+              <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
+                style={{ backgroundColor: blockModal === 'bad_debt' ? '#FEE2E2' : '#FEF3C7' }}>
+                {blockModal === 'bad_debt' ? (
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#EF4444" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
+                  </svg>
+                ) : (
+                  <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#F59E0B" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                  </svg>
+                )}
+              </div>
+              <h3 className="font-bold text-lg mb-2"
+                style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+                {blockModal === 'bad_debt' ? 'Pengajuan Tidak Dapat Dilakukan' : 'Keanggotaan Belum Aktif'}
+              </h3>
+              <p className="text-sm mb-6 leading-relaxed"
+                style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                {blockModal === 'bad_debt'
+                  ? 'Anda memiliki riwayat kredit macet. Pengajuan pinjaman baru tidak dapat dilakukan hingga kredit macet diselesaikan. Hubungi admin koperasi untuk informasi lebih lanjut.'
+                  : 'Keanggotaan Anda belum aktif. Pastikan simpanan pokok sudah diverifikasi oleh petugas untuk mengaktifkan keanggotaan.'}
+              </p>
+              {blockModal === 'inactive' && (
+                <button
+                  onClick={() => { setBlockModal(null); router.push('/dashboard/member/savings') }}
+                  className="w-full py-3 rounded-xl font-bold text-sm mb-2 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+                  Lihat Status Simpanan
+                </button>
+              )}
+              <button onClick={() => setBlockModal(null)}
+                className="w-full py-2.5 rounded-xl font-semibold text-sm hover:bg-gray-50"
+                style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                Tutup
+              </button>
+            </div>
+          </div>
+        )}
 
       </main>
     </DashboardLayout>
