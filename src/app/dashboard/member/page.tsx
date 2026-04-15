@@ -1,8 +1,10 @@
 'use client'
 
+import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
+import api from '@/lib/axios'
 
 // ── Placeholder icons ──────────────────────────────────────────────────────
 const SavingsIcon = () => (
@@ -23,7 +25,7 @@ const StatusIcon = () => (
   </svg>
 )
 
-// ── Mock data (diganti API nanti) ──────────────────────────────────────────
+// ── Mock data  ──────────────────────────────────────────
 const MOCK_TRANSACTIONS = [
   { id: 'TRX-SV-0001', date: 'Oct 24, 2023', description: 'Monthly Mandatory Deposit', type: 'CREDIT', amount: 'Rp 100.000' },
   { id: 'TRX-INS-0012', date: 'Oct 20, 2023', description: 'Loan Installment #LN-2023-001', type: 'DEBIT', amount: 'Rp 250.000' },
@@ -31,9 +33,22 @@ const MOCK_TRANSACTIONS = [
 ]
 
 export default function MemberDashboardPage() {
-  // TODO: ganti dengan data dari API /api/dashboards/member/ dan user session
-  const userName = 'Budi Santoso'
-  const memberId = '#MBR-0001'
+  const [profile, setProfile] = useState<{ full_name: string; member_id: string | null; profile_picture: string | null } | null>(null)
+
+  useEffect(() => {
+    const fetchProfile = async () => {
+      try {
+        const res = await api.get('/members/profile/')
+        setProfile(res.data)
+      } catch (err) {
+        console.error('Gagal memuat profil', err)
+      }
+    }
+    fetchProfile()
+  }, [])
+
+  const userName = profile?.full_name || 'Member'
+  const memberId = profile?.member_id ? `#${profile.member_id}` : ''
 
   return (
     <DashboardLayout role="MEMBER" userName={userName} userID={memberId}>

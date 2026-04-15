@@ -11,7 +11,7 @@ const schema = z.object({
   full_name: z.string().min(1, 'Nama lengkap wajib diisi'),
   place_of_birth: z.string().min(1, 'Tempat lahir wajib diisi'),
   date_of_birth: z.string().min(1, 'Tanggal lahir wajib diisi'),
-  gender: z.enum(['M', 'F'], { required_error: 'Gender wajib dipilih' }),
+  gender: z.enum(['M', 'F'], { error: 'Gender wajib dipilih' }),
   occupation: z.string().min(1, 'Pekerjaan wajib diisi'),
 })
 
