@@ -125,6 +125,128 @@ export interface LoanOverviewResponse {
   loans:   Loan[]
 }
 
+export interface ManagerPendingLoanItem {
+  id: number
+  loan_id: string
+  member_name: string
+  category: LoanCategory
+  category_display: string
+  amount: string
+  tenor: number
+  application_date: string
+  status: LoanStatus
+}
+
+export interface ManagerLoanHistoryItem extends ManagerPendingLoanItem {
+  reviewed_at: string | null
+  reviewed_by_email: string | null
+  rejection_reason: string
+}
+
+export interface ManagerLoanSummary {
+  total_pending: number
+  total_requested_amount: string
+  total_approved: number
+  total_unverified_installments: number
+  total_overdue: number
+}
+
+export interface ManagerLoanActivityItem {
+  month: string
+  total: number
+}
+
+export interface ManagerNearDueLoanItem {
+  id: number
+  member_name: string
+  loan_id: string
+  remaining_balance: string
+  due_date: string
+  status: LoanStatus
+  status_display: string
+  detail_url: string
+}
+
+export interface ManagerPendingLoansResponse {
+  summary: ManagerLoanSummary
+  pending_loans: {
+    count: number
+    total_pages: number
+    current_page: number
+    page_size: number
+    next: string | null
+    previous: string | null
+    results: ManagerPendingLoanItem[]
+  }
+  history_loans: ManagerLoanHistoryItem[]
+  all_loans: {
+    count: number
+    total_pages: number
+    current_page: number
+    page_size: number
+    next: string | null
+    previous: string | null
+    results: ManagerAllLoanItem[]
+  }
+  loan_activity_barchart: ManagerLoanActivityItem[]
+  near_due_loans: ManagerNearDueLoanItem[]
+}
+
+export interface ManagerAllLoanItem {
+  id: number
+  member_name: string
+  loan_id: string
+  remaining_balance: string
+  due_date: string | null
+  status: LoanStatus
+  status_display: string
+}
+
+export interface ManagerLoanDetail {
+  id: number
+  loan_id: string
+  member_name: string
+  application_date: string
+  status: LoanStatus
+  status_display: string
+  amount: string
+  tenor: number
+  category: LoanCategory
+  category_display: string
+  description: string
+  credit_score: CreditScore
+  total_savings: string
+  active_loans_count: number
+  bad_debt_history_count: number
+  collateral_image_url: string | null
+  salary_slip_url: string | null
+}
+
+export interface ManagerLoanDetailHistoryItem {
+  id: number
+  loan_id: string
+  amount: string
+  status: LoanStatus
+  status_display: string
+  application_date: string
+}
+
+export interface ManagerLoanDetailResponse {
+  loan: ManagerLoanDetail
+  member_previous_loans: ManagerLoanDetailHistoryItem[]
+  scorecard: {
+    eligibility_score: number
+    indicators: Array<{
+      label: string
+      value: number | string
+    }>
+  }
+  risk_assessment: Array<{
+    label: string
+    passed: boolean
+  }>
+}
+
 // ── API calls ─────────────────────────────────────────────────────────────
 
 /** GET /api/loans/ */
@@ -166,5 +288,38 @@ export async function createLoan(payload: LoanCreatePayload): Promise<Loan> {
 /** GET /api/loans/simulation/?amount=&tenor= */
 export async function getSimulation(amount: number, tenor: number): Promise<LoanSimulation> {
   const { data } = await api.get('/loans/simulation/', { params: { amount, tenor } })
+  return data
+}
+
+/** GET /api/manager/loans/pending/ */
+export async function getManagerPendingLoans(params?: {
+  page?: number
+  page_size?: number
+  search?: string
+  sort?: 'application_date' | '-application_date'
+  history_limit?: number
+  history_search?: string
+  history_status?: 'APPROVED' | 'REJECTED'
+  all_page?: number
+  all_page_size?: number
+  all_search?: string
+  all_status?: LoanStatus
+}): Promise<ManagerPendingLoansResponse> {
+  const { data } = await api.get('/manager/loans/pending/', { params })
+  return data
+}
+
+/** GET /api/manager/loans/{id}/ */
+export async function getManagerLoanDetail(id: number): Promise<ManagerLoanDetailResponse> {
+  const { data } = await api.get(`/manager/loans/${id}/`)
+  return data
+}
+
+/** POST /api/manager/loans/{id}/status/ */
+export async function reviewManagerLoan(
+  id: number,
+  payload: { action: 'approve' | 'reject'; reason?: string }
+): Promise<{ message: string; loan_id: string; status: LoanStatus }> {
+  const { data } = await api.post(`/manager/loans/${id}/status/`, payload)
   return data
 }
