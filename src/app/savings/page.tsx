@@ -26,12 +26,38 @@ type OverviewResponse = {
   results: SavingItem[];
 };
 
-const formatRupiah = (value: string | number) =>
+const fmtRp = (value: string | number) =>
   new Intl.NumberFormat("id-ID", {
     style: "currency",
     currency: "IDR",
-    maximumFractionDigits: 0,
+    minimumFractionDigits: 0,
   }).format(Number(value));
+
+const STATUS_CONFIG: Record<SavingItem["status"], { bg: string; text: string; dot: string; label: string }> = {
+  SUCCESS:  { bg: "#D1FAE5", text: "#065F46", dot: "#10B981", label: "Success" },
+  PENDING:  { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B", label: "Pending" },
+  REJECTED: { bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444", label: "Rejected" },
+};
+
+const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string; label: string }> = {
+  POKOK:    { bg: "#F1F5F9", text: "#525E71", label: "Pokok" },
+  WAJIB:    { bg: "#DBEAFE", text: "#1E40AF", label: "Wajib" },
+  SUKARELA: { bg: "#EDE9FE", text: "#5B21B6", label: "Sukarela" },
+};
+
+const STATUS_FILTERS: { key: "ALL" | SavingItem["status"]; label: string }[] = [
+  { key: "ALL",      label: "Semua" },
+  { key: "SUCCESS",  label: "Success" },
+  { key: "PENDING",  label: "Pending" },
+  { key: "REJECTED", label: "Rejected" },
+];
+
+const TYPE_FILTERS: { key: "ALL" | SavingItem["saving_type"]; label: string }[] = [
+  { key: "ALL",      label: "Semua Tipe" },
+  { key: "POKOK",    label: "Pokok" },
+  { key: "WAJIB",    label: "Wajib" },
+  { key: "SUKARELA", label: "Sukarela" },
+];
 
 export default function SavingsOverviewPage() {
   const [data, setData] = useState<OverviewResponse | null>(null);
@@ -69,7 +95,7 @@ export default function SavingsOverviewPage() {
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
-    return "Kelola dan lacak simpanan wajib dan sukarela kamu.";
+    return "Manage and track your mandatory and voluntary savings.";
   }, [data]);
 
   const visibleTransactions = useMemo(() => {
@@ -88,182 +114,251 @@ export default function SavingsOverviewPage() {
     });
   }, [data, statusFilter, typeFilter, dateSortOrder]);
 
-  const statusLabel = (status: SavingItem["status"]) => {
-    if (status === "SUCCESS") return "Success";
-    if (status === "PENDING") return "Pending";
-    return "Rejected";
-  };
-
   if (loading) {
-    return <p className="text-sm text-zinc-500">Loading data simpanan...</p>;
+    return (
+      <div className="flex justify-center py-20">
+        <div
+          className="w-8 h-8 rounded-full border-2 animate-spin"
+          style={{ borderColor: "#11447D", borderTopColor: "transparent" }}
+        />
+      </div>
+    );
   }
 
   if (error) {
-    return <p className="text-sm text-red-600">{error}</p>;
+    return (
+      <p className="text-sm py-8 text-center" style={{ color: "#EF4444", fontFamily: "Inter, sans-serif" }}>
+        {error}
+      </p>
+    );
   }
 
-  if (!data) {
-    return null;
-  }
+  if (!data) return null;
 
   return (
-    <div className="mx-auto max-w-[1100px]">
-      <div className="mb-6 flex items-start justify-between">
+    <div className="space-y-6">
+      {/* Page header */}
+      <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-[44px] font-bold leading-tight text-zinc-900">Savings Overview</h1>
-          <p className="mt-1 text-zinc-500">{summaryText}</p>
-        </div>
-
-        <div className="flex gap-2">
-          {/* <button
-            onClick={onLogout}
-            className="rounded-lg border border-zinc-300 bg-white px-4 py-2 text-sm font-medium text-zinc-700"
-          >
-            Logout
-          </button> */}
-          <Link
-            href="/savings/deposit"
-            className="inline-flex items-center gap-2 rounded-lg bg-zinc-900 px-4 py-2 text-sm font-semibold text-white"
-          >
-            <span>⊕</span>
-            <span>Tambah Setoran</span>
-          </Link>
-        </div>
-      </div>
-
-      <div className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Total Simpanan Wajib</p>
-          <p className="mt-2 text-4xl font-bold text-zinc-900">{formatRupiah(data.totals.wajib)}</p>
-          <p className="mt-2 text-xs text-zinc-400">*Wajib dibayarkan setiap awal bulan</p>
-        </div>
-
-        <div className="rounded-xl border border-zinc-200 bg-white p-6 shadow-sm">
-          <p className="text-xs font-semibold uppercase tracking-wide text-zinc-500">Total Simpanan Sukarela</p>
-          <p className="mt-2 text-4xl font-bold text-zinc-900">{formatRupiah(data.totals.sukarela)}</p>
-          <p className="mt-2 text-xs text-zinc-400">*Dapat disetorkan kapan saja secara fleksibel</p>
-        </div>
-      </div>
-
-      <div className="mt-6 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
-        <div className="flex items-center justify-between border-b border-zinc-200 px-5 py-4">
-          <h2 className="text-[32px] font-semibold leading-tight text-zinc-900">Recent Savings History</h2>
-          <div className="flex items-center gap-2">
-            <select
-              className="h-8 rounded-md border border-zinc-200 px-2 text-xs text-zinc-700"
-              value={typeFilter}
-              onChange={(event) => setTypeFilter(event.target.value as "ALL" | SavingItem["saving_type"])}
-            >
-              <option value="ALL">Semua Tipe</option>
-              <option value="POKOK">Pokok</option>
-              <option value="WAJIB">Wajib</option>
-              <option value="SUKARELA">Sukarela</option>
-            </select>
-
-            <select
-              className="h-8 rounded-md border border-zinc-200 px-2 text-xs text-zinc-700"
-              value={statusFilter}
-              onChange={(event) => setStatusFilter(event.target.value as "ALL" | SavingItem["status"])}
-            >
-              <option value="ALL">Semua Status</option>
-              <option value="SUCCESS">Success</option>
-              <option value="PENDING">Pending</option>
-              <option value="REJECTED">Rejected</option>
-            </select>
-          </div>
-        </div>
-
-        {visibleTransactions.length === 0 ? (
-          <p className="px-5 py-8 text-sm text-zinc-500">
-            {data.results.length === 0
-              ? "Belum ada transaksi simpanan."
-              : "Tidak ada transaksi yang sesuai filter."}
+          <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+            Savings Overview
+          </h2>
+          <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+            {summaryText}
           </p>
+        </div>
+        <Link
+          href="/savings/deposit"
+          className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+          style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
+        >
+          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+          </svg>
+          Tambah Setoran
+        </Link>
+      </div>
+
+      {/* Summary cards */}
+      <div className="grid grid-cols-2 gap-5">
+        <div className="bg-white rounded-2xl p-6 flex flex-col gap-2" style={{ border: "1px solid #F1F5F9" }}>
+          <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+            Total Simpanan Wajib
+          </p>
+          <p className="font-bold text-2xl" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+            {fmtRp(data.totals.wajib)}
+          </p>
+          <p className="text-xs" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+            *Wajib dibayarkan setiap awal bulan
+          </p>
+        </div>
+
+        <div className="bg-white rounded-2xl p-6 flex flex-col gap-2" style={{ border: "1px solid #F1F5F9" }}>
+          <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+            Total Simpanan Sukarela
+          </p>
+          <p className="font-bold text-2xl" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+            {fmtRp(data.totals.sukarela)}
+          </p>
+          <p className="text-xs" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+            *Dapat disetorkan kapan saja secara fleksibel
+          </p>
+        </div>
+      </div>
+
+      {/* Table card */}
+      <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #F1F5F9" }}>
+
+        {/* Toolbar */}
+        <div className="px-6 py-3 flex flex-wrap items-center gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
+          
+          {/* Status pill filters */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="px-3 py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+              Status Transaksi
+            </p>
+            {STATUS_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setStatusFilter(f.key)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: statusFilter === f.key ? "#242F43" : "#F1F5F9",
+                  color: statusFilter === f.key ? "#fff" : "#525E71",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <div className="h-4 w-px" style={{ backgroundColor: "#E5E7EB" }} />
+
+          {/* Type pill filters */}
+          <div className="flex items-center gap-1.5 flex-wrap">
+            <p className="px-3 py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+              Jenis Simpanan
+            </p>
+            {TYPE_FILTERS.map((f) => (
+              <button
+                key={f.key}
+                type="button"
+                onClick={() => setTypeFilter(f.key)}
+                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
+                style={{
+                  backgroundColor: typeFilter === f.key ? "#11447D" : "#F1F5F9",
+                  color: typeFilter === f.key ? "#fff" : "#525E71",
+                  fontFamily: "Inter, sans-serif",
+                }}
+              >
+                {f.label}
+              </button>
+            ))}
+          </div>
+
+          <span className="ml-auto text-xs" style={{ color: "#B0BAC5", fontFamily: "Inter, sans-serif" }}>
+            {visibleTransactions.length} transaksi
+          </span>
+        </div>
+
+        {/* Table */}
+        {visibleTransactions.length === 0 ? (
+          <div className="py-16 text-center">
+            <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+              {data.results.length === 0
+                ? "Belum ada transaksi simpanan."
+                : "Tidak ada transaksi yang sesuai filter."}
+            </p>
+          </div>
         ) : (
           <div className="overflow-x-auto">
-            <table className="min-w-full text-sm">
-              <thead className="bg-zinc-50 text-left text-xs uppercase text-zinc-500">
-                <tr>
-                  <th className="px-5 py-3">
+            <table className="w-full">
+              <thead>
+                <tr style={{ borderBottom: "1px solid #F1F5F9" }}>
+                  <th className="px-5 py-3 text-left text-xs font-semibold tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
                     <button
                       type="button"
-                      className="inline-flex items-center gap-1 font-semibold"
+                      className="inline-flex items-center gap-1"
                       onClick={() => setDateSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
                     >
-                      <span>Date</span>
-                      <span>{dateSortOrder === "desc" ? "↓" : "↑"}</span>
+                      DATE {dateSortOrder === "desc" ? "↓" : "↑"}
                     </button>
                   </th>
-                  <th className="px-5 py-3">Type</th>
-                  <th className="px-5 py-3">Amount</th>
-                  <th className="px-5 py-3">Status</th>
-                  <th className="px-5 py-3">Action</th>
+                  {["TYPE", "AMOUNT", "STATUS", "ACTION"].map((h) => (
+                    <th key={h} className="px-5 py-3 text-left text-xs font-semibold tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {visibleTransactions.map((item) => (
-                  <tr key={item.id} className="border-t border-zinc-100">
-                    <td className="px-5 py-3 text-zinc-800">
-                      {new Date(item.submitted_at).toLocaleDateString("id-ID", {
-                        day: "2-digit",
-                        month: "short",
-                        year: "numeric",
-                      })}
-                    </td>
-                    <td className="px-5 py-3">
-                      <span className="rounded bg-zinc-100 px-2 py-1 text-xs font-medium text-zinc-700">{item.saving_type === "SUKARELA" ? "Sukarela" : item.saving_type === "WAJIB" ? "Wajib" : "Pokok"}</span>
-                    </td>
-                    <td className="px-5 py-3 font-semibold text-zinc-800">{formatRupiah(item.amount)}</td>
-                    <td className="px-5 py-3">
-                      <span
-                        className={`rounded-full px-3 py-1 text-xs font-semibold ${
-                          item.status === "SUCCESS"
-                            ? "bg-green-100 text-green-700"
-                            : item.status === "PENDING"
-                            ? "bg-yellow-100 text-yellow-700"
-                            : "bg-red-100 text-red-700"
-                        }`}
-                      >
-                        {statusLabel(item.status)}
-                      </span>
-                    </td>
-                    <td className="px-5 py-3 text-zinc-800">
-                      {item.transfer_proof_url ? (
-                        <a
-                          href={item.transfer_proof_url}
-                          target="_blank"
-                          rel="noreferrer"
-                          className="rounded border border-zinc-300 px-2 py-1 text-xs font-medium hover:bg-zinc-50"
+                {visibleTransactions.map((item, i) => {
+                  const st = STATUS_CONFIG[item.status];
+                  const ty = TYPE_CONFIG[item.saving_type];
+                  return (
+                    <tr
+                      key={item.id}
+                      className="hover:bg-[#FAFAFA] transition-colors"
+                      style={{ borderBottom: i < visibleTransactions.length - 1 ? "1px solid #F8FAFC" : "none" }}
+                    >
+                      <td className="px-5 py-4 text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                        {new Date(item.submitted_at).toLocaleDateString("id-ID", {
+                          day: "2-digit",
+                          month: "short",
+                          year: "numeric",
+                        })}
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-md"
+                          style={{ backgroundColor: ty.bg, color: ty.text, fontFamily: "Inter, sans-serif" }}
                         >
-                          Lihat Bukti
-                        </a>
-                      ) : (
-                        <span className="text-xs text-zinc-400">-</span>
-                      )}
-                    </td>
-                  </tr>
-                ))}
+                          {ty.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span className="font-bold text-sm" style={{ color: "#242F43", fontFamily: "Montserrat, sans-serif" }}>
+                          {fmtRp(item.amount)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        <span
+                          className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
+                          style={{ backgroundColor: st.bg, color: st.text, fontFamily: "Inter, sans-serif" }}
+                        >
+                          <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                          {st.label}
+                        </span>
+                      </td>
+                      <td className="px-5 py-4">
+                        {item.transfer_proof_url ? (
+                          <a
+                            href={item.transfer_proof_url}
+                            target="_blank"
+                            rel="noreferrer"
+                            className="text-sm font-bold transition-opacity hover:opacity-60"
+                            style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                          >
+                            Lihat Bukti →
+                          </a>
+                        ) : (
+                          <span className="text-xs" style={{ color: "#B0BAC5" }}>—</span>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
               </tbody>
             </table>
           </div>
         )}
 
-        <div className="flex items-center justify-between border-t border-zinc-200 px-5 py-3 text-sm text-zinc-500">
-          <p>Showing {visibleTransactions.length} of {data.count} transactions</p>
+        {/* Pagination */}
+        <div
+          className="flex items-center justify-between px-6 py-3"
+          style={{ borderTop: "1px solid #F1F5F9" }}
+        >
+          <p className="text-xs" style={{ color: "#B0BAC5", fontFamily: "Inter, sans-serif" }}>
+            Showing {visibleTransactions.length} of {data.count} transactions
+          </p>
           <div className="flex gap-2">
             <button
-              className="rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
               disabled={!data.previous}
+              className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ border: "1px solid #E5E7EB", color: "#525E71", fontFamily: "Inter, sans-serif" }}
             >
-              Previous
+              ← Previous
             </button>
             <button
-              className="rounded-md border border-zinc-200 bg-white px-3 py-1 font-semibold text-zinc-900 disabled:cursor-not-allowed disabled:opacity-50"
               onClick={() => setPage((prev) => prev + 1)}
               disabled={!data.next}
+              className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
+              style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Inter, sans-serif" }}
             >
-              Next
+              Next →
             </button>
           </div>
         </div>

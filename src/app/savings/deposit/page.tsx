@@ -11,25 +11,20 @@ import Modal from "@/components/ui/Modal";
 type MemberStatus = "VERIFIED" | "ACTIVE" | "PENDING" | "REJECTED";
 type SavingType = "POKOK" | "WAJIB" | "SUKARELA";
 
-type BankAccount = {
-  id: number;
+type CooperativeBankAccount = {
   bank_name: string;
   account_number: string;
   account_holder: string;
-  is_primary: boolean;
-};
-
-type MemberProfile = {
-  bank_accounts: BankAccount[];
 };
 
 type OverviewResponse = {
   member_status: MemberStatus;
+  bank_account: CooperativeBankAccount | null;
 };
 
 export default function DepositPage() {
   const [memberStatus, setMemberStatus] = useState<MemberStatus | null>(null);
-  const [bankAccount, setBankAccount] = useState<BankAccount | null>(null);
+  const [bankAccount, setBankAccount] = useState<CooperativeBankAccount | null>(null);
   const [savingType, setSavingType] = useState<SavingType>("POKOK");
   const [amount, setAmount] = useState("150000");
   const [memberBankName, setMemberBankName] = useState("");
@@ -66,22 +61,12 @@ export default function DepositPage() {
       }
 
       try {
-        const [overviewResponse, profileResponse] = await Promise.all([
-          api.get<OverviewResponse>("/savings/overview/"),
-          api.get<MemberProfile>("/members/profile/"),
-        ]);
+        const overviewResponse = await api.get<OverviewResponse>("/savings/overview/");
 
         setMemberStatus(overviewResponse.data.member_status);
-
-        const profileBankAccounts = profileResponse.data.bank_accounts || [];
-        const primary =
-          profileBankAccounts.find((account) => account.is_primary) ||
-          profileBankAccounts[0] ||
-          null;
-
-        setBankAccount(primary);
+        setBankAccount(overviewResponse.data.bank_account ?? null);
       } catch {
-        setError("Gagal mengambil status anggota.");
+        setError("Gagal mengambil data overview simpanan.");
       }
     };
 
@@ -109,12 +94,9 @@ export default function DepositPage() {
 
   const onCopyDetails = async () => {
     if (!primaryBankAccount) {
-      setError("Rekening bank anggota belum tersedia di halaman profil.");
+      setError("Rekening bank koperasi belum tersedia.");
       return;
     }
-
-    setMemberBankName(primaryBankAccount.bank_name);
-    setMemberAccountNumber(primaryBankAccount.account_number);
 
     const payload = `${primaryBankAccount.bank_name} - ${primaryBankAccount.account_number}`;
     try {
@@ -214,7 +196,7 @@ export default function DepositPage() {
               className="mt-6 rounded-md border border-zinc-200 bg-zinc-50 px-3 py-1 text-sm font-medium text-zinc-600"
               onClick={onCopyDetails}
             >
-              ▣ Copy Details
+              ▣ Copy Coop Account
             </button>
           </div>
 
