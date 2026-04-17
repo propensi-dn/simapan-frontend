@@ -116,7 +116,7 @@ function StatusContent() {
           style={{ border: '1px solid #f3f4f6' }}>
           <label className="block text-sm font-semibold mb-1.5"
             style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Email Address
+            Alamat Email
           </label>
           <input
             type="email"
@@ -206,7 +206,7 @@ function StatusContent() {
                     color: '#525E71',
                     fontFamily: 'Montserrat, sans-serif',
                   }}>
-                  {loading ? 'Memeriksa...' : 'Refresh Status'}
+                  {loading ? 'Memeriksa...' : 'Perbarui Status'}
                 </button>
               )}
             </div>
@@ -228,7 +228,7 @@ export default function StatusPage() {
   return (
     <Suspense fallback={
       <div className="min-h-screen flex items-center justify-center" style={{ backgroundColor: '#FBFDFF' }}>
-        <p style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>Loading...</p>
+        <p style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>Memuat...</p>
       </div>
     }>
       <StatusContent />
