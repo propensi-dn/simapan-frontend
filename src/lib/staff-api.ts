@@ -57,6 +57,37 @@ export interface DisbursedLoan {
   disbursed_by_name: string
 }
 
+export interface InstallmentSchedule {
+  installment_number: number
+  due_date: string
+  amount: string
+  principal_component: string
+  interest_component: string
+}
+
+export interface BankAccount {
+  id: number
+  bank_name: string
+  account_number: string
+  account_holder: string
+  is_primary: boolean
+}
+
+export interface LoanDetail {
+  id: number
+  loan_id: string
+  member_name: string
+  amount: string
+  tenor: number
+  status: string
+  status_display: string
+  category_display: string
+  monthly_installment: string
+  total_repayment: string
+  member_bank_account: BankAccount | null
+  installment_schedule: InstallmentSchedule[]
+}
+
 export interface LoanSummary {
   total_approved_loans: number
   total_approved_amount: string
@@ -91,6 +122,12 @@ export async function getDisbursedLoans(params: {
   status?: string
 }): Promise<PaginatedResponse<DisbursedLoan> & { summary: DisbursedSummary }> {
   const { data } = await api.get('/staff/loans/disbursed/', { params })
+  return data
+}
+
+/** GET /api/staff/loans/<id>/detail/ */
+export async function getLoanDetail(id: number): Promise<LoanDetail> {
+  const { data } = await api.get(`/staff/loans/${id}/detail/`)
   return data
 }
 
