@@ -36,6 +36,29 @@ const OverdueIcon = () => (
   </svg>
 )
 
+const BarIcon = ({ height }: { height: number }) => (
+  <div className="flex items-end gap-1 h-10">
+    <div className="flex-1 bg-blue-400 rounded-t" style={{ height: `${height * 8}px`, minHeight: '4px' }} />
+    <div className="flex-1 bg-blue-300 rounded-t" style={{ height: `${Math.max(height * 0.6, 4)}px` }} />
+    <div className="flex-1 bg-blue-500 rounded-t" style={{ height: `${Math.max(height * 0.8, 4)}px` }} />
+  </div>
+)
+
+// ── Format helpers ──────────────────────────────────────────────────────────
+const formatCurrency = (value: string | number): string => {
+  try {
+    const num = typeof value === 'string' ? parseFloat(value) : value
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num)
+  } catch {
+    return String(value)
+  }
+}
+
 const StatusBadge = ({ status }: { status: string }) => {
   const statusColors: Record<string, { bg: string; text: string }> = {
     ACTIVE: { bg: '#D1FAE5', text: '#065F46' },
@@ -53,21 +76,6 @@ const StatusBadge = ({ status }: { status: string }) => {
       {status}
     </span>
   )
-}
-
-// ── Format helpers ──────────────────────────────────────────────────────────
-const formatCurrency = (value: string | number): string => {
-  try {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num)
-  } catch {
-    return String(value)
-  }
 }
 
 // ── Main Page ──────────────────────────────────────────────────────────────

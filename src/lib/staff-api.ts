@@ -149,3 +149,48 @@ export async function disburseLoans(
   const { data } = await api.post(`/staff/loans/${id}/disburse/`, payload || {}, config)
   return data
 }
+
+// ── Loan Dashboard Types ───────────────────────────────────────────────────
+
+export interface LoanActivity {
+  month: string
+  count: number
+  amount: string
+}
+
+export interface UpcomingDueLoan {
+  id: number
+  loan_id: string
+  member_name: string
+  amount: string
+  remaining_balance: string
+  next_due_date: string
+  status: string
+  days_until_due: number
+}
+
+export interface DashboardSummary {
+  total_approved_loans: number
+  total_approved_amount: string
+  total_unverified_installments: number
+  total_unverified_amount: string
+  total_overdue_loans: number
+  total_overdue_amount: string
+}
+
+export interface LoanDashboard {
+  summary: DashboardSummary
+  loan_activities: LoanActivity[]
+  upcoming_due_loans: PaginatedResponse<UpcomingDueLoan>
+}
+
+// ── Loan Dashboard API Functions ────────────────────────────────────────────
+
+/** GET /api/staff/loans/dashboard/ */
+export async function getStaffLoanDashboard(params?: {
+  page?: number
+  page_size?: number
+}): Promise<LoanDashboard> {
+  const { data } = await api.get('/staff/loans/dashboard/', { params })
+  return data
+}
