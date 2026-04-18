@@ -40,10 +40,10 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
     <div className="max-w-2xl mx-auto bg-white rounded-2xl p-10" style={{ border: '1px solid #f3f4f6' }}>
       <div className="mb-8">
         <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-          Informasi Pribadi
+          Personal Information
         </h2>
         <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-          Silakan isi data diri Anda dengan benar.
+          Please provide your valid contact details so we can reach out to you.
         </p>
       </div>
 
@@ -51,11 +51,11 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
         {/* Full Name */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Nama Lengkap
+            Full Name
           </label>
           <input
             {...register('full_name')}
-            placeholder="contoh: Budi Santoso"
+            placeholder="e.g. John Doe"
             className="input-base"
           />
           {errors.full_name && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.full_name.message}</p>}
@@ -64,11 +64,11 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
         {/* Place of Birth */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Tempat Lahir
+            Place of Birth
           </label>
           <input
             {...register('place_of_birth')}
-            placeholder="Kota"
+            placeholder="City"
             className="input-base"
           />
           {errors.place_of_birth && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.place_of_birth.message}</p>}
@@ -77,7 +77,7 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
         {/* Date of Birth */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Tanggal Lahir
+            Date of Birth
           </label>
           <input
             {...register('date_of_birth')}
@@ -90,7 +90,7 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
         {/* Gender */}
         <div>
           <label className="block text-sm font-semibold mb-3" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Jenis Kelamin
+            Gender
           </label>
           <div className="flex gap-8">
             <label className="flex items-center gap-2 cursor-pointer">
@@ -101,7 +101,7 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
                 className="w-4 h-4 cursor-pointer"
                 style={{ accentColor: '#242F43' }}
               />
-              <span className="text-sm" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>Laki-laki</span>
+              <span className="text-sm" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>Male</span>
             </label>
             <label className="flex items-center gap-2 cursor-pointer">
               <input
@@ -111,7 +111,7 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
                 className="w-4 h-4 cursor-pointer"
                 style={{ accentColor: '#242F43' }}
               />
-              <span className="text-sm" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>Perempuan</span>
+              <span className="text-sm" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>Female</span>
             </label>
           </div>
           {errors.gender && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.gender.message}</p>}
@@ -120,11 +120,11 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
         {/* Occupation */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Pekerjaan
+            Occupation
           </label>
           <input
             {...register('occupation')}
-            placeholder="Pekerjaan saat ini"
+            placeholder="Current job title"
             className="input-base"
           />
           {errors.occupation && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.occupation.message}</p>}
@@ -137,7 +137,7 @@ export default function Step1BasicInfo({ defaultValues, onNext }: Props) {
             className="px-8 py-3 rounded-xl font-bold text-sm text-white transition-all"
             style={{ backgroundColor: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
           >
-            Lanjut
+            Next
           </button>
         </div>
       </form>
