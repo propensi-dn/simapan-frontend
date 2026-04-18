@@ -10,9 +10,9 @@ const MAX_SIZE = 5 * 1024 * 1024 // 5MB
 
 const schema = z.object({
   nik: z.string()
-    .min(16, 'NIK harus 16 digit')
-    .max(16, 'NIK harus 16 digit')
-    .regex(/^\d+$/, 'NIK hanya boleh berisi angka'),
+    .min(16, 'NIK must be 16 digits')
+    .max(16, 'NIK must be 16 digits')
+    .regex(/^\d+$/, 'NIK must contain numbers only'),
 })
 
 type FormData = z.infer<typeof schema>
@@ -72,7 +72,7 @@ function FileUploadZone({
 
   const handleFile = (file: File) => {
     setFileError('')
-    if (file.size > MAX_SIZE) { setFileError('Ukuran file tidak boleh lebih dari 5MB'); return }
+    if (file.size > MAX_SIZE) { setFileError('File size must not exceed 5MB'); return }
     const reader = new FileReader()
     reader.onload = () => onChange(file, reader.result as string)
     reader.readAsDataURL(file)
@@ -105,7 +105,7 @@ function FileUploadZone({
           <div className="flex items-center gap-1.5">
             <span style={{ color: '#10B981' }}><CheckIcon /></span>
             <span className="text-xs font-semibold" style={{ color: '#10B981', fontFamily: 'Inter, sans-serif' }}>
-              Terunggah
+              Uploaded
             </span>
           </div>
         )}
@@ -141,9 +141,9 @@ function FileUploadZone({
               {hint}
             </p>
             <p className="text-xs mt-0.5" style={{ color: '#9CA3AF', fontFamily: 'Inter, sans-serif' }}>
-              Seret & lepas atau{' '}
-              <span style={{ color: '#11447D', fontWeight: 600 }}>klik untuk memilih</span>
-              {' '}— maks. 5MB
+              Drag & drop or{' '}
+              <span style={{ color: '#11447D', fontWeight: 600 }}>click to browse</span>
+              {' '}— max. 5MB
             </p>
           </div>
 
@@ -185,12 +185,12 @@ function FileUploadZone({
               <button type="button" onClick={() => inputRef.current?.click()}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
                 style={{ backgroundColor: '#F3F4F6', color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-                <SwapIcon /> Ganti
+                <SwapIcon /> Replace
               </button>
               <button type="button" onClick={handleRemove}
                 className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold"
                 style={{ backgroundColor: '#FEF2F2', color: '#EF4444', fontFamily: 'Inter, sans-serif' }}>
-                <TrashIcon /> Hapus
+                <TrashIcon /> Remove
               </button>
             </div>
           </div>
@@ -213,7 +213,7 @@ function FileUploadZone({
           style={{ backgroundColor: '#f9fafb', borderLeft: '3px solid #d1d5db' }}>
           <p className="text-xs font-bold mb-1.5"
             style={{ color: '#6b7280', fontFamily: 'Inter, sans-serif', letterSpacing: '0.05em' }}>
-            KETENTUAN:
+            REQUIREMENTS:
           </p>
           {requirements.map((req, i) => (
             <p key={i} className="text-xs" style={{ color: '#6b7280', fontFamily: 'Inter, sans-serif' }}>
@@ -242,9 +242,9 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
   })
 
   const onSubmit = (data: FormData) => {
-    if (!ktpFile)    { setKtpError('Foto KTP wajib diunggah');   return }
+    if (!ktpFile)    { setKtpError('ID card photo is required');   return }
     setKtpError('')
-    if (!selfieFile) { setSelfieError('Foto selfie wajib diunggah'); return }
+    if (!selfieFile) { setSelfieError('Selfie photo is required'); return }
     setSelfieError('')
     onNext({ ...data, ktp_image: ktpFile, selfie_image: selfieFile })
   }
@@ -256,10 +256,10 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
       <div className="mb-8">
         <h2 className="font-bold text-2xl mb-1"
           style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-          Identitas &amp; Dokumen
+          Identity &amp; Documents
         </h2>
         <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-          Silakan unggah foto KTP yang jelas dan foto selfie sambil memegang KTP.
+          Please upload a clear photo of your ID card and a selfie holding it.
         </p>
       </div>
 
@@ -267,14 +267,14 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
 
         {/* KTP Upload */}
         <FileUploadZone
-          label="KTP (Kartu Tanda Penduduk)"
-          hint="Unggah foto KTP Anda"
+          label="ID Card (KTP)"
+          hint="Upload a photo of your National ID Card"
           accept=".jpg,.jpeg,.png,.pdf"
           acceptLabels={['JPG', 'PNG', 'PDF']}
           requirements={[
-            'KTP harus masih berlaku dan valid',
-            'Semua teks dan detail harus terlihat jelas',
-            'Ukuran file maksimum: 5MB',
+            'Must be a valid, non-expired National ID Card (KTP)',
+            'All text and details must be clearly legible',
+            'Max file size: 5MB',
           ]}
           value={ktpFile}
           preview={ktpPreview}
@@ -287,11 +287,11 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
         <div>
           <label className="block text-sm font-semibold mb-1.5"
             style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            NIK (Nomor Induk Kependudukan)
+            NIK (National ID Number)
           </label>
           <input
             {...register('nik')}
-            placeholder="Masukkan 16 digit NIK"
+            placeholder="Enter your 16-digit NIK"
             inputMode="numeric"
             maxLength={16}
             className="input-base"
@@ -303,14 +303,14 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
 
         {/* Selfie Upload */}
         <FileUploadZone
-          label="Selfie dengan KTP"
-          hint="Unggah foto Anda sambil memegang KTP"
+          label="Selfie with ID Card"
+          hint="Upload a photo of yourself holding your ID card"
           accept=".jpg,.jpeg,.png"
           acceptLabels={['JPG', 'PNG']}
           requirements={[
-            'Wajah dan KTP harus terlihat jelas',
-            'Foto tidak boleh buram atau gelap',
-            'Ukuran file maksimum: 5MB',
+            'Your face and ID card must both be clearly visible',
+            'Photo must not be blurry or poorly lit',
+            'Max file size: 5MB',
           ]}
           value={selfieFile}
           preview={selfiePreview}
@@ -332,14 +332,14 @@ export default function Step3Documents({ defaultValues, onNext, onBack }: Props)
               fontFamily: 'Montserrat, sans-serif',
             }}
           >
-            Kembali
+            Back
           </button>
           <button
             type="submit"
             className="px-8 py-3 rounded-xl font-bold text-sm text-white transition-all"
             style={{ backgroundColor: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
           >
-            Lanjut
+            Next Step
           </button>
         </div>
 
