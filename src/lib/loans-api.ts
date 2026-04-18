@@ -323,3 +323,108 @@ export async function reviewManagerLoan(
   const { data } = await api.post(`/manager/loans/${id}/status/`, payload)
   return data
 }
+
+// Bayar Pinjaman Types dan API calls
+
+export interface PayActiveLoan {
+  id: number
+  loan_id: string
+  category: LoanCategory
+  category_display: string
+  amount: string
+  outstanding_balance: string
+  status: LoanStatus
+  status_display: string
+  next_installment_id: number | null
+  next_installment_amount: string | null
+  next_due_date: string | null
+}
+
+export interface PayInstallmentInfo {
+  id: number
+  loan_id: string
+  loan_pk: number
+  installment_number: number
+  due_date: string
+  amount: string
+  principal_component: string
+  interest_component: string
+  status: InstallmentStatus
+}
+
+export interface PayPaymentHistoryItem {
+  id: number
+  loan_id: string
+  installment_number: number
+  amount: string
+  status: InstallmentStatus
+  paid_at: string | null
+  submitted_at: string | null
+  transaction_id: string | null
+}
+
+export interface PayCooperativeBank {
+  bank_name: string
+  account_number: string
+  account_holder: string
+}
+
+export interface PaySavingsInfo {
+  total_pokok: string
+  total_wajib: string
+  total_sukarela: string
+  total_overall: string
+}
+
+export interface PayInfoResponse {
+  selected_installment: PayInstallmentInfo
+  active_loans: PayActiveLoan[]
+  payment_history: PayPaymentHistoryItem[]
+  cooperative_bank: PayCooperativeBank | null
+  savings: PaySavingsInfo
+  member_bank_accounts: BankAccount[]
+}
+
+export interface PaySubmitResponse {
+  message: string
+  installment: {
+    id: number
+    loan_id: string
+    installment_number: number
+    due_date: string
+    amount: string
+    status: InstallmentStatus
+  }
+  payment_method: 'BANK_TRANSFER' | 'SAVINGS'
+  remaining_sukarela?: string
+}
+
+/** GET /api/installments/{id}/pay/ */
+export async function getPayInfo(installmentId: number): Promise<PayInfoResponse> {
+  const { data } = await api.get(`/installments/${installmentId}/pay/`)
+  return data
+}
+
+/** POST /api/installments/{id}/pay/ (bank transfer) */
+export async function payInstallmentBankTransfer(
+  installmentId: number,
+  payload: { transfer_proof: File; bank_account?: number | null }
+): Promise<PaySubmitResponse> {
+  const fd = new FormData()
+  fd.append('payment_method', 'BANK_TRANSFER')
+  fd.append('transfer_proof', payload.transfer_proof)
+  if (payload.bank_account) fd.append('bank_account', String(payload.bank_account))
+
+  const { data } = await api.post(`/installments/${installmentId}/pay/`, fd)
+  return data
+}
+
+/** POST /api/installments/{id}/pay/ (savings) */
+export async function payInstallmentSavings(
+  installmentId: number
+): Promise<PaySubmitResponse> {
+  const { data } = await api.post(`/installments/${installmentId}/pay/`, {
+    payment_method: 'SAVINGS',
+  })
+  return data
+}
