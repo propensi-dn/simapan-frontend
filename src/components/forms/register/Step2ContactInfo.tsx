@@ -39,10 +39,10 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
     <div className="max-w-2xl mx-auto bg-white rounded-2xl p-10" style={{ border: '1px solid #f3f4f6' }}>
       <div className="mb-8">
         <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-          Informasi Kontak
+          Contact Information
         </h2>
         <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-          Silakan isi detail kontak aktif agar kami dapat menghubungi Anda.
+          Please provide your valid contact details so we can reach out to you.
         </p>
       </div>
 
@@ -50,11 +50,11 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
         {/* Phone Number */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Nomor Telepon
+            Phone Number
           </label>
           <input
             {...register('phone_number')}
-            placeholder="contoh: 0812..."
+            placeholder="e.g. 0812..."
             inputMode="numeric"
             className="input-base"
           />
@@ -64,11 +64,11 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
         {/* Home Address */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Alamat Rumah
+            Home Address
           </label>
           <textarea
             {...register('home_address')}
-            placeholder="Nama jalan, nomor rumah..."
+            placeholder="Street name, house number..."
             rows={3}
             className="input-base resize-none"
           />
@@ -79,22 +79,22 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
         <div className="grid grid-cols-2 gap-4">
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-              Kota
+              City
             </label>
             <input
               {...register('city')}
-              placeholder="contoh: Jakarta"
+              placeholder="e.g. Jakarta"
               className="input-base"
             />
             {errors.city && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.city.message}</p>}
           </div>
           <div>
             <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-              Kode Pos
+              Postal Code
             </label>
             <input
               {...register('postal_code')}
-              placeholder="contoh: 12345"
+              placeholder="e.g. 12345"
               className="input-base"
             />
             {errors.postal_code && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.postal_code.message}</p>}
@@ -114,14 +114,14 @@ export default function Step2ContactInfo({ defaultValues, onNext, onBack }: Prop
               fontFamily: 'Montserrat, sans-serif',
             }}
           >
-            Kembali
+            Back
           </button>
           <button
             type="submit"
             className="px-8 py-3 rounded-xl font-bold text-sm text-white transition-all"
             style={{ backgroundColor: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
           >
-            Lanjut
+            Next Step
           </button>
         </div>
       </form>

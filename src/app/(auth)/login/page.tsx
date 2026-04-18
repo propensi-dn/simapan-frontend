@@ -118,7 +118,7 @@ export default function LoginPage() {
                 SI-MAPAN
               </h1>
               <p className="font-body text-sm text-text-secondary mt-1">
-                Silakan masuk ke akun Anda.
+                Please login to your account.
               </p>
             </div>
 
@@ -126,7 +126,7 @@ export default function LoginPage() {
             <form onSubmit={handleSubmit(onSubmit)} className="space-y-5">
               {/* Email */}
               <Input
-                label="Alamat Email"
+                label="Email Address"
                 type="email"
                 placeholder="name@company.com"
                 leftIcon={<EmailIcon />}
@@ -154,13 +154,13 @@ export default function LoginPage() {
                     className="w-4 h-4 rounded border-gray-300 text-primary focus:ring-primary/20 cursor-pointer"
                     {...register('rememberMe')}
                   />
-                  <span className="font-body text-sm text-text-secondary">Ingat Saya</span>
+                  <span className="font-body text-sm text-text-secondary">Remember Me</span>
                 </label>
                 <Link
                   href="/forgot-password"
                   className="font-body text-sm font-semibold text-text-primary hover:text-primary transition-colors"
                 >
-                  Lupa Password?
+                  Forgot Password?
                 </Link>
               </div>
 
@@ -172,7 +172,7 @@ export default function LoginPage() {
                 disabled={!isValid}
                 className="mt-2 bg-text-primary hover:bg-gray-800 active:bg-gray-900 h-12 text-base"
               >
-                Masuk
+                Login
                 <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
                   <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
                 </svg>
@@ -188,12 +188,12 @@ export default function LoginPage() {
 
             {/* Register link */}
             <p className="text-center font-body text-sm text-text-secondary">
-              Belum punya akun?{' '}
+              Don&apos;t have an account?{' '}
               <Link
                 href="/register"
                 className="font-semibold text-text-primary hover:text-primary transition-colors"
               >
-                Daftar di sini
+                Register here
               </Link>
             </p>
           </div>

@@ -5,10 +5,10 @@ import { usePathname } from 'next/navigation'
 import Button from '@/components/ui/Button'
 
 const navLinks = [
-  { label: 'Beranda', href: '/' },
-  { label: 'Tentang', href: '/about' },
+  { label: 'Home', href: '/' },
+  { label: 'About', href: '/about' },
   { label: 'FAQ', href: '/faq' },
-  { label: 'Cek Status', href: '/status' },
+  { label: 'Check Status', href: '/status' },
 ]
 
 export default function Navbar() {
@@ -51,14 +51,14 @@ export default function Navbar() {
         {/* Register Button */}
         <div className="flex items-center gap-4 shrink-0">
           <Link href="/login" className="hidden sm:block text-p2 font-bold text-text-primary hover:text-primary-500 mr-2">
-            Masuk
+            Login
           </Link>
           <Link href="/register">
             <Button 
               size="sm" 
               className="rounded-xl px-6 bg-secondary-500 hover:bg-secondary-300 active:bg-secondary-600 text-text-primary"
             >
-              Daftar
+              Register
             </Button>
           </Link>
         </div>

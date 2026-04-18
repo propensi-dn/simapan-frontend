@@ -51,7 +51,7 @@ export default function LandingPage() {
       <div className="min-h-screen flex items-center justify-center bg-bg">
         <div className="flex flex-col items-center gap-4">
           <div className="w-12 h-12 border-4 border-primary-200 border-t-primary-950 rounded-full animate-spin"></div>
-          <p className="text-p2 font-bold text-primary-950 tracking-wide">Memuat SI-MAPAN...</p>
+          <p className="text-p2 font-bold text-primary-950 tracking-wide">Loading SI-MAPAN...</p>
         </div>
       </div>
     )
@@ -61,7 +61,7 @@ export default function LandingPage() {
     return (
       <div className="min-h-screen flex items-center justify-center bg-bg text-center px-6">
         <div className="max-w-md">
-          <h1 className="text-h3 font-bold text-error mb-4">Konten tidak tersedia</h1>
+          <h1 className="text-h3 font-bold text-error mb-4">Content unavailable</h1>
           <p className="text-p2 text-text-secondary mb-8">
             Maaf, kami sedang mengalami kendala teknis dalam memuat informasi utama. Silakan coba beberapa saat lagi.
           </p>
@@ -96,7 +96,7 @@ export default function LandingPage() {
             </p>
             <Link href="/register">
               <Button size="lg" className="rounded-xl px-10 bg-primary-950 hover:bg-primary-500 active:bg-primary-950 text-white">
-                {hero.cta_text || 'Daftar sebagai Anggota'}
+                {hero.cta_text || 'Register as Member'}
               </Button>
             </Link>
           </div>
@@ -116,7 +116,7 @@ export default function LandingPage() {
         <section id="services" className="bg-white py-20 border-t border-gray-50">
           <div className="max-w-6xl mx-auto px-12 text-center"> 
             <div className="mb-12">
-              <h2 className="text-h3 text-text-primary mb-3">Layanan Kami</h2>
+              <h2 className="text-h3 text-text-primary mb-3">Our Services</h2>
               <div className="w-16 h-1 bg-primary-950 mx-auto rounded-full"></div>
             </div>
 
@@ -153,29 +153,29 @@ export default function LandingPage() {
             <div className="flex flex-col gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
-                Digitalisasi pengelolaan keuangan untuk masyarakat yang lebih sejahtera.
+                Digitalizing financial management for a more prosperous community.
               </p>
             </div>
             <div className="flex flex-col gap-6 md:pl-10">
-              <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigasi</h4>
+              <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigation</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
-                <li><Link href="/" className="hover:text-white transition-all">Beranda</Link></li>
-                <li><Link href="/about" className="hover:text-white transition-all">Tentang Kami</Link></li>
+                <li><Link href="/" className="hover:text-white transition-all">Home</Link></li>
+                <li><Link href="/about" className="hover:text-white transition-all">About Us</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
             <div className="flex flex-col gap-6 md:pl-10">
-              <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Portal Anggota</h4>
+              <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Member Portal</h4>
               <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
-                <li><Link href="/status" className="hover:text-white transition-all">Cek Status</Link></li>
-                <li><Link href="/login" className="hover:text-white transition-all">Masuk Anggota</Link></li>
-                <li><Link href="/register" className="hover:text-white transition-all">Daftar</Link></li>
+                <li><Link href="/status" className="hover:text-white transition-all">Check Status</Link></li>
+                <li><Link href="/login" className="hover:text-white transition-all">Member Login</Link></li>
+                <li><Link href="/register" className="hover:text-white transition-all">Register</Link></li>
               </ul>
             </div>
           </div>
           <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
-              © 2026 Sistem SI-MAPAN. Seluruh hak cipta dilindungi.
+              © 2026 SI-MAPAN System. All rights reserved.
             </p>
           </div>
         </div>
