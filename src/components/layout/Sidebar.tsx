@@ -96,6 +96,7 @@ const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: 'Savings Verification', href: '/dashboard/staff/verifications/savings',       icon: <SavingsVerifIcon />, group: 'MEMBER & SAVINGS' },
     { label: 'Withdrawal Requests',  href: '/dashboard/staff/withdrawals',   icon: <WithdrawalIcon />,   group: 'MEMBER & SAVINGS' },
     // ── LOANS ──
+    { label: 'Loan Dashboard',       href: '/dashboard/staff/loans',         icon: <LoanApprovalIcon />, group: 'LOANS' },
     { label: 'Disbursement',         href: '/dashboard/staff/disbursement',  icon: <DisburseIcon />,     group: 'LOANS' },
     { label: 'Installment Payment',  href: '/dashboard/staff/installments',  icon: <InstallmentIcon />,  group: 'LOANS' },
   ],
@@ -147,6 +148,9 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
     }
     if (href === '/dashboard/staff/verification') {
       return pathname === href || pathname.startsWith('/dashboard/staff/verification/')
+    }
+    if (href === '/dashboard/staff/loans') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/loans/')
     }
     return pathname === href
   }
