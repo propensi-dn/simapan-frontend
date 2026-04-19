@@ -152,6 +152,9 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
     if (href === '/dashboard/staff/loans') {
       return pathname === href || pathname.startsWith('/dashboard/staff/loans/')
     }
+    if (href === '/dashboard/staff/installments') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/installments/')
+    }
     return pathname === href
   }
 

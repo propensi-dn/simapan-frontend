@@ -3,6 +3,7 @@
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
 import Cookies from 'js-cookie'
 import api from '@/lib/axios'
 
@@ -84,7 +85,7 @@ function NotifButton({ href }: { href?: string }) {
 // ── Types ──────────────────────────────────────────────────────
 interface HeaderDefaultProps {
   variant: 'default'
-  title: string
+  title: ReactNode
   notifCount?: number   // kept for backward compat but ignored — live fetch is used
   notifHref?: string
 }
