@@ -358,21 +358,18 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                                     d="M2.458 12C3.732 7.943 7.523 5 12 5c4.478 0 8.268 2.943 9.542 7-1.274 4.057-5.064 7-9.542 7-4.477 0-8.268-2.943-9.542-7z" />
                                 </svg>
                               </button>
-                            ) : ins.status === 'UNPAID' && ins.installment_number === (
-                              loan.installments.find(x => x.status !== 'PAID')?.installment_number
-                            ) ? (
+                            ) : ins.status === 'PENDING' ? (
+                              <span className="text-xs font-semibold px-2 py-1 rounded-md"
+                              style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}>
+                                Menunggu verifikasi
+                              </span>
+                            ) : ins.status === 'UNPAID' ? (
                               <button
-                                onClick={() => router.push('/dashboard/member/loans/pay')}
+                                onClick={() => router.push(`/dashboard/member/loans/pay?installment=${ins.id}`)}
                                 className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
                                 style={{ backgroundColor: '#242F43', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
-                                Pay Now
+                                Bayar Sekarang
                               </button>
-                            ) : ins.status === 'UNPAID' ? (
-                              <svg width="16" height="16" fill="none" viewBox="0 0 24 24"
-                                stroke="#D1D5DB" strokeWidth={1.8}>
-                                <path strokeLinecap="round" strokeLinejoin="round"
-                                  d="M16.5 10.5V6.75a4.5 4.5 0 10-9 0v3.75m-.75 11.25h10.5a2.25 2.25 0 002.25-2.25v-6.75a2.25 2.25 0 00-2.25-2.25H6.75a2.25 2.25 0 00-2.25 2.25v6.75a2.25 2.25 0 002.25 2.25z" />
-                              </svg>
                             ) : null}
                           </td>
                         </tr>
