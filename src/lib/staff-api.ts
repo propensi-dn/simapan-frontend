@@ -194,3 +194,141 @@ export async function getStaffLoanDashboard(params?: {
   const { data } = await api.get('/staff/loans/dashboard/', { params })
   return data
 }
+
+// ── Staff Installment Payment Verification Types/API ─────────────────────
+
+export type StaffInstallmentStatus = 'UNPAID' | 'PENDING' | 'PAID'
+
+export interface StaffInstallmentPaymentItem {
+  id: number
+  loan_pk: number
+  transaction_id: string | null
+  submitted_at: string | null
+  paid_at: string | null
+  updated_at: string
+  member_name: string
+  loan_id: string
+  amount: string
+  status: StaffInstallmentStatus
+  status_display: string
+}
+
+export interface StaffInstallmentPaymentDetail {
+  id: number
+  loan_pk: number
+  transaction_id: string | null
+  installment_number: number
+  due_date: string
+  submitted_at: string | null
+  paid_at: string | null
+  amount: string
+  principal_component: string
+  interest_component: string
+  payment_method: string | null
+  status: StaffInstallmentStatus
+  status_display: string
+  rejection_reason: string
+  member_name: string
+  member_email: string
+  member_id: string | null
+  loan_id: string
+  transfer_proof_url: string | null
+  verified_by_email: string | null
+  bank_name: string | null
+  account_number: string | null
+  account_holder: string | null
+}
+
+export interface StaffInstallmentVerifyResponse {
+  message: string
+  installment: StaffInstallmentPaymentDetail
+  payment_breakdown?: {
+    principal_component: string
+    interest_component: string
+  }
+  loan_status?: string
+  cash_in_recorded?: boolean
+}
+
+export async function getPendingInstallmentPayments(params: {
+  scope?: 'pending' | 'history' | 'all'
+  page?: number
+  page_size?: number
+  status?: string
+  rejected_only?: boolean
+  start_date?: string
+  end_date?: string
+  search?: string
+}): Promise<PaginatedResponse<StaffInstallmentPaymentItem>> {
+  const { data } = await api.get('/staff/installments/pending/', { params })
+  return data
+}
+
+export async function getPendingInstallmentPaymentDetail(
+  installmentId: number
+): Promise<StaffInstallmentPaymentDetail> {
+  const { data } = await api.get(`/staff/installments/pending/${installmentId}/`)
+  return data
+}
+
+export async function verifyPendingInstallmentPayment(
+  installmentId: number,
+  payload: { action: 'approve' | 'reject'; rejection_reason?: string }
+): Promise<StaffInstallmentVerifyResponse> {
+  const { data } = await api.post(`/staff/installments/${installmentId}/status/`, payload)
+  return data
+}
+
+// ── Staff Loan Monitoring Detail ───────────────────────────────
+
+export interface StaffLoanInstallmentRow {
+  id: number
+  installment_number: number
+  due_date: string
+  amount: string
+  status: StaffInstallmentStatus
+  status_display: string
+  payment_method: string | null
+  submitted_at: string | null
+  paid_at: string | null
+  transaction_id: string | null
+  transfer_proof_url: string | null
+}
+
+export interface StaffLoanMonitoringSummary {
+  id: number
+  loan_id: string
+  member_name: string
+  tenor: number
+  status: string
+  status_display: string
+  amount: string
+  outstanding_balance: string
+  payment_progress_percent: number
+  paid_installments: number
+  total_installments: number
+  next_due_date: string | null
+}
+
+export interface StaffLoanMonitoringDetailResponse {
+  loan: StaffLoanMonitoringSummary
+  installments: PaginatedResponse<StaffLoanInstallmentRow>
+}
+
+export async function getStaffLoanMonitoringDetail(
+  loanId: number,
+  params?: {
+    page?: number
+    page_size?: number
+  }
+): Promise<StaffLoanMonitoringDetailResponse> {
+  const { data } = await api.get(`/staff/loans/${loanId}/`, { params })
+  return data
+}
+
+export async function exportStaffLoanInstallmentsCsv(loanId: number): Promise<Blob> {
+  const { data } = await api.get(`/staff/loans/${loanId}/export-csv/`, {
+    responseType: 'blob',
+  })
+  return data
+}
