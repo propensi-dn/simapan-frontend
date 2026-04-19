@@ -273,7 +273,7 @@ export default function StaffLoanDashboardPage() {
                         </td>
                         <td className="py-3 px-4 text-center">
                           <Link
-                            href={`/dashboard/staff/loans/${loan.id}/detail`}
+                            href={`/dashboard/staff/loans/${loan.id}`}
                             className="inline-block px-4 py-2 rounded-lg font-semibold transition-all"
                             style={{
                               backgroundColor: '#11447D',
