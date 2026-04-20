@@ -36,6 +36,29 @@ const OverdueIcon = () => (
   </svg>
 )
 
+const BarIcon = ({ height }: { height: number }) => (
+  <div className="flex items-end gap-1 h-10">
+    <div className="flex-1 bg-blue-400 rounded-t" style={{ height: `${height * 8}px`, minHeight: '4px' }} />
+    <div className="flex-1 bg-blue-300 rounded-t" style={{ height: `${Math.max(height * 0.6, 4)}px` }} />
+    <div className="flex-1 bg-blue-500 rounded-t" style={{ height: `${Math.max(height * 0.8, 4)}px` }} />
+  </div>
+)
+
+// ── Format helpers ──────────────────────────────────────────────────────────
+const formatCurrency = (value: string | number): string => {
+  try {
+    const num = typeof value === 'string' ? parseFloat(value) : value
+    return new Intl.NumberFormat('id-ID', {
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
+    }).format(num)
+  } catch {
+    return String(value)
+  }
+}
+
 const StatusBadge = ({ status }: { status: string }) => {
   const statusColors: Record<string, { bg: string; text: string }> = {
     ACTIVE: { bg: '#D1FAE5', text: '#065F46' },
@@ -55,20 +78,32 @@ const StatusBadge = ({ status }: { status: string }) => {
   )
 }
 
-// ── Format helpers ──────────────────────────────────────────────────────────
-const formatCurrency = (value: string | number): string => {
-  try {
-    const num = typeof value === 'string' ? parseFloat(value) : value
-    return new Intl.NumberFormat('id-ID', {
-      style: 'currency',
-      currency: 'IDR',
-      minimumFractionDigits: 0,
-      maximumFractionDigits: 0,
-    }).format(num)
-  } catch {
-    return String(value)
-  }
-}
+const chartPalette = [
+  {
+    bar: '#3B82F6',
+    glow: 'rgba(59, 130, 246, 0.3)',
+  },
+  {
+    bar: '#2563EB',
+    glow: 'rgba(37, 99, 235, 0.3)',
+  },
+  {
+    bar: '#1D4ED8',
+    glow: 'rgba(29, 78, 216, 0.3)',
+  },
+  {
+    bar: '#1E40AF',
+    glow: 'rgba(30, 64, 175, 0.3)',
+  },
+  {
+    bar: '#1E3A8A',
+    glow: 'rgba(30, 58, 138, 0.3)',
+  },
+  {
+    bar: '#3B82F6',
+    glow: 'rgba(59, 130, 246, 0.3)',
+  },
+]
 
 // ── Main Page ──────────────────────────────────────────────────────────────
 export default function StaffLoanDashboardPage() {
@@ -166,27 +201,59 @@ export default function StaffLoanDashboardPage() {
           </div>
 
           {/* Chart Container */}
-          <div className="h-64 flex items-end justify-between gap-4 px-2">
-            {dashboard?.loan_activities?.map((activity, index) => {
-              const maxCount = Math.max(
-                1,
-                ...dashboard.loan_activities.map((a) => a.count)
-              )
-              const height = (activity.count / maxCount) * 100
+          <div
+            className="rounded-2xl border border-slate-100 px-3 py-6"
+            style={{
+              background:
+                'linear-gradient(180deg, rgba(248,250,252,0.92) 0%, rgba(255,255,255,1) 100%)',
+            }}
+          >
+            {dashboard?.loan_activities && dashboard.loan_activities.some((activity) => activity.count > 0) ? (
+              <div className="flex items-end justify-between gap-3 sm:gap-4 px-1" style={{ height: '280px' }}>
+                {dashboard.loan_activities.map((activity, index) => {
+                  const maxCount = Math.max(1, ...dashboard.loan_activities.map((a) => a.count))
+                  const hasValue = activity.count > 0
+                  const heightPercent = hasValue ? (activity.count / maxCount) * 100 : 0
+                  const palette = chartPalette[index % chartPalette.length]
+                  
+                  // Debug logging
+                  if (index === 0) {
+                    console.log('🔍 Chart Data:', dashboard.loan_activities)
+                    console.log('📊 Max Count:', maxCount)
+                  }
+                  console.log(`📈 ${activity.month}: count=${activity.count}, height=${heightPercent.toFixed(1)}%`)
 
-              return (
-                <div key={index} className="flex-1 flex flex-col items-center gap-2">
-                  <div
-                    className="w-full bg-gradient-to-t from-blue-400 to-blue-300 rounded-t-lg hover:from-blue-500 hover:to-blue-400 transition-all cursor-pointer"
-                    style={{ height: `${height}%`, minHeight: '20px' }}
-                    title={`${activity.month}: ${activity.count} pinjaman (${formatCurrency(activity.amount)})`}
-                  />
-                  <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                    {activity.month.split('-')[1]}
-                  </span>
-                </div>
-              )
-            })}
+                  return (
+                    <div key={activity.month} className="flex-1 min-w-0 flex flex-col items-center justify-end gap-3 h-full">
+                      {hasValue ? (
+                        <div
+                          className="w-10 sm:w-12 rounded-t-2xl transition-all duration-300 hover:brightness-105"
+                          style={{
+                            height: `${heightPercent}%`,
+                            minHeight: '16px',
+                            background: palette.bar,
+                            boxShadow: `0 12px 24px ${palette.glow}`,
+                          }}
+                          title={`${activity.month}: ${activity.count} pinjaman (${formatCurrency(activity.amount)})`}
+                        />
+                      ) : null}
+                      <div className="flex flex-col items-center gap-1 pt-2">
+                        <span className="text-[11px] font-semibold uppercase tracking-[0.18em] text-slate-400">
+                          {activity.month.split('-')[1]}
+                        </span>
+                        <span className="text-[10px] font-medium text-slate-500">{activity.count}</span>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <div className="flex h-64 items-center justify-center rounded-xl border border-dashed border-slate-200 bg-white/70">
+                <p className="text-sm font-medium text-slate-400" style={{ fontFamily: 'Inter, sans-serif' }}>
+                  Belum ada aktivitas pinjaman untuk ditampilkan
+                </p>
+              </div>
+            )}
           </div>
         </div>
 
@@ -273,7 +340,7 @@ export default function StaffLoanDashboardPage() {
                         </td>
                         <td className="py-3 px-4 text-center">
                           <Link
-                            href={`/dashboard/staff/loans/${loan.id}/detail`}
+                            href={`/dashboard/staff/loans/${loan.id}`}
                             className="inline-block px-4 py-2 rounded-lg font-semibold transition-all"
                             style={{
                               backgroundColor: '#11447D',

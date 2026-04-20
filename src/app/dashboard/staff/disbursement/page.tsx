@@ -240,7 +240,7 @@ export default function StaffDisbursementPage() {
               borderRadius: tab === 'approved' ? '0.5rem' : '0',
             }}
           >
-            Pinjaman APPROVED ({approvedPageInfo.count})
+            Pinjaman Diterima
           </button>
           <button
             onClick={() => {
@@ -257,7 +257,7 @@ export default function StaffDisbursementPage() {
               borderRadius: tab === 'history' ? '0.5rem' : '0',
             }}
           >
-            Riwayat Pencairan ({disbursedPageInfo.count})
+            Riwayat Pencairan 
           </button>
         </div>
 
@@ -330,7 +330,7 @@ export default function StaffDisbursementPage() {
             </div>
           ) : tab === 'approved' && approvedLoans.length === 0 ? (
             <div className="flex justify-center items-center h-64">
-              <p className="text-gray-500">Tidak ada pinjaman APPROVED</p>
+              <p className="text-gray-500">Tidak ada pinjaman diterima</p>
             </div>
           ) : tab === 'history' && disbursedLoans.length === 0 ? (
             <div className="flex justify-center items-center h-64">
