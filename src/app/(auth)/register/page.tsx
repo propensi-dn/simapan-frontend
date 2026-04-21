@@ -33,10 +33,10 @@ export type RegisterData = {
 }
 
 const STEPS = [
-  { number: 1, label: 'Step 1', sub: 'BASIC INFO' },
-  { number: 2, label: 'Step 2', sub: 'CONTACT INFO' },
-  { number: 3, label: 'Step 3', sub: 'DOCUMENTS' },
-  { number: 4, label: 'Step 4', sub: 'ACCOUNT INFO' },
+  { number: 1, label: 'Langkah 1', sub: 'INFO DASAR' },
+  { number: 2, label: 'Langkah 2', sub: 'INFO KONTAK' },
+  { number: 3, label: 'Langkah 3', sub: 'DOKUMEN' },
+  { number: 4, label: 'Langkah 4', sub: 'INFO AKUN' },
 ]
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
@@ -158,7 +158,7 @@ export default function RegisterPage() {
       {/* Page header */}
       <div style={{ borderBottom: '1px solid #f3f4f6', backgroundColor: '#fff', padding: '16px 32px' }}>
         <h1 className="font-bold text-xl" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-          New Registration
+          Pendaftaran Baru
         </h1>
       </div>
 
@@ -198,7 +198,7 @@ export default function RegisterPage() {
 
         {/* Footer */}
         <p className="text-center text-sm mt-10" style={{ color: '#9ca3af', fontFamily: 'Inter, sans-serif' }}>
-          Need help? Contact our support at{' '}
+          Butuh bantuan? Hubungi tim dukungan kami di{' '}
           <a href="mailto:propensi.ksb@gmail.com" style={{ color: '#11447D', textDecoration: 'underline' }}>
             propensi.ksb@gmail.com
           </a>
