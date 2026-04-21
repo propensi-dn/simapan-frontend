@@ -84,10 +84,10 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
     <div className="max-w-2xl mx-auto bg-white rounded-2xl p-10" style={{ border: '1px solid #f3f4f6' }}>
       <div className="mb-8">
         <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-          Account Information
+          Informasi Akun
         </h2>
         <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-          Please provide your valid contact details so we can reach out to you.
+          Silakan isi email dan password untuk akun SI-MAPAN Anda.
         </p>
       </div>
 
@@ -95,12 +95,12 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
         {/* Email */}
         <div>
           <label className="block text-sm font-semibold mb-1.5" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-            Email Address
+            Alamat Email
           </label>
           <input
             {...register('email')}
             type="email"
-            placeholder="e.g. name@example.com"
+            placeholder="contoh: nama@email.com"
             className={`input-base ${errors.email ? 'input-error' : ''}`}
           />
           {errors.email && <p className="text-xs mt-1" style={{ color: '#ef4444' }}>{errors.email.message}</p>}
@@ -109,15 +109,15 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
         {/* Password */}
         <PasswordInput
           label="Password"
-          placeholder="Min. 8 characters"
+          placeholder="Minimal 8 karakter"
           error={errors.password?.message}
           {...register('password')}
         />
 
         {/* Confirm Password */}
         <PasswordInput
-          label="Confirm Password"
-          placeholder="Re-enter your password"
+          label="Konfirmasi Password"
+          placeholder="Ulangi password Anda"
           error={errors.confirm_password?.message}
           {...register('confirm_password')}
         />
@@ -125,7 +125,7 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
         {/* Password hint */}
         <div className="rounded-xl p-4" style={{ backgroundColor: '#f9fafb', border: '1px solid #f3f4f6' }}>
           <p className="text-xs font-semibold mb-1" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-            Password requirements:
+            Ketentuan password:
           </p>
           <p className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
             • Minimal 8 karakter • Mengandung huruf kapital • Mengandung angka
@@ -146,7 +146,7 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
               fontFamily: 'Montserrat, sans-serif',
             }}
           >
-            Back
+            Kembali
           </button>
           <button
             type="submit"
@@ -160,9 +160,9 @@ export default function Step4AccountInfo({ defaultValues, onSubmit, onBack, load
                   <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                   <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z" />
                 </svg>
-                Submitting...
+                Mengirim...
               </>
-            ) : 'Submit Registration'}
+            ) : 'Kirim Pendaftaran'}
           </button>
         </div>
       </form>
