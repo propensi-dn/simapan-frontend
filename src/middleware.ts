@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server'
 import type { NextRequest } from 'next/server'
 
 // Path yang bisa diakses tanpa login
-const PUBLIC_PATHS = ['/', '/login', '/register', '/status', '/forgot-password', '/about', '/faq']
+const PUBLIC_PATHS = ['/', '/login', '/register', '/status', '/forgot-password', '/reset-password', '/about', '/faq']
 
 // Path yang hanya bisa diakses role tertentu
 const ROLE_PATHS: Record<string, string[]> = {

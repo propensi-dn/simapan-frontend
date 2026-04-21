@@ -2,6 +2,10 @@
 
 import Link from 'next/link'
 import { useRouter } from 'next/navigation'
+import { useEffect, useState } from 'react'
+import type { ReactNode } from 'react'
+import Cookies from 'js-cookie'
+import api from '@/lib/axios'
 
 // ── Icons ──────────────────────────────────────────────────────
 const BellIcon = () => (
@@ -23,11 +27,66 @@ const ChevronIcon = () => (
   </svg>
 )
 
+// ── Role → notif href map ──────────────────────────────────────
+const ROLE_NOTIF_HREF: Record<string, string> = {
+  MEMBER:   '/dashboard/member/notifications',
+  STAFF:    '/dashboard/staff/notifications',
+  MANAGER:  '/dashboard/manager/notifications',
+  CHAIRMAN: '/dashboard/chairman/notifications',
+}
+
+// ── Live unread count bell button ──────────────────────────────
+function NotifButton({ href }: { href?: string }) {
+  const [count, setCount]               = useState(0)
+  const [resolvedHref, setResolvedHref] = useState('/notifications') // safe default for SSR
+
+  useEffect(() => {
+    // Read cookie only on client to avoid hydration mismatch
+    const role = Cookies.get('user_role') ?? ''
+    setResolvedHref(href ?? ROLE_NOTIF_HREF[role] ?? '/notifications')
+
+    let cancelled = false
+    const fetchCount = async () => {
+      try {
+        const { data } = await api.get('/notifications/unread-count/')
+        if (!cancelled) setCount(data.unread_count ?? 0)
+      } catch {
+        // silent
+      }
+    }
+
+    fetchCount()
+    const interval = setInterval(fetchCount, 60_000)
+    return () => {
+      cancelled = true
+      clearInterval(interval)
+    }
+  }, [href])
+
+  return (
+    <Link
+      href={resolvedHref}
+      className="relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
+      style={{ backgroundColor: '#F1F5F9', color: '#525E71' }}
+    >
+      <BellIcon />
+      {count > 0 && (
+        <span
+          className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-white font-bold px-1"
+          style={{ backgroundColor: '#EF4444', fontSize: '10px', fontFamily: 'Inter, sans-serif' }}
+        >
+          {count > 99 ? '99+' : count}
+        </span>
+      )}
+    </Link>
+  )
+}
+
 // ── Types ──────────────────────────────────────────────────────
 interface HeaderDefaultProps {
   variant: 'default'
-  title: string
-  notifCount?: number
+  title: ReactNode
+  notifCount?: number   // kept for backward compat but ignored — live fetch is used
   notifHref?: string
 }
 
@@ -51,27 +110,6 @@ interface HeaderFormProps {
 
 type DashboardHeaderProps = HeaderDefaultProps | HeaderDetailProps | HeaderFormProps
 
-// ── Notif button ───────────────────────────────────────────────
-function NotifButton({ count = 0, href = '/notifications' }: { count?: number; href?: string }) {
-  return (
-    <Link
-      href={href}
-      className="relative flex items-center justify-center w-9 h-9 rounded-xl transition-colors"
-      style={{ backgroundColor: '#F1F5F9', color: '#525E71' }}
-    >
-      <BellIcon />
-      {count > 0 && (
-        <span
-          className="absolute -top-1 -right-1 min-w-[18px] h-[18px] rounded-full flex items-center justify-center text-white font-bold px-1"
-          style={{ backgroundColor: '#EF4444', fontSize: '10px', fontFamily: 'Inter, sans-serif' }}
-        >
-          {count > 99 ? '99+' : count}
-        </span>
-      )}
-    </Link>
-  )
-}
-
 // ── Main component ─────────────────────────────────────────────
 export default function DashboardHeader(props: DashboardHeaderProps) {
   const router = useRouter()
@@ -89,7 +127,6 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
     zIndex: 10,
   }
 
-  // ── default ──
   if (props.variant === 'default') {
     return (
       <header style={baseStyle}>
@@ -99,12 +136,11 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
         >
           {props.title}
         </h1>
-        <NotifButton count={props.notifCount} href={props.notifHref} />
+        <NotifButton href={props.notifHref} />
       </header>
     )
   }
 
-  // ── detail (breadcrumb) ──
   if (props.variant === 'detail') {
     return (
       <header style={baseStyle}>
@@ -126,12 +162,11 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
             {props.currentLabel}
           </span>
         </div>
-        <NotifButton count={props.notifCount} href={props.notifHref} />
+        <NotifButton href={props.notifHref} />
       </header>
     )
   }
 
-  // ── form (back button) ──
   if (props.variant === 'form') {
     const handleBack = () => {
       if (props.backHref) router.push(props.backHref)
@@ -157,7 +192,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
             {props.title}
           </span>
         </div>
-        <NotifButton count={props.notifCount} href={props.notifHref} />
+        <NotifButton href={props.notifHref} />
       </header>
     )
   }
