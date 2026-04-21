@@ -43,7 +43,7 @@ function ScoreBar({ score }: { score: number }) {
       <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#F1F5F9' }}>
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${normalized}%`, backgroundColor: color }} />
       </div>
-      <p className="text-xs" style={{ color: '#8E99A8' }}>{displayScore}/100 eligibility</p>
+      <p className="text-xs" style={{ color: '#8E99A8' }}>{displayScore}/100 kelayakan</p>
     </div>
   )
 }
@@ -69,7 +69,7 @@ function DocumentCard({ title, url }: { title: string; url: string | null }) {
           ) : (
             <div className="h-40 rounded-xl flex items-center justify-center text-sm font-semibold"
               style={{ border: '1px solid #E5E7EB', color: '#525E71', backgroundColor: '#FFFFFF' }}>
-              Dokumen non-gambar (PDF/File)
+              Dokumen non-gambar (PDF/Berkas)
             </div>
           )}
           <a
@@ -106,7 +106,7 @@ function SuccessModal({ message, onClose }: { message: string; onClose: () => vo
           onClick={onClose}
           className="w-full py-2.5 rounded-xl text-sm font-bold"
           style={{ backgroundColor: '#242F43', color: '#fff' }}>
-          OK
+          Tutup
         </button>
       </div>
     </div>
@@ -157,7 +157,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
     setActionSuccess('')
 
     if (action === 'reject' && !decisionReason.trim()) {
-      setActionError('Alasan penolakan wajib diisi sebelum reject.')
+      setActionError('Alasan penolakan wajib diisi sebelum menolak.')
       return
     }
 
@@ -168,7 +168,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
         reason: action === 'reject' ? decisionReason.trim() : undefined,
       })
 
-      setActionSuccess(action === 'approve' ? 'Pinjaman berhasil di-approve.' : 'Pinjaman berhasil di-reject.')
+      setActionSuccess(action === 'approve' ? 'Pinjaman berhasil disetujui.' : 'Pinjaman berhasil ditolak.')
       setShowSuccessModal(true)
       await load()
     } catch (err: unknown) {
@@ -184,12 +184,12 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manager" userID="MGR-0001">
+    <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
       <DashboardHeader
         variant="detail"
-        parentLabel="Loan Approvals"
+        parentLabel="Persetujuan Pinjaman"
         parentHref="/dashboard/manager/loans"
-        currentLabel={data?.loan.loan_id || `Review #${id}`}
+        currentLabel={data?.loan.loan_id || `Tinjau #${id}`}
         notifCount={0}
       />
 
@@ -211,15 +211,15 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
             <div className="col-span-7 space-y-6">
               <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
                 <h2 className="font-bold text-3xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                  Loan Application Details
+                  Detail Pengajuan Pinjaman
                 </h2>
                 <p className="text-sm mb-5" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                  Submitted by {data.loan.member_name} on {fmtDate(data.loan.application_date)}
+                  Diajukan oleh {data.loan.member_name} pada {fmtDate(data.loan.application_date)}
                 </p>
 
                 <div className="grid grid-cols-2 gap-4 mb-5">
                   <div className="rounded-xl p-4" style={{ backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Requested Amount</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Nominal Pengajuan</p>
                     <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                       {fmtRp(data.loan.amount)}
                     </p>
@@ -227,20 +227,20 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                   <div className="rounded-xl p-4" style={{ backgroundColor: '#F8FAFC', border: '1px solid #F1F5F9' }}>
                     <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Tenor</p>
                     <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                      {data.loan.tenor} Months
+                      {data.loan.tenor} Bulan
                     </p>
                   </div>
                 </div>
 
                 <div className="space-y-3">
                   <div>
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Loan Category</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Kategori Pinjaman</p>
                     <p className="text-xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                       {data.loan.category_display}
                     </p>
                   </div>
                   <div>
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Description</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Deskripsi</p>
                     <p className="text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                       {data.loan.description || '-'}
                     </p>
@@ -250,7 +250,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
 
               <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
                 <h3 className="font-bold text-base mb-4" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                  Collateral Verification
+                  Verifikasi Jaminan
                 </h3>
                 <div className="grid grid-cols-2 gap-4">
                   <DocumentCard title="Foto Jaminan / Aset" url={data.loan.collateral_image_url} />
@@ -273,7 +273,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                     <table className="w-full">
                       <thead>
                         <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                          {['Loan ID', 'Amount', 'Status', 'Action'].map(col => (
+                          {['ID PINJAMAN', 'NOMINAL', 'STATUS', 'AKSI'].map(col => (
                             <th key={col} className="px-4 py-3 text-left text-xs font-semibold tracking-wider"
                               style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                               {col}
@@ -303,7 +303,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                                   href={`/dashboard/manager/loans/${loan.id}`}
                                   className="inline-flex px-2.5 py-1 rounded-md text-xs font-bold"
                                   style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                                  View Detail
+                                  Lihat Detail
                                 </Link>
                               </td>
                             </tr>
@@ -319,21 +319,21 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
             <div className="col-span-5 space-y-6">
               <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
                 <h3 className="font-bold text-2xl mb-1" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                  Member Financial Health
+                  Kondisi Finansial Anggota
                 </h3>
                 <p className="text-sm mb-5" style={{ color: '#8E99A8' }}>
-                  Internal analysis and historical data.
+                  Analisis internal dan data historis.
                 </p>
 
                 <div className="grid grid-cols-2 gap-3 mb-4">
                   <div className="rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Total Savings</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Total Simpanan</p>
                     <p className="font-bold text-2xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                       {fmtRp(data.loan.total_savings)}
                     </p>
                   </div>
                   <div className="rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Credit Score</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Skor Kredit</p>
                     <div className="flex items-center gap-2 mb-1">
                       <p className="font-bold text-2xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                         {data.loan.credit_score.score}
@@ -349,7 +349,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
 
                 <div className="rounded-xl p-4" style={{ border: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}>
                   <div className="flex items-center justify-between mb-2">
-                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Eligibility Scorecard</p>
+                    <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Skor Kelayakan</p>
                     <p className="text-lg font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                       {data.scorecard.eligibility_score}
                     </p>
@@ -368,7 +368,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
 
               <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
                 <h3 className="font-bold text-base mb-3" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                  Automated Risk Assessment
+                  Penilaian Risiko Otomatis
                 </h3>
                 <ul className="space-y-2.5">
                   {data.risk_assessment.map((item, idx) => (
@@ -386,13 +386,13 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                 <div className="bg-white rounded-2xl p-6 space-y-4" style={{ border: '1px solid #F1F5F9' }}>
                   <div>
                     <p className="text-xs font-semibold uppercase mb-2" style={{ color: '#8E99A8' }}>
-                      Reason For Decision *
+                      Alasan Keputusan *
                     </p>
                     <textarea
                       rows={3}
                       value={decisionReason}
                       onChange={e => setDecisionReason(e.target.value)}
-                      placeholder="Provide a detailed justification for your approval or rejection..."
+                      placeholder="Tulis alasan detail untuk keputusan persetujuan/penolakan..."
                       className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
                       style={{
                         border: '1px solid #E5E7EB',
@@ -413,7 +413,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                       onClick={() => handleReview('reject')}
                       className="px-5 py-2.5 rounded-xl text-sm font-bold transition-opacity disabled:opacity-50"
                       style={{ border: '1px solid #242F43', color: '#242F43' }}>
-                      REJECT APPLICATION
+                      TOLAK PENGAJUAN
                     </button>
                     <button
                       type="button"
@@ -421,7 +421,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                       onClick={() => handleReview('approve')}
                       className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-opacity disabled:opacity-50"
                       style={{ backgroundColor: '#111827' }}>
-                      APPROVE LOAN
+                      SETUJUI PINJAMAN
                     </button>
                   </div>
                 </div>

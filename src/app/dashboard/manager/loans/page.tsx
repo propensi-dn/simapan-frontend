@@ -134,23 +134,23 @@ export default function ManagerLoansPage() {
   }
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manager" userID="MGR-0001">
-      <DashboardHeader variant="default" title="Loan Approvals" notifCount={0} />
+    <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
+      <DashboardHeader variant="default" title="Persetujuan Pinjaman" notifCount={0} />
 
       <main className="flex-1 p-8 space-y-6">
         <div>
           <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-            Pending Loan Requests
+            Daftar Pengajuan Pinjaman
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Daftar pengajuan pinjaman yang menunggu review manager.
+            Daftar pengajuan pinjaman yang menunggu peninjauan manajer.
           </p>
         </div>
 
         <div className="grid grid-cols-4 gap-5">
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Total Pending Approvals
+              Total Pengajuan Pending
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_pending ?? 0}
@@ -158,7 +158,7 @@ export default function ManagerLoansPage() {
           </div>
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Total Approved Loans
+              Total Pinjaman Disetujui
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_approved ?? 0}
@@ -166,7 +166,7 @@ export default function ManagerLoansPage() {
           </div>
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Unverified Installments
+              Total Angsuran Belum Diverifikasi
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_unverified_installments ?? 0}
@@ -174,7 +174,7 @@ export default function ManagerLoansPage() {
           </div>
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Total Overdue Loans
+              Total Pinjaman Terlambat
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_overdue ?? 0}
@@ -186,10 +186,10 @@ export default function ManagerLoansPage() {
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                Aktivitas Loan (6 Bulan)
+                Aktivitas Pinjaman (6 Bulan)
               </h3>
               <p className="text-xs" style={{ color: '#8E99A8' }}>
-                Total pending amount: {fmtRp(summary?.total_requested_amount ?? 0)}
+                Total nominal pending: {fmtRp(summary?.total_requested_amount ?? 0)}
               </p>
             </div>
             <div className="flex items-end gap-2 h-40">
@@ -218,19 +218,19 @@ export default function ManagerLoansPage() {
           <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
             <div className="px-5 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
               <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                Near Due Date (14 hari)
+                Jatuh Tempo Dalam 14 Hari
               </h3>
             </div>
             {nearDueRows.length === 0 ? (
               <div className="px-5 py-10 text-sm text-center" style={{ color: '#8E99A8' }}>
-                Tidak ada loan yang mendekati due date.
+                Tidak ada pinjaman yang mendekati jatuh tempo.
               </div>
             ) : (
               <div className="overflow-x-auto">
                 <table className="w-full">
                   <thead>
                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      {['MEMBER', 'LOAN ID', 'REMAINING', 'DUE DATE', 'STATUS', 'ACTION'].map(col => (
+                      {['NAMA ANGGOTA', 'ID PINJAMAN', 'SISA PINJAMAN', 'JATUH TEMPO', 'STATUS', 'AKSI'].map(col => (
                         <th key={col} className="px-4 py-3 text-left text-xs font-semibold tracking-wider"
                           style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                           {col}
@@ -257,7 +257,7 @@ export default function ManagerLoansPage() {
                             <Link href={`/dashboard/manager/loans/${loan.id}`}
                               className="text-xs font-bold px-2.5 py-1 rounded-md"
                               style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                              View Detail
+                              Lihat Detail
                             </Link>
                           </td>
                         </tr>
@@ -276,7 +276,7 @@ export default function ManagerLoansPage() {
               <div className="relative flex-1">
                 <input
                   type="text"
-                  placeholder="Search member name..."
+                  placeholder="Cari nama anggota..."
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
                   className="w-full pl-4 pr-4 py-2 rounded-xl text-sm outline-none"
@@ -292,7 +292,7 @@ export default function ManagerLoansPage() {
                 type="submit"
                 className="px-4 py-2 rounded-xl text-xs font-bold"
                 style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                Search
+                  Cari
               </button>
               {search && (
                 <button
@@ -300,7 +300,7 @@ export default function ManagerLoansPage() {
                   onClick={() => { setSearchInput(''); setSearch('') }}
                   className="px-4 py-2 rounded-xl text-xs font-bold"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                  Reset
+                  Atur Ulang
                 </button>
               )}
             </form>
@@ -309,11 +309,11 @@ export default function ManagerLoansPage() {
               onClick={() => setSort(prev => prev === '-application_date' ? 'application_date' : '-application_date')}
               className="px-4 py-2 rounded-xl text-xs font-bold"
               style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-              Sort Date: {sort === '-application_date' ? 'Newest' : 'Oldest'}
+              Urutkan Tanggal: {sort === '-application_date' ? 'Terbaru' : 'Terlama'}
             </button>
 
             <span className="ml-auto text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              {count} applications
+              {count} pengajuan
             </span>
           </div>
 
@@ -341,7 +341,7 @@ export default function ManagerLoansPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['MEMBER NAME', 'LOAN CATEGORY', 'REQUESTED AMOUNT', 'TENOR', 'APPLICATION DATE', 'ACTION'].map(col => (
+                    {['NAMA ANGGOTA', 'KATEGORI PINJAMAN', 'NOMINAL PENGAJUAN', 'TENOR', 'TANGGAL PENGAJUAN', 'AKSI'].map(col => (
                       <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
                         style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                         {col}
@@ -364,7 +364,7 @@ export default function ManagerLoansPage() {
                         {fmtRp(loan.amount)}
                       </td>
                       <td className="px-6 py-4 text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-                        {loan.tenor} months
+                        {loan.tenor} bulan
                       </td>
                       <td className="px-6 py-4 text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                         {fmtDate(loan.application_date)}
@@ -374,7 +374,7 @@ export default function ManagerLoansPage() {
                           href={`/dashboard/manager/loans/${loan.id}`}
                           className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all"
                           style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                          Review
+                          Tinjau
                         </Link>
                       </td>
                     </tr>
@@ -434,13 +434,13 @@ export default function ManagerLoansPage() {
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
             <h3 className="font-bold text-base mr-auto" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-              All Loans
+              Semua Pinjaman
             </h3>
 
             <form onSubmit={handleAllSearch} className="flex items-center gap-2">
               <input
                 type="text"
-                placeholder="Search members..."
+                placeholder="Cari anggota..."
                 value={allSearchInput}
                 onChange={e => setAllSearchInput(e.target.value)}
                 className="px-3 py-2 rounded-xl text-xs outline-none"
@@ -450,7 +450,7 @@ export default function ManagerLoansPage() {
                 type="submit"
                 className="px-3 py-2 rounded-xl text-xs font-bold"
                 style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                Search
+                Cari
               </button>
             </form>
 
@@ -459,14 +459,14 @@ export default function ManagerLoansPage() {
               onChange={e => setAllStatus(e.target.value as '' | LoanStatus)}
               className="px-3 py-2 rounded-xl text-xs outline-none"
               style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}>
-              <option value="">All Status</option>
-              <option value="PENDING">Pending</option>
-              <option value="APPROVED">Approved</option>
-              <option value="ACTIVE">Active</option>
-              <option value="OVERDUE">Overdue</option>
+              <option value="">Semua Status</option>
+              <option value="PENDING">Menunggu</option>
+              <option value="APPROVED">Disetujui</option>
+              <option value="ACTIVE">Aktif</option>
+              <option value="OVERDUE">Jatuh Tempo Terlewat</option>
               <option value="LUNAS">Lunas</option>
-              <option value="LUNAS_AFTER_OVERDUE">Lunas After Overdue</option>
-              <option value="REJECTED">Rejected</option>
+              <option value="LUNAS_AFTER_OVERDUE">Lunas Setelah Terlambat</option>
+              <option value="REJECTED">Ditolak</option>
             </select>
 
             {(allSearch || allStatus) && (
@@ -479,21 +479,21 @@ export default function ManagerLoansPage() {
                 }}
                 className="px-3 py-2 rounded-xl text-xs font-bold"
                 style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                Reset
+                Atur Ulang
               </button>
             )}
           </div>
 
           {allRows.length === 0 ? (
             <div className="px-6 py-10 text-sm text-center" style={{ color: '#8E99A8' }}>
-              Tidak ada data loan untuk filter ini.
+              Tidak ada data pinjaman untuk filter ini.
             </div>
           ) : (
             <div className="overflow-x-auto">
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['MEMBER NAME', 'LOAN ID', 'REMAINING BALANCE', 'DUE DATE', 'STATUS', 'ACTION'].map(col => (
+                    {['NAMA ANGGOTA', 'ID PINJAMAN', 'SISA PINJAMAN', 'JATUH TEMPO', 'STATUS', 'AKSI'].map(col => (
                       <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
                         style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                         {col}
@@ -531,7 +531,7 @@ export default function ManagerLoansPage() {
                             href={`/dashboard/manager/loans/${loan.id}`}
                             className="text-xs font-bold px-2.5 py-1 rounded-md"
                             style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                            View Detail
+                            Lihat Detail
                           </Link>
                         </td>
                       </tr>
@@ -546,7 +546,7 @@ export default function ManagerLoansPage() {
             <div className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               <span>
-                Showing {(allPage - 1) * allPageSize + 1}–{Math.min(allPage * allPageSize, allCount)} of {allCount} results
+                Menampilkan {(allPage - 1) * allPageSize + 1}–{Math.min(allPage * allPageSize, allCount)} dari {allCount} data
               </span>
               <div className="flex items-center gap-1">
                 <button
