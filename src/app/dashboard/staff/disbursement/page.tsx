@@ -1,12 +1,11 @@
 'use client'
 
 import { useState, useEffect, useCallback } from 'react'
-import { useSearchParams } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import Link from 'next/link'
-import { getApprovedLoans, getDisbursedLoans, disburseLoans, ApprovedLoan, DisbursedLoan } from '@/lib/staff-api'
-import DisburseLoanModal from './_components/DisburseLoanModal'
+import { getApprovedLoans, getDisbursedLoans, ApprovedLoan, DisbursedLoan } from '@/lib/staff-api'
 import toast from 'react-hot-toast'
 import { Search, Calendar, ChevronLeft, ChevronRight, Loader } from 'lucide-react'
 
@@ -57,6 +56,7 @@ const CurrencyFormat = ({ value }: { value: string }) => {
 
 // ── Page ─────────────────────────────────────────────────────────────────
 export default function StaffDisbursementPage() {
+  const router = useRouter()
   const [tab, setTab] = useState<Tab>('approved')
   const [search, setSearch] = useState('')
   const [startDate, setStartDate] = useState('')
@@ -76,10 +76,6 @@ export default function StaffDisbursementPage() {
     total_pages: 0,
     page_size: 10,
   })
-  
-  const [selectedLoan, setSelectedLoan] = useState<ApprovedLoan | null>(null)
-  const [disburseModalOpen, setDisburseModalOpen] = useState(false)
-  const [disbursing, setDisbursing] = useState(false)
 
   // Fetch approved loans
   const fetchApprovedLoans = useCallback(async (searchTerm?: string, startD?: string, endD?: string, pageNum?: number) => {
@@ -161,36 +157,9 @@ export default function StaffDisbursementPage() {
     }
   }
 
-  // Handle disburse
-  const handleDisburse = (loan: ApprovedLoan) => {
-    setSelectedLoan(loan)
-    setDisburseModalOpen(true)
-  }
-
-  const handleDisbursureConfirm = async (proof?: File) => {
-    if (!selectedLoan) return
-    
-    try {
-      setDisbursing(true)
-      
-      let formData: FormData | undefined
-      if (proof) {
-        formData = new FormData()
-        formData.append('disbursement_proof', proof)
-      }
-      
-      await disburseLoans(selectedLoan.id, formData)
-
-      toast.success('Pinjaman berhasil dicairkan!')
-      setDisburseModalOpen(false)
-      setSelectedLoan(null)
-      fetchApprovedLoans(search, startDate, endDate, 1)
-      fetchDisbursedLoans(search, startDate, endDate, 1)
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || err.message || 'Gagal mencairkan pinjaman')
-    } finally {
-      setDisbursing(false)
-    }
+  // Handle navigate to detail page
+  const handleNavigateToDisbursement = (loanId: number) => {
+    router.push(`/dashboard/staff/disbursement/${loanId}`)
   }
 
   // Pagination
@@ -206,22 +175,6 @@ export default function StaffDisbursementPage() {
       />
 
       <main className="flex-1 p-8">
-        {/* Header */}
-        <div className="mb-6">
-          <div className="flex items-center gap-2 mb-4">
-            <Link href="/dashboard/staff">
-              <button className="p-2 hover:bg-gray-100 rounded-lg">
-                <BackIcon />
-              </button>
-            </Link>
-            <h1 className="text-2xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-              Kelola Pencairan Pinjaman
-            </h1>
-          </div>
-          <p className="text-sm" style={{ color: '#8E99A8' }}>
-            Lihat daftar pinjaman yang siap dicairkan dan riwayat pencairan
-          </p>
-        </div>
 
         {/* Tabs */}
         <div className="flex gap-0 mb-6 bg-white rounded-xl border border-gray-200" style={{ width: 'fit-content' }}>
@@ -379,7 +332,7 @@ export default function StaffDisbursementPage() {
                         </td>
                         <td className="px-6 py-4 text-sm">
                           <button
-                            onClick={() => handleDisburse(loan as ApprovedLoan)}
+                            onClick={() => handleNavigateToDisbursement(loan.id)}
                             className="bg-green-600 hover:bg-green-700 text-white px-4 py-2 rounded-lg font-medium transition-colors"
                           >
                             Cairkan Dana
@@ -446,20 +399,6 @@ export default function StaffDisbursementPage() {
           </div>
         )}
       </main>
-
-      {/* Disburse Modal */}
-      {selectedLoan && (
-        <DisburseLoanModal
-          isOpen={disburseModalOpen}
-          onClose={() => {
-            setDisburseModalOpen(false)
-            setSelectedLoan(null)
-          }}
-          loan={selectedLoan}
-          onConfirm={handleDisbursureConfirm}
-          loading={disbursing}
-        />
-      )}
     </DashboardLayout>
   )
 }
