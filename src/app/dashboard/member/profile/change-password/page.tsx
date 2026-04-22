@@ -69,7 +69,7 @@ export default function ChangePasswordPage() {
         <form onSubmit={handleUpdate} className="space-y-6">
           {/* Old Password */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-text-tertiary">Old Password</label>
+            <label className="text-[10px] font-bold uppercase text-text-tertiary">Password Lama</label>
             <div className="relative">
               <input 
                 type={showOldPassword ? "text" : "password"} 
@@ -89,7 +89,7 @@ export default function ChangePasswordPage() {
 
           {/* New Password */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-text-tertiary">New Password</label>
+            <label className="text-[10px] font-bold uppercase text-text-tertiary">Password Baru</label>
             <div className="relative">
               <input 
                 type={showNewPassword ? "text" : "password"} 
@@ -109,7 +109,7 @@ export default function ChangePasswordPage() {
 
           {/* Confirm Password */}
           <div className="space-y-2">
-            <label className="text-[10px] font-bold uppercase text-text-tertiary">Confirm Password</label>
+            <label className="text-[10px] font-bold uppercase text-text-tertiary">Konfirmasi Password</label>
             <div className="relative">
               <input 
                 type={showConfirmPassword ? "text" : "password"} 
