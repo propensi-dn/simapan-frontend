@@ -269,6 +269,10 @@ export default function ManagerLoansPage() {
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <h3 className="font-bold text-base mr-auto" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              Pengajuan Pinjaman Pending
+            </h3>
+
             <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1 max-w-sm">
               <div className="relative flex-1">
                 <input
@@ -309,7 +313,7 @@ export default function ManagerLoansPage() {
               Urutkan Tanggal: {sort === '-application_date' ? 'Terbaru' : 'Terlama'}
             </button>
 
-            <span className="ml-auto text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+            <span className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               {count} pengajuan
             </span>
           </div>

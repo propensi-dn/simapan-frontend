@@ -33,6 +33,13 @@ const STATUS_STYLE: Record<LoanStatus, { bg: string; text: string }> = {
   LUNAS_AFTER_OVERDUE: { bg: '#FEF3C7', text: '#92400E' },
 }
 
+const CREDIT_SCORE_COLOR: Record<string, { bar: string; text: string }> = {
+  Poor: { bar: '#EF4444', text: '#991B1B' },
+  Fair: { bar: '#F59E0B', text: '#92400E' },
+  Good: { bar: '#10B981', text: '#065F46' },
+  Excellent: { bar: '#11447D', text: '#11447D' },
+}
+
 function ScoreBar({ score }: { score: number }) {
   const normalized = Math.max(0, Math.min(100, score))
   const color = normalized >= 80 ? '#10B981' : normalized >= 60 ? '#F59E0B' : '#EF4444'
@@ -44,6 +51,30 @@ function ScoreBar({ score }: { score: number }) {
         <div className="h-full rounded-full transition-all duration-500" style={{ width: `${normalized}%`, backgroundColor: color }} />
       </div>
       <p className="text-xs" style={{ color: '#8E99A8' }}>{displayScore}/100 kelayakan</p>
+    </div>
+  )
+}
+
+function CreditScoreBar({ score, label }: { score: number; label: string }) {
+  const colors = CREDIT_SCORE_COLOR[label] ?? CREDIT_SCORE_COLOR.Fair
+  const pct = ((score - 300) / (850 - 300)) * 100
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline gap-2">
+        <span className="font-bold text-2xl" style={{ fontFamily: 'Montserrat, sans-serif', color: colors.text }}>
+          {score}
+        </span>
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-md"
+          style={{ backgroundColor: `${colors.bar}20`, color: colors.text }}>
+          {label}
+        </span>
+      </div>
+      <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#F1F5F9' }}>
+        <div className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${Math.max(0, Math.min(100, pct))}%`, backgroundColor: colors.bar }} />
+      </div>
+      <p className="text-xs" style={{ color: '#8E99A8' }}>Rentang skor: 300 - 850</p>
     </div>
   )
 }
@@ -564,16 +595,10 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div className="rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
                     <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Skor Kredit</p>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-2xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                        {data.loan.credit_score.score}
-                      </p>
-                      <span className="inline-flex px-2 py-0.5 rounded text-xs font-bold"
-                        style={{ backgroundColor: '#F3F4F6', color: '#525E71' }}>
-                        {data.loan.credit_score.label}
-                      </span>
-                    </div>
-                    <ScoreBar score={((data.loan.credit_score.score - 300) / 550) * 100} />
+                    <CreditScoreBar
+                      score={data.loan.credit_score.score}
+                      label={data.loan.credit_score.label}
+                    />
                   </div>
                 </div>
 
