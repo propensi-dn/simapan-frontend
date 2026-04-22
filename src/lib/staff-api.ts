@@ -73,7 +73,7 @@ export interface BankAccount {
   is_primary: boolean
 }
 
-export interface LoanDetail {
+export interface LoanDetailResponse {
   id: number
   loan_id: string
   member_name: string
@@ -86,6 +86,25 @@ export interface LoanDetail {
   total_repayment: string
   member_bank_account: BankAccount | null
   installment_schedule: InstallmentSchedule[]
+}
+
+export interface LoanDetail {
+  loan_number: string
+  member_name: string
+  principal_amount: number
+  tenor: number
+  interest_rate: number
+  bank_name: string
+  account_number: string
+  account_holder: string
+  admin_fee: number
+  installments: Array<{
+    no: number
+    due_date: string
+    principal: number
+    interest: number
+    total: number
+  }>
 }
 
 export interface LoanSummary {
@@ -128,7 +147,31 @@ export async function getDisbursedLoans(params: {
 /** GET /api/staff/loans/<id>/detail/ */
 export async function getLoanDetail(id: number): Promise<LoanDetail> {
   const { data } = await api.get(`/staff/loans/${id}/detail/`)
-  return data
+  return transformLoanDetailResponse(data)
+}
+
+/** Transform API response to component format */
+function transformLoanDetailResponse(apiData: LoanDetailResponse): LoanDetail {
+  const installments = (apiData.installment_schedule || []).map((inst, idx) => ({
+    no: inst.installment_number,
+    due_date: inst.due_date,
+    principal: parseFloat(inst.principal_component),
+    interest: parseFloat(inst.interest_component),
+    total: parseFloat(inst.amount),
+  }))
+
+  return {
+    loan_number: apiData.loan_id,
+    member_name: apiData.member_name,
+    principal_amount: parseFloat(apiData.amount),
+    tenor: apiData.tenor,
+    interest_rate: 0.5, // 0.5% per month (fixed rate from backend)
+    bank_name: apiData.member_bank_account?.bank_name || '',
+    account_number: apiData.member_bank_account?.account_number || '',
+    account_holder: apiData.member_bank_account?.account_holder || '',
+    admin_fee: 0, // No admin fee in current backend
+    installments,
+  }
 }
 
 /** POST /api/staff/loans/<id>/disburse/ */
