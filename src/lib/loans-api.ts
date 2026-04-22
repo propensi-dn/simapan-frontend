@@ -209,6 +209,7 @@ export interface ManagerLoanDetail {
   application_date: string
   status: LoanStatus
   status_display: string
+  rejection_reason: string
   amount: string
   tenor: number
   category: LoanCategory

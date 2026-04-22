@@ -151,6 +151,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
 
   const monitoring = data?.monitoring || null
   const isReadOnlyMonitoring = Boolean(monitoring)
+  const cleanedRejectionReason = data?.loan.rejection_reason?.trim() || ''
 
   const totalInstallmentPages = useMemo(() => {
     if (!monitoring) return 1
@@ -466,6 +467,14 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                       {data.loan.description || '-'}
                     </p>
                   </div>
+                  {data.loan.status === 'REJECTED' && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Alasan Penolakan</p>
+                      <p className="text-sm" style={{ color: '#991B1B', fontFamily: 'Inter, sans-serif' }}>
+                        {cleanedRejectionReason || 'Alasan penolakan tidak tersimpan pada data pinjaman ini.'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 

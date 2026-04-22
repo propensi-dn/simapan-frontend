@@ -147,7 +147,7 @@ export default function ManagerLoansPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-4 gap-5">
+        <div className="grid grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               Total Pengajuan Pending
@@ -162,14 +162,6 @@ export default function ManagerLoansPage() {
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_approved ?? 0}
-            </p>
-          </div>
-          <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
-            <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Total Angsuran Belum Diverifikasi
-            </p>
-            <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-              {summary?.total_unverified_installments ?? 0}
             </p>
           </div>
           <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
