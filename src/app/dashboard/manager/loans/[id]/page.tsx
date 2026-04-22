@@ -181,7 +181,6 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
   const installmentPageSize = 8
 
   const monitoring = data?.monitoring || null
-  const isReadOnlyMonitoring = Boolean(monitoring)
   const cleanedRejectionReason = data?.loan.rejection_reason?.trim() || ''
 
   const totalInstallmentPages = useMemo(() => {
@@ -294,7 +293,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
             </button>
           </div>
         ) : data && (
-          isReadOnlyMonitoring ? (
+          monitoring ? (
             <div className="space-y-6">
               <div className="flex items-center justify-between gap-4">
                 <div>
