@@ -43,9 +43,6 @@ export default function DisbursementDetailContent({ loanDetail, onConfirm, onCan
 
   const netDisbursement = loanDetail.principal_amount - (loanDetail.admin_fee ?? 0)
   const rows      = loanDetail.installments ?? []
-  const firstTwo  = rows.slice(0, 2)
-  const lastRow   = rows.length > 3 ? rows[rows.length - 1] : null
-  const hiddenCount = rows.length > 3 ? rows.length - 3 : 0
 
   const handleFile = (file: File) => { setProofFile(file); setProofError(false) }
   const handleConfirm = () => {
@@ -124,18 +121,7 @@ export default function DisbursementDetailContent({ loanDetail, onConfirm, onCan
                 </tr>
               </thead>
               <tbody>
-                {firstTwo.map((row, i) => <InstRow key={i} row={row} last={false} />)}
-                {hiddenCount > 0 && (
-                  <tr>
-                    <td colSpan={5} style={{
-                      textAlign: 'center', padding: '10px', fontSize: 12,
-                      color: '#94A3B8', fontStyle: 'italic', borderBottom: '1px solid #F1F5F9',
-                    }}>
-                      ... (Entri 3 s/d {rows.length - 1}) ...
-                    </td>
-                  </tr>
-                )}
-                {lastRow && <InstRow row={lastRow} last={true} />}
+                {rows.map((row, i) => <InstRow key={i} row={row} last={false} />)}
               </tbody>
             </table>
           </div>
