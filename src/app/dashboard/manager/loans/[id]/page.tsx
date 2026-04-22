@@ -1,6 +1,6 @@
 'use client'
 
-import { use, useCallback, useEffect, useState } from 'react'
+import { use, useCallback, useEffect, useMemo, useState } from 'react'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -33,6 +33,13 @@ const STATUS_STYLE: Record<LoanStatus, { bg: string; text: string }> = {
   LUNAS_AFTER_OVERDUE: { bg: '#FEF3C7', text: '#92400E' },
 }
 
+const CREDIT_SCORE_COLOR: Record<string, { bar: string; text: string }> = {
+  Poor: { bar: '#EF4444', text: '#991B1B' },
+  Fair: { bar: '#F59E0B', text: '#92400E' },
+  Good: { bar: '#10B981', text: '#065F46' },
+  Excellent: { bar: '#11447D', text: '#11447D' },
+}
+
 function ScoreBar({ score }: { score: number }) {
   const normalized = Math.max(0, Math.min(100, score))
   const color = normalized >= 80 ? '#10B981' : normalized >= 60 ? '#F59E0B' : '#EF4444'
@@ -45,6 +52,49 @@ function ScoreBar({ score }: { score: number }) {
       </div>
       <p className="text-xs" style={{ color: '#8E99A8' }}>{displayScore}/100 kelayakan</p>
     </div>
+  )
+}
+
+function CreditScoreBar({ score, label }: { score: number; label: string }) {
+  const colors = CREDIT_SCORE_COLOR[label] ?? CREDIT_SCORE_COLOR.Fair
+  const pct = ((score - 300) / (850 - 300)) * 100
+
+  return (
+    <div className="space-y-2">
+      <div className="flex items-baseline gap-2">
+        <span className="font-bold text-2xl" style={{ fontFamily: 'Montserrat, sans-serif', color: colors.text }}>
+          {score}
+        </span>
+        <span className="text-xs font-semibold px-2 py-0.5 rounded-md"
+          style={{ backgroundColor: `${colors.bar}20`, color: colors.text }}>
+          {label}
+        </span>
+      </div>
+      <div className="h-2 rounded-full overflow-hidden" style={{ backgroundColor: '#F1F5F9' }}>
+        <div className="h-full rounded-full transition-all duration-500"
+          style={{ width: `${Math.max(0, Math.min(100, pct))}%`, backgroundColor: colors.bar }} />
+      </div>
+      <p className="text-xs" style={{ color: '#8E99A8' }}>Rentang skor: 300 - 850</p>
+    </div>
+  )
+}
+
+function InstallmentStatusBadge({ status }: { status: string }) {
+  const styles: Record<string, { bg: string; text: string }> = {
+    PAID: { bg: '#111827', text: '#FFFFFF' },
+    PENDING: { bg: '#FFF7ED', text: '#C2410C' },
+    UNPAID: { bg: '#F3F4F6', text: '#6B7280' },
+  }
+
+  const style = styles[status] || { bg: '#F3F4F6', text: '#6B7280' }
+
+  return (
+    <span
+      className="inline-flex items-center text-[10px] font-bold px-2.5 py-1 rounded-md"
+      style={{ backgroundColor: style.bg, color: style.text, fontFamily: 'Inter, sans-serif' }}
+    >
+      {status}
+    </span>
   )
 }
 
@@ -124,6 +174,36 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
   const [actionError, setActionError] = useState('')
   const [actionSuccess, setActionSuccess] = useState('')
   const [showSuccessModal, setShowSuccessModal] = useState(false)
+  const [installmentPage, setInstallmentPage] = useState(1)
+  const [proofModalOpen, setProofModalOpen] = useState(false)
+  const [proofUrl, setProofUrl] = useState<string | null>(null)
+
+  const installmentPageSize = 8
+
+  const monitoring = data?.monitoring || null
+  const isReadOnlyMonitoring = Boolean(monitoring)
+  const cleanedRejectionReason = data?.loan.rejection_reason?.trim() || ''
+
+  const totalInstallmentPages = useMemo(() => {
+    if (!monitoring) return 1
+    return Math.max(1, Math.ceil(monitoring.installments.length / installmentPageSize))
+  }, [monitoring])
+
+  const pagedInstallments = useMemo(() => {
+    if (!monitoring) return []
+    const start = (installmentPage - 1) * installmentPageSize
+    return monitoring.installments.slice(start, start + installmentPageSize)
+  }, [monitoring, installmentPage])
+
+  const showingFrom = useMemo(() => {
+    if (!monitoring || monitoring.installments.length === 0) return 0
+    return (installmentPage - 1) * installmentPageSize + 1
+  }, [monitoring, installmentPage])
+
+  const showingTo = useMemo(() => {
+    if (!monitoring || monitoring.installments.length === 0) return 0
+    return Math.min(installmentPage * installmentPageSize, monitoring.installments.length)
+  }, [monitoring, installmentPage])
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -139,6 +219,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
     try {
       const res = await getManagerLoanDetail(numericId)
       setData(res)
+      setInstallmentPage(1)
     } catch {
       setError('Gagal memuat detail pengajuan pinjaman.')
     } finally {
@@ -183,6 +264,12 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
     }
   }
 
+  function openProof(url: string | null) {
+    if (!url) return
+    setProofUrl(url)
+    setProofModalOpen(true)
+  }
+
   return (
     <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
       <DashboardHeader
@@ -207,6 +294,172 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
             </button>
           </div>
         ) : data && (
+          isReadOnlyMonitoring ? (
+            <div className="space-y-6">
+              <div className="flex items-center justify-between gap-4">
+                <div>
+                  <h1 className="text-[30px] font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                    #{data.loan.loan_id} - {data.loan.member_name}
+                  </h1>
+                  <p className="text-sm mt-1" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    Detail pinjaman aktif (read-only)
+                  </p>
+                </div>
+                <span
+                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold"
+                  style={{
+                    backgroundColor: (STATUS_STYLE[data.loan.status] || STATUS_STYLE.PENDING).bg,
+                    color: (STATUS_STYLE[data.loan.status] || STATUS_STYLE.PENDING).text,
+                  }}
+                >
+                  {data.loan.status_display}
+                </span>
+              </div>
+
+              <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
+                  <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    PROGRES PEMBAYARAN
+                  </p>
+                  <div className="flex items-end justify-between">
+                    <div className="w-full pr-4">
+                      <div className="h-2 rounded-full" style={{ backgroundColor: '#E5E7EB' }}>
+                        <div
+                          className="h-2 rounded-full transition-all"
+                          style={{ width: `${Math.max(0, Math.min(100, monitoring.payment_progress_percent))}%`, backgroundColor: '#111827' }}
+                        />
+                      </div>
+                      <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                        {monitoring.paid_installments} dari {monitoring.total_installments} bulan sudah dibayar
+                      </p>
+                    </div>
+                    <span className="text-2xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                      {monitoring.payment_progress_percent.toFixed(0)}%
+                    </span>
+                  </div>
+                </div>
+
+                <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
+                  <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    SISA PINJAMAN
+                  </p>
+                  <p className="text-4xl font-bold" style={{ color: '#111827', fontFamily: 'Montserrat, sans-serif' }}>
+                    {fmtRp(monitoring.outstanding_balance)}
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    Pokok pinjaman belum lunas
+                  </p>
+                </div>
+
+                <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
+                  <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    JATUH TEMPO BERIKUTNYA
+                  </p>
+                  <p className="text-4xl font-bold" style={{ color: '#111827', fontFamily: 'Montserrat, sans-serif' }}>
+                    {fmtDate(monitoring.next_due_date)}
+                  </p>
+                  <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    Siklus {monitoring.paid_installments}/{monitoring.total_installments}
+                  </p>
+                </div>
+              </section>
+
+              <section className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+                  <h2 className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                    Jadwal Cicilan Lengkap
+                  </h2>
+                </div>
+
+                <div className="overflow-x-auto">
+                  <table className="w-full">
+                    <thead>
+                      <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}>
+                        {['BULAN', 'JATUH TEMPO', 'NOMINAL', 'STATUS', 'AKSI'].map((head) => (
+                          <th
+                            key={head}
+                            className="px-6 py-3 text-left text-[11px] font-semibold"
+                            style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {head}
+                          </th>
+                        ))}
+                      </tr>
+                    </thead>
+
+                    <tbody>
+                      {pagedInstallments.length === 0 ? (
+                        <tr>
+                          <td colSpan={5} className="text-center py-10 text-sm" style={{ color: '#8E99A8' }}>
+                            Belum ada data cicilan.
+                          </td>
+                        </tr>
+                      ) : (
+                        pagedInstallments.map((row, index) => (
+                          <tr key={row.id} style={{ borderBottom: index < pagedInstallments.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                            <td className="px-6 py-4 text-sm" style={{ color: '#374151', fontFamily: 'Inter, sans-serif' }}>
+                              {row.installment_number}
+                            </td>
+                            <td className="px-6 py-4 text-sm" style={{ color: '#374151', fontFamily: 'Inter, sans-serif' }}>
+                              {fmtDate(row.due_date)}
+                            </td>
+                            <td className="px-6 py-4 text-sm font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                              {fmtRp(row.amount)}
+                            </td>
+                            <td className="px-6 py-4">
+                              <InstallmentStatusBadge status={row.status} />
+                            </td>
+                            <td className="px-6 py-4">
+                              {row.status === 'PAID' && row.transfer_proof_url ? (
+                                <button
+                                  type="button"
+                                  onClick={() => openProof(row.transfer_proof_url)}
+                                  className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg"
+                                  style={{ backgroundColor: '#111827', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
+                                >
+                                  Lihat Bukti
+                                </button>
+                              ) : (
+                                <span className="text-sm" style={{ color: '#B0BAC5' }}>-</span>
+                              )}
+                            </td>
+                          </tr>
+                        ))
+                      )}
+                    </tbody>
+                  </table>
+                </div>
+
+                <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid #F1F5F9' }}>
+                  <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                    Menampilkan {showingFrom} sampai {showingTo} dari {monitoring.installments.length} data
+                  </span>
+
+                  <div className="flex items-center gap-2">
+                    <button
+                      onClick={() => setInstallmentPage(prev => Math.max(1, prev - 1))}
+                      disabled={installmentPage <= 1}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md disabled:opacity-40"
+                      style={{ border: '1px solid #E5E7EB', color: '#6B7280' }}
+                    >
+                      {'<'}
+                    </button>
+                    <span className="text-xs" style={{ color: '#6B7280', fontFamily: 'Inter, sans-serif' }}>
+                      {installmentPage} / {totalInstallmentPages}
+                    </span>
+                    <button
+                      onClick={() => setInstallmentPage(prev => Math.min(totalInstallmentPages, prev + 1))}
+                      disabled={installmentPage >= totalInstallmentPages}
+                      className="inline-flex items-center gap-1 px-2 py-1 rounded-md disabled:opacity-40"
+                      style={{ border: '1px solid #E5E7EB', color: '#6B7280' }}
+                    >
+                      {'>'}
+                    </button>
+                  </div>
+                </div>
+              </section>
+            </div>
+          ) : (
           <div className="grid grid-cols-12 gap-6">
             <div className="col-span-7 space-y-6">
               <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
@@ -245,6 +498,14 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                       {data.loan.description || '-'}
                     </p>
                   </div>
+                  {data.loan.status === 'REJECTED' && (
+                    <div>
+                      <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Alasan Penolakan</p>
+                      <p className="text-sm" style={{ color: '#991B1B', fontFamily: 'Inter, sans-serif' }}>
+                        {cleanedRejectionReason || 'Alasan penolakan tidak tersimpan pada data pinjaman ini.'}
+                      </p>
+                    </div>
+                  )}
                 </div>
               </div>
 
@@ -334,16 +595,10 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                   </div>
                   <div className="rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
                     <p className="text-xs font-semibold uppercase" style={{ color: '#8E99A8' }}>Skor Kredit</p>
-                    <div className="flex items-center gap-2 mb-1">
-                      <p className="font-bold text-2xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                        {data.loan.credit_score.score}
-                      </p>
-                      <span className="inline-flex px-2 py-0.5 rounded text-xs font-bold"
-                        style={{ backgroundColor: '#F3F4F6', color: '#525E71' }}>
-                        {data.loan.credit_score.label}
-                      </span>
-                    </div>
-                    <ScoreBar score={((data.loan.credit_score.score - 300) / 550) * 100} />
+                    <CreditScoreBar
+                      score={data.loan.credit_score.score}
+                      label={data.loan.credit_score.label}
+                    />
                   </div>
                 </div>
 
@@ -428,6 +683,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
               )}
             </div>
           </div>
+          )
         )}
       </main>
 
@@ -436,6 +692,43 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
           message={actionSuccess || 'Status pinjaman telah diperbarui.'}
           onClose={() => setShowSuccessModal(false)}
         />
+      )}
+
+      {proofModalOpen && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/50" onClick={() => setProofModalOpen(false)} />
+          <div className="relative bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
+            <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <h3 className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                Bukti Transfer Cicilan
+              </h3>
+              <button type="button" onClick={() => setProofModalOpen(false)} style={{ color: '#8E99A8' }}>
+                x
+              </button>
+            </div>
+            <div className="p-4">
+              {proofUrl?.toLowerCase().endsWith('.pdf') ? (
+                <div className="space-y-3">
+                  <div className="text-sm" style={{ color: '#374151' }}>
+                    Dokumen PDF
+                  </div>
+                  <a
+                    href={proofUrl || '#'}
+                    target="_blank"
+                    rel="noreferrer"
+                    className="inline-flex items-center text-sm font-semibold"
+                    style={{ color: '#11447D' }}
+                  >
+                    Buka PDF di tab baru
+                  </a>
+                </div>
+              ) : (
+                // eslint-disable-next-line @next/next/no-img-element
+                <img src={proofUrl || ''} alt="Bukti Transfer" className="max-h-[70vh] mx-auto rounded-lg" />
+              )}
+            </div>
+          </div>
+        </div>
       )}
     </DashboardLayout>
   )
