@@ -89,6 +89,17 @@ export interface LoanDetailResponse {
 }
 
 export interface LoanDetail {
+  // Original API fields
+  id: number
+  loan_id: string
+  category_display: string
+  amount: string
+  monthly_installment: string
+  total_repayment: string
+  member_bank_account: BankAccount | null
+  installment_schedule: InstallmentSchedule[]
+  
+  // Transformed fields for DisbursementDetailContent
   loan_number: string
   member_name: string
   principal_amount: number
@@ -161,6 +172,17 @@ function transformLoanDetailResponse(apiData: LoanDetailResponse): LoanDetail {
   }))
 
   return {
+    // Original API fields (for DisburseLoanModal)
+    id: apiData.id,
+    loan_id: apiData.loan_id,
+    category_display: apiData.category_display,
+    amount: apiData.amount,
+    monthly_installment: apiData.monthly_installment,
+    total_repayment: apiData.total_repayment,
+    member_bank_account: apiData.member_bank_account,
+    installment_schedule: apiData.installment_schedule,
+
+    // Transformed fields (for DisbursementDetailContent)
     loan_number: apiData.loan_id,
     member_name: apiData.member_name,
     principal_amount: parseFloat(apiData.amount),
@@ -198,7 +220,7 @@ export async function disburseLoans(
 export interface LoanActivity {
   month: string
   count: number
-  amount: string
+  amount: number
 }
 
 export interface UpcomingDueLoan {
