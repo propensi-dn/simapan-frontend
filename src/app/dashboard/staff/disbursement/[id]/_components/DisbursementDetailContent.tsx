@@ -1,9 +1,9 @@
 'use client'
 
 import { useState, useRef } from 'react'
-import { Upload, Landmark } from 'lucide-react'
+import { Upload } from 'lucide-react'
 
-// ─── Type definitions (sesuaikan dengan LoanDetail dari staff-api) ───────────
+// ─── Types ────────────────────────────────────────────────────────────────────
 export interface InstallmentRow {
   no: number
   due_date: string
@@ -32,535 +32,225 @@ interface Props {
   loading: boolean
 }
 
-// ─── Helpers ─────────────────────────────────────────────────────────────────
 const fmt = (n: number | undefined | null) =>
   'Rp ' + (n ?? 0).toLocaleString('id-ID', { minimumFractionDigits: 0 })
 
-// ─── Component ───────────────────────────────────────────────────────────────
-export default function DisbursementDetailContent({
-  loanDetail,
-  onConfirm,
-  onCancel,
-  loading,
-}: Props) {
+export default function DisbursementDetailContent({ loanDetail, onConfirm, onCancel, loading }: Props) {
   const [proofFile, setProofFile] = useState<File | null>(null)
-  const [dragOver, setDragOver] = useState(false)
+  const [dragOver, setDragOver]   = useState(false)
+  const [proofError, setProofError] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
   const netDisbursement = loanDetail.principal_amount - (loanDetail.admin_fee ?? 0)
-
-  // Tampilkan maks 2 baris + ellipsis + baris terakhir
-  const rows = loanDetail.installments ?? []
-  const firstTwo = rows.slice(0, 2)
-  const lastRow = rows.length > 3 ? rows[rows.length - 1] : null
+  const rows      = loanDetail.installments ?? []
+  const firstTwo  = rows.slice(0, 2)
+  const lastRow   = rows.length > 3 ? rows[rows.length - 1] : null
   const hiddenCount = rows.length > 3 ? rows.length - 3 : 0
 
-  const handleFile = (file: File) => {
-    setProofFile(file)
+  const handleFile = (file: File) => { setProofFile(file); setProofError(false) }
+  const handleConfirm = () => {
+    if (!proofFile) { setProofError(true); return }
+    onConfirm(proofFile)
   }
 
   return (
-    <div
-      style={{
-        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
-        background: '#F5F6FA',
-        minHeight: '100vh',
-        padding: '0',
-      }}
-    >
-      {/* ── Page title ── */}
-      <div style={{ padding: '24px 0' }}>
-        <h1
-          style={{
-            fontSize: 22,
-            fontWeight: 800,
-            color: '#1A2B4A',
-            margin: 0,
-            letterSpacing: '-0.3px',
-          }}
-        >
+    <div style={{ fontFamily: "'Plus Jakarta Sans','Segoe UI',sans-serif", background: '#F5F6FA', minHeight: '100vh' }}>
+
+      {/* ── Title ── */}
+      <div style={{ padding: '24px 0 16px' }}>
+        <h1 style={{ fontSize: 20, fontWeight: 800, color: '#111827', margin: 0, letterSpacing: '-0.3px' }}>
           Konfirmasi Pencairan &amp; Jadwal:{' '}
-          <span style={{ color: '#3B7DFF' }}>#{loanDetail.loan_number}</span>
+          <span style={{ color: '#111827' }}>#{loanDetail.loan_number}</span>
         </h1>
-        <p style={{ color: '#8A9BB0', fontSize: 13, marginTop: 4 }}>
+        <p style={{ color: '#94A3B8', fontSize: 13, margin: '4px 0 0' }}>
           Tinjau ringkasan pinjaman, jadwal angsuran, dan unggah bukti transfer untuk menyelesaikan proses.
         </p>
       </div>
 
-      {/* ── Two-column layout ── */}
-      <div
-        style={{
-          padding: '24px 0',
-          display: 'grid',
-          gridTemplateColumns: '1fr 320px',
-          gap: 24,
-          alignItems: 'start',
-        }}
-      >
-        {/* ── LEFT COLUMN ── */}
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 20 }}>
+      {/* ── Two-column grid ── */}
+      <div style={{ display: 'grid', gridTemplateColumns: '1fr 296px', gap: 20, alignItems: 'start' }}>
 
-          {/* Loan Summary Card */}
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 14,
-              border: '1px solid #E8EAED',
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            }}
-          >
-            {/* card header */}
-            <div
-              style={{
-                padding: '14px 20px',
-                borderBottom: '1px solid #F0F2F5',
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: 1.2,
-                  color: '#8A9BB0',
-                  textTransform: 'uppercase',
-                }}
-              >
+        {/* LEFT */}
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+
+          {/* Loan Summary */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+            <div style={{
+              padding: '12px 20px', borderBottom: '1px solid #F1F5F9',
+              display: 'flex', justifyContent: 'space-between', alignItems: 'center',
+            }}>
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: '#94A3B8', textTransform: 'uppercase' }}>
                 Ringkasan Pinjaman
               </span>
-              <span
-                style={{
-                  background: '#1A2B4A',
-                  color: '#fff',
-                  fontSize: 12,
-                  fontWeight: 700,
-                  padding: '4px 12px',
-                  borderRadius: 20,
-                }}
-              >
+              <span style={{ background: '#111827', color: '#fff', fontSize: 11, fontWeight: 700, padding: '3px 12px', borderRadius: 20 }}>
                 {loanDetail.member_name}
               </span>
             </div>
-
-            {/* 3 stats */}
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(3, 1fr)',
-                gap: 0,
-              }}
-            >
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(3,1fr)' }}>
               {[
-                {
-                  label: 'POKOK PINJAMAN',
-                  value: fmt(loanDetail.principal_amount),
-                  accent: '#3B7DFF',
-                },
-                {
-                  label: 'TENOR',
-                  value: `${loanDetail.tenor} Bulan`,
-                  accent: '#10B981',
-                },
-                {
-                  label: 'SUKU BUNGA',
-                  value: `${loanDetail.interest_rate}% / Bulan`,
-                  accent: '#F59E0B',
-                },
-              ].map((stat, i) => (
-                <div
-                  key={i}
-                  style={{
-                    padding: '18px 20px',
-                    borderRight: i < 2 ? '1px solid #F0F2F5' : 'none',
-                  }}
-                >
-                  <p
-                    style={{
-                      fontSize: 10,
-                      fontWeight: 700,
-                      letterSpacing: 1,
-                      color: '#B0BAC9',
-                      margin: '0 0 6px',
-                      textTransform: 'uppercase',
-                    }}
-                  >
-                    {stat.label}
+                { label: 'POKOK PINJAMAN', value: fmt(loanDetail.principal_amount) },
+                { label: 'TENOR',          value: `${loanDetail.tenor} Bulan` },
+                { label: 'SUKU BUNGA',     value: `${loanDetail.interest_rate}% / Bulan` },
+              ].map((s, i) => (
+                <div key={i} style={{ padding: '16px 20px', borderRight: i < 2 ? '1px solid #F1F5F9' : 'none' }}>
+                  <p style={{ fontSize: 9, fontWeight: 700, letterSpacing: 1, color: '#94A3B8', margin: '0 0 5px', textTransform: 'uppercase' }}>
+                    {s.label}
                   </p>
-                  <p
-                    style={{
-                      fontSize: 18,
-                      fontWeight: 800,
-                      color: stat.accent,
-                      margin: 0,
-                    }}
-                  >
-                    {stat.value}
-                  </p>
+                  <p style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>{s.value}</p>
                 </div>
               ))}
             </div>
           </div>
 
-          {/* Installment Schedule Card */}
-          <div
-            style={{
-              background: '#fff',
-              borderRadius: 14,
-              border: '1px solid #E8EAED',
-              overflow: 'hidden',
-              boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            }}
-          >
-            <div
-              style={{
-                padding: '14px 20px',
-                borderBottom: '1px solid #F0F2F5',
-              }}
-            >
-              <span
-                style={{
-                  fontSize: 11,
-                  fontWeight: 800,
-                  letterSpacing: 1.2,
-                  color: '#8A9BB0',
-                  textTransform: 'uppercase',
-                }}
-              >
-                Jadwal Angsuran (Jadwal Angsuran)
+          {/* Installment Schedule */}
+          <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+            <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9' }}>
+              <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: '#94A3B8', textTransform: 'uppercase' }}>
+                Jadwal Angsuran (Installment Schedule)
               </span>
             </div>
-
             <table style={{ width: '100%', borderCollapse: 'collapse' }}>
               <thead>
-                <tr style={{ background: '#F8F9FB' }}>
-                  {['NO', 'TANGGAL JATUH TEMPO', 'POKOK', 'BUNGA', 'TOTAL'].map(
-                    (h, i) => (
-                      <th
-                        key={i}
-                        style={{
-                          padding: '10px 20px',
-                          fontSize: 10,
-                          fontWeight: 700,
-                          letterSpacing: 0.8,
-                          color: '#B0BAC9',
-                          textAlign: i === 0 ? 'center' : i >= 2 ? 'right' : 'left',
-                          borderBottom: '1px solid #F0F2F5',
-                        }}
-                      >
-                        {h}
-                      </th>
-                    )
-                  )}
+                <tr style={{ background: '#FAFBFC' }}>
+                  {(['NO','TANGGAL JATUH TEMPO','POKOK','BUNGA','TOTAL TAGIHAN'] as const).map((h, i) => (
+                    <th key={i} style={{
+                      padding: '9px 20px', fontSize: 9, fontWeight: 700, letterSpacing: 0.8, color: '#94A3B8',
+                      textAlign: i === 0 ? 'center' : i >= 2 ? 'right' : 'left',
+                      borderBottom: '1px solid #F1F5F9',
+                    }}>
+                      {h}
+                    </th>
+                  ))}
                 </tr>
               </thead>
               <tbody>
-                {firstTwo.map((row, i) => (
-                  <TableRow key={i} row={row} highlight={false} />
-                ))}
-
+                {firstTwo.map((row, i) => <InstRow key={i} row={row} last={false} />)}
                 {hiddenCount > 0 && (
                   <tr>
-                    <td
-                      colSpan={5}
-                      style={{
-                        textAlign: 'center',
-                        padding: '12px',
-                        fontSize: 13,
-                        color: '#8A9BB0',
-                        fontStyle: 'italic',
-                        borderBottom: '1px solid #F0F2F5',
-                      }}
-                    >
-                      ... (Entri {3} s/d {rows.length - 1}) ...
+                    <td colSpan={5} style={{
+                      textAlign: 'center', padding: '10px', fontSize: 12,
+                      color: '#94A3B8', fontStyle: 'italic', borderBottom: '1px solid #F1F5F9',
+                    }}>
+                      ... (Entri 3 s/d {rows.length - 1}) ...
                     </td>
                   </tr>
                 )}
-
-                {lastRow && <TableRow row={lastRow} highlight={true} />}
+                {lastRow && <InstRow row={lastRow} last={true} />}
               </tbody>
             </table>
           </div>
         </div>
 
-        {/* ── RIGHT COLUMN ── */}
-        <div
-          style={{
-            background: '#fff',
-            borderRadius: 14,
-            border: '1px solid #E8EAED',
-            boxShadow: '0 2px 8px rgba(0,0,0,0.04)',
-            overflow: 'hidden',
-          }}
-        >
-          {/* card header */}
-          <div
-            style={{
-              background: 'linear-gradient(135deg, #1A2B4A 0%, #2D4A7A 100%)',
-              padding: '16px 20px',
-            }}
-          >
-            <span
-              style={{
-                fontSize: 11,
-                fontWeight: 800,
-                letterSpacing: 1.5,
-                color: 'rgba(255,255,255,0.7)',
-                textTransform: 'uppercase',
-              }}
-            >
+        {/* RIGHT — Disbursement Details */}
+        <div style={{ background: '#fff', borderRadius: 12, border: '1px solid #E5E7EB', overflow: 'hidden' }}>
+          <div style={{ padding: '12px 20px', borderBottom: '1px solid #F1F5F9' }}>
+            <span style={{ fontSize: 10, fontWeight: 800, letterSpacing: 1.2, color: '#94A3B8', textTransform: 'uppercase' }}>
               Detail Pencairan
             </span>
           </div>
 
           <div style={{ padding: 20 }}>
+
             {/* Bank destination */}
-            <div style={{ marginBottom: 16 }}>
-              <p
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  color: '#B0BAC9',
-                  textTransform: 'uppercase',
-                  margin: '0 0 6px',
-                }}
-              >
-                Bank Tujuan
+            <Label>Bank Tujuan</Label>
+            <div style={{
+              display: 'flex', alignItems: 'center', gap: 10,
+              background: '#F9FAFB', borderRadius: 8, padding: '9px 12px',
+              border: '1px solid #E5E7EB', marginBottom: 14,
+            }}>
+              {/* Figma shows a small gray bank-logo rectangle */}
+              <div style={{ width: 28, height: 18, background: '#D1D5DB', borderRadius: 3, flexShrink: 0 }} />
+              <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: 0 }}>
+                {loanDetail.bank_name} - {loanDetail.account_number}
               </p>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: 10,
-                  background: '#F8F9FB',
-                  borderRadius: 10,
-                  padding: '10px 14px',
-                  border: '1px solid #E8EAED',
-                }}
-              >
-                <div
-                  style={{
-                    width: 32,
-                    height: 32,
-                    background: 'linear-gradient(135deg, #3B7DFF, #2563EB)',
-                    borderRadius: 8,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Landmark size={16} color="#fff" />
-                </div>
-                <div>
-                  <p
-                    style={{
-                      fontSize: 13,
-                      fontWeight: 800,
-                      color: '#1A2B4A',
-                      margin: 0,
-                    }}
-                  >
-                    {loanDetail.bank_name} - {loanDetail.account_number}
-                  </p>
-                </div>
-              </div>
             </div>
 
             {/* Account holder */}
-            <div style={{ marginBottom: 20 }}>
-              <p
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  color: '#B0BAC9',
-                  textTransform: 'uppercase',
-                  margin: '0 0 4px',
-                }}
-              >
-                Nama Pemegang Rekening
-              </p>
-              <p
-                style={{
-                  fontSize: 14,
-                  fontWeight: 700,
-                  color: '#1A2B4A',
-                  margin: 0,
-                }}
-              >
-                {loanDetail.account_holder}
-              </p>
+            <Label>Nama Pemegang Rekening</Label>
+            <p style={{ fontSize: 14, fontWeight: 700, color: '#111827', margin: '0 0 18px' }}>
+              {loanDetail.account_holder}
+            </p>
+
+            <Divider />
+
+            {/* Upload — REQUIRED */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 6 }}>
+              <Label noMargin>Unggah Bukti Transfer</Label>
+              <span style={{ fontSize: 10, color: '#EF4444', fontWeight: 700 }}>* Wajib</span>
             </div>
 
-            {/* Divider */}
-            <hr style={{ border: 'none', borderTop: '1px solid #F0F2F5', margin: '0 0 20px' }} />
-
-            {/* Upload Receipt */}
-            <div style={{ marginBottom: 20 }}>
-              <p
-                style={{
-                  fontSize: 10,
-                  fontWeight: 700,
-                  letterSpacing: 1,
-                  color: '#B0BAC9',
-                  textTransform: 'uppercase',
-                  margin: '0 0 8px',
-                }}
-              >
-                Unggah Bukti Transfer
-              </p>
-              <div
-                onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
-                onDragLeave={() => setDragOver(false)}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  setDragOver(false)
-                  const file = e.dataTransfer.files[0]
-                  if (file) handleFile(file)
-                }}
-                onClick={() => fileRef.current?.click()}
-                style={{
-                  border: `2px dashed ${dragOver ? '#3B7DFF' : proofFile ? '#10B981' : '#D1D9E6'}`,
-                  borderRadius: 10,
-                  padding: '20px 14px',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  alignItems: 'center',
-                  gap: 6,
-                  cursor: 'pointer',
-                  background: dragOver
-                    ? '#EEF4FF'
-                    : proofFile
-                    ? '#F0FDF4'
-                    : '#FAFBFC',
-                  transition: 'all 0.2s',
-                }}
-              >
-                <div
-                  style={{
-                    width: 40,
-                    height: 40,
-                    background: proofFile
-                      ? 'linear-gradient(135deg,#10B981,#059669)'
-                      : 'linear-gradient(135deg,#3B7DFF,#2563EB)',
-                    borderRadius: 10,
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'center',
-                  }}
-                >
-                  <Upload size={18} color="#fff" />
-                </div>
-                <p
-                  style={{
-                    fontSize: 13,
-                    fontWeight: 700,
-                    color: proofFile ? '#059669' : '#3B7DFF',
-                    margin: 0,
-                  }}
-                >
-                  {proofFile ? proofFile.name : 'Unggah Bukti'}
-                </p>
-                {!proofFile && (
-                  <p style={{ fontSize: 11, color: '#B0BAC9', margin: 0 }}>
-                    PDF, JPG, PNG (Maks. 2MB)
-                  </p>
-                )}
-              </div>
-              <input
-                ref={fileRef}
-                type="file"
-                accept=".pdf,.jpg,.jpeg,.png"
-                style={{ display: 'none' }}
-                onChange={(e) => {
-                  const file = e.target.files?.[0]
-                  if (file) handleFile(file)
-                }}
-              />
-            </div>
-
-            {/* Net disbursement */}
             <div
+              onDragOver={(e) => { e.preventDefault(); setDragOver(true) }}
+              onDragLeave={() => setDragOver(false)}
+              onDrop={(e) => { e.preventDefault(); setDragOver(false); const f = e.dataTransfer.files[0]; if (f) handleFile(f) }}
+              onClick={() => fileRef.current?.click()}
               style={{
-                background: '#F8F9FB',
-                borderRadius: 10,
-                padding: '12px 14px',
-                marginBottom: 20,
-                display: 'flex',
-                justifyContent: 'space-between',
-                alignItems: 'center',
-                border: '1px solid #E8EAED',
+                border: `1.5px dashed ${proofError ? '#EF4444' : dragOver ? '#3B82F6' : proofFile ? '#10B981' : '#D1D5DB'}`,
+                borderRadius: 10, padding: '22px 14px',
+                display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 6,
+                cursor: 'pointer',
+                background: proofError ? '#FEF2F2' : dragOver ? '#EFF6FF' : proofFile ? '#F0FDF4' : '#FAFBFC',
+                transition: 'all 0.2s', marginBottom: proofError ? 4 : 18,
               }}
             >
-              <div>
-                <p
-                  style={{
-                    fontSize: 11,
-                    fontWeight: 700,
-                    color: '#8A9BB0',
-                    margin: '0 0 2px',
-                  }}
-                >
-                  Pencairan Bersih:
-                </p>
-                <p style={{ fontSize: 10, color: '#B0BAC9', margin: 0 }}>
-                  *Tidak termasuk biaya admin
-                </p>
+              <div style={{
+                width: 36, height: 36, borderRadius: 8,
+                background: proofFile ? '#D1FAE5' : '#F3F4F6',
+                display: 'flex', alignItems: 'center', justifyContent: 'center',
+              }}>
+                <Upload size={16} color={proofFile ? '#059669' : '#6B7280'} />
               </div>
-              <p
-                style={{
-                  fontSize: 18,
-                  fontWeight: 900,
-                  color: '#1A2B4A',
-                  margin: 0,
-                }}
-              >
-                {fmt(netDisbursement)}
+              <p style={{ fontSize: 12, fontWeight: 700, color: proofFile ? '#059669' : '#374151', margin: 0 }}>
+                {proofFile ? proofFile.name : 'Unggah Bukti'}
               </p>
+              {!proofFile && (
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: 0 }}>PDF, JPG, PNG (Maks. 2MB)</p>
+              )}
             </div>
 
-            {/* Confirm button */}
+            {proofError && (
+              <p style={{ fontSize: 11, color: '#EF4444', margin: '0 0 14px', fontWeight: 600 }}>
+                Bukti transfer wajib diunggah sebelum konfirmasi.
+              </p>
+            )}
+
+            <input ref={fileRef} type="file" accept=".pdf,.jpg,.jpeg,.png" style={{ display: 'none' }}
+              onChange={(e) => { const f = e.target.files?.[0]; if (f) handleFile(f) }} />
+
+            <Divider />
+
+            {/* Net disbursement */}
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 18 }}>
+              <div>
+                <p style={{ fontSize: 12, fontWeight: 600, color: '#374151', margin: '0 0 2px' }}>Pencairan Bersih:</p>
+                <p style={{ fontSize: 10, color: '#94A3B8', margin: 0 }}>*Tidak termasuk biaya admin</p>
+              </div>
+              <p style={{ fontSize: 17, fontWeight: 900, color: '#111827', margin: 0 }}>{fmt(netDisbursement)}</p>
+            </div>
+
+            {/* Confirm */}
             <button
-              onClick={() => onConfirm(proofFile ?? undefined)}
+              onClick={handleConfirm}
               disabled={loading}
               style={{
-                width: '100%',
-                padding: '13px',
-                background: loading
-                  ? '#93B4FF'
-                  : 'linear-gradient(135deg, #1A2B4A 0%, #2D4A7A 100%)',
-                color: '#fff',
-                border: 'none',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 800,
+                width: '100%', padding: '12px', borderRadius: 8, border: 'none',
+                background: loading ? '#9CA3AF' : '#111827',
+                color: '#fff', fontSize: 13, fontWeight: 800,
                 cursor: loading ? 'not-allowed' : 'pointer',
-                letterSpacing: 0.3,
-                marginBottom: 10,
-                transition: 'all 0.2s',
+                marginBottom: 8, letterSpacing: 0.2, transition: 'all 0.2s',
               }}
             >
               {loading ? 'Memproses...' : 'Konfirmasi Pencairan & Jadwal'}
             </button>
 
-            {/* Cancel button */}
+            {/* Cancel */}
             <button
               onClick={onCancel}
               disabled={loading}
               style={{
-                width: '100%',
-                padding: '12px',
-                background: '#fff',
-                color: '#1A2B4A',
-                border: '1.5px solid #E8EAED',
-                borderRadius: 10,
-                fontSize: 14,
-                fontWeight: 700,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
+                width: '100%', padding: '11px', borderRadius: 8,
+                border: '1px solid #E5E7EB', background: '#fff',
+                color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer',
               }}
             >
               Batal
@@ -572,68 +262,37 @@ export default function DisbursementDetailContent({
   )
 }
 
-// ─── Sub-component: table row ─────────────────────────────────────────────────
-function TableRow({
-  row,
-  highlight,
-}: {
-  row: InstallmentRow
-  highlight: boolean
-}) {
+// ─── Small helpers ────────────────────────────────────────────────────────────
+const Label = ({ children, noMargin }: { children: React.ReactNode; noMargin?: boolean }) => (
+  <p style={{
+    fontSize: 9, fontWeight: 700, letterSpacing: 1,
+    color: '#94A3B8', textTransform: 'uppercase',
+    margin: noMargin ? 0 : '0 0 6px',
+  }}>
+    {children}
+  </p>
+)
+
+const Divider = () => (
+  <hr style={{ border: 'none', borderTop: '1px solid #F1F5F9', margin: '0 0 16px' }} />
+)
+
+function InstRow({ row, last }: { row: InstallmentRow; last: boolean }) {
   return (
-    <tr
-      style={{
-        background: highlight ? '#F0F7FF' : 'transparent',
-        borderBottom: '1px solid #F0F2F5',
-      }}
-    >
-      <td
-        style={{
-          padding: '12px 20px',
-          textAlign: 'center',
-          fontSize: 13,
-          color: '#1A2B4A',
-          fontWeight: 600,
-        }}
-      >
+    <tr style={{ background: last ? '#F8FAFF' : 'transparent', borderBottom: '1px solid #F1F5F9' }}>
+      <td style={{ padding: '11px 20px', textAlign: 'center', fontSize: 13, color: '#374151', fontWeight: 600 }}>
         {row.no}
       </td>
-      <td style={{ padding: '12px 20px', fontSize: 13, color: '#1A2B4A' }}>
-        {new Date(row.due_date).toLocaleDateString('id-ID', {
-          day: 'numeric',
-          month: 'short',
-          year: 'numeric',
-        })}
+      <td style={{ padding: '11px 20px', fontSize: 13, color: '#374151' }}>
+        {new Date(row.due_date).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })}
       </td>
-      <td
-        style={{
-          padding: '12px 20px',
-          textAlign: 'right',
-          fontSize: 13,
-          color: '#1A2B4A',
-        }}
-      >
+      <td style={{ padding: '11px 20px', textAlign: 'right', fontSize: 13, color: '#374151' }}>
         {fmt(row.principal)}
       </td>
-      <td
-        style={{
-          padding: '12px 20px',
-          textAlign: 'right',
-          fontSize: 13,
-          color: '#1A2B4A',
-        }}
-      >
+      <td style={{ padding: '11px 20px', textAlign: 'right', fontSize: 13, color: '#374151' }}>
         {fmt(row.interest)}
       </td>
-      <td
-        style={{
-          padding: '12px 20px',
-          textAlign: 'right',
-          fontSize: 14,
-          fontWeight: 800,
-          color: highlight ? '#3B7DFF' : '#1A2B4A',
-        }}
-      >
+      <td style={{ padding: '11px 20px', textAlign: 'right', fontSize: 13, fontWeight: 800, color: '#111827' }}>
         {fmt(row.total)}
       </td>
     </tr>
