@@ -17,6 +17,14 @@ type CooperativeBankAccount = {
   account_holder: string;
 };
 
+type MemberBankAccount = {
+  id: number;
+  bank_name: string;
+  account_number: string;
+  account_holder: string;
+  is_primary: boolean;
+};
+
 type OverviewResponse = {
   member_status: MemberStatus;
   bank_account: CooperativeBankAccount | null;
@@ -27,8 +35,8 @@ export default function DepositPage() {
   const [bankAccount, setBankAccount] = useState<CooperativeBankAccount | null>(null);
   const [savingType, setSavingType] = useState<SavingType>("POKOK");
   const [amount, setAmount] = useState("150000");
-  const [memberBankName, setMemberBankName] = useState("");
-  const [memberAccountNumber, setMemberAccountNumber] = useState("");
+  const [memberBankAccounts, setMemberBankAccounts] = useState<MemberBankAccount[]>([]);
+  const [selectedBankAccountId, setSelectedBankAccountId] = useState<number | null>(null);
   const [proofFile, setProofFile] = useState<File | null>(null);
   const [proofPreviewUrl, setProofPreviewUrl] = useState<string | null>(null);
   const [message, setMessage] = useState("");
@@ -62,10 +70,18 @@ export default function DepositPage() {
       }
 
       try {
-        const overviewResponse = await api.get<OverviewResponse>("/savings/overview/");
+        const [overviewResponse, bankAccountsResponse] = await Promise.all([
+          api.get<OverviewResponse>("/savings/overview/"),
+          api.get<MemberBankAccount[]>("/members/bank-accounts/"),
+        ]);
 
         setMemberStatus(overviewResponse.data.member_status);
         setBankAccount(overviewResponse.data.bank_account ?? null);
+
+        const accounts = bankAccountsResponse.data ?? [];
+        setMemberBankAccounts(accounts);
+        const primary = accounts.find((a) => a.is_primary) ?? accounts[0] ?? null;
+        if (primary) setSelectedBankAccountId(primary.id);
       } catch {
         setError("Gagal mengambil data overview simpanan.");
       }
@@ -166,10 +182,16 @@ export default function DepositPage() {
 
     setIsSubmitting(true);
 
+    const selectedAccount = memberBankAccounts.find((a) => a.id === selectedBankAccountId);
+    if (!selectedAccount) {
+      setError("Pilih rekening bank anggota terlebih dahulu.");
+      return;
+    }
+
     const formData = new FormData();
     formData.append("transfer_proof", proofFile);
-    formData.append("member_bank_name", memberBankName);
-    formData.append("member_account_number", memberAccountNumber);
+    formData.append("member_bank_name", selectedAccount.bank_name);
+    formData.append("member_account_number", selectedAccount.account_number);
 
     try {
       if (memberStatus === "VERIFIED") {
@@ -183,8 +205,6 @@ export default function DepositPage() {
       setMessage("");
       setIsSuccessModalOpen(true);
       setProofFile(null);
-      setMemberBankName("");
-      setMemberAccountNumber("");
       if (savingType === "SUKARELA") {
         setAmount("");
       }
@@ -284,28 +304,27 @@ export default function DepositPage() {
               />
             </div>
 
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-zinc-700">Nama Bank Anggota</label>
-              <input
-                type="text"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                value={memberBankName}
-                onChange={(event) => setMemberBankName(event.target.value)}
-                disabled={!canDeposit}
-                required
-              />
-            </div>
-
-            <div>
-              <label className="mb-1 block text-sm font-semibold text-zinc-700">Nomor Rekening Anggota</label>
-              <input
-                type="text"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                value={memberAccountNumber}
-                onChange={(event) => setMemberAccountNumber(event.target.value)}
-                disabled={!canDeposit}
-                required
-              />
+            <div className="md:col-span-2">
+              <label className="mb-1 block text-sm font-semibold text-zinc-700">Rekening Bank Anggota</label>
+              {memberBankAccounts.length === 0 ? (
+                <p className="mt-1 text-sm text-zinc-400">Tidak ada rekening bank tersimpan. Tambahkan di halaman profil.</p>
+              ) : (
+                <select
+                  className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
+                  value={selectedBankAccountId ?? ""}
+                  onChange={(event) => setSelectedBankAccountId(Number(event.target.value))}
+                  disabled={!canDeposit}
+                  required
+                >
+                  {memberBankAccounts.map((account) => (
+                    <option key={account.id} value={account.id}>
+                      {account.bank_name} – {account.account_number} – {account.account_holder}
+                      {account.is_primary ? " (Utama)" : ""}
+                    </option>
+                  ))}
+                </select>
+              )}
+              <p className="mt-1 text-xs text-zinc-400">Rekening utama dipilih otomatis. Ubah di halaman profil.</p>
             </div>
           </div>
 
