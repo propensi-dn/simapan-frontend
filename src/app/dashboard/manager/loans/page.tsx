@@ -147,8 +147,8 @@ export default function ManagerLoansPage() {
           </p>
         </div>
 
-        <div className="grid grid-cols-3 gap-5">
-          <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+        <div className="grid grid-cols-1 md:grid-cols-[1fr_1fr_1fr_1.35fr] gap-5">
+          <div className="bg-white rounded-2xl px-6 py-5 h-full" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               Total Pengajuan Pending
             </p>
@@ -156,7 +156,7 @@ export default function ManagerLoansPage() {
               {summary?.total_pending ?? 0}
             </p>
           </div>
-          <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+          <div className="bg-white rounded-2xl px-6 py-5 h-full" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               Total Pinjaman Disetujui
             </p>
@@ -164,12 +164,20 @@ export default function ManagerLoansPage() {
               {summary?.total_approved ?? 0}
             </p>
           </div>
-          <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+          <div className="bg-white rounded-2xl px-6 py-5 h-full" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               Total Pinjaman Terlambat
             </p>
             <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               {summary?.total_overdue ?? 0}
+            </p>
+          </div>
+          <div className="bg-white rounded-2xl px-6 py-5 h-full" style={{ border: '1px solid #F1F5F9' }}>
+            <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+              Total Nominal Pending
+            </p>
+            <p className="font-bold text-3xl" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              {fmtRp(summary?.total_requested_amount ?? 0)}
             </p>
           </div>
         </div>
@@ -180,9 +188,6 @@ export default function ManagerLoansPage() {
               <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                 Aktivitas Pinjaman (6 Bulan)
               </h3>
-              <p className="text-xs" style={{ color: '#8E99A8' }}>
-                Total nominal pending: {fmtRp(summary?.total_requested_amount ?? 0)}
-              </p>
             </div>
             <div className="flex items-end gap-2 h-40">
               {activityRows.map((item) => {
@@ -452,7 +457,6 @@ export default function ManagerLoansPage() {
               className="px-3 py-2 rounded-xl text-xs outline-none"
               style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}>
               <option value="">Semua Status</option>
-              <option value="PENDING">Menunggu</option>
               <option value="APPROVED">Disetujui</option>
               <option value="ACTIVE">Aktif</option>
               <option value="OVERDUE">Jatuh Tempo Terlewat</option>
