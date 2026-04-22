@@ -15,6 +15,10 @@ type SavingItem = {
   status: "PENDING" | "SUCCESS" | "REJECTED";
   submitted_at: string;
   transfer_proof_url?: string | null;
+  direction?: "IN" | "OUT";
+  source?: "SAVINGS_DEPOSIT" | "LOAN_INSTALLMENT";
+  description?: string;
+  loan_pk?: number | null;
 };
 
 type OverviewResponse = {
@@ -277,6 +281,7 @@ export default function SavingsOverviewPage() {
                 {visibleTransactions.map((item, i) => {
                   const st = STATUS_CONFIG[item.status];
                   const ty = TYPE_CONFIG[item.saving_type];
+                  const isOutgoing = item.direction === "OUT";
                   return (
                     <tr
                       key={item.id}
@@ -295,12 +300,15 @@ export default function SavingsOverviewPage() {
                           className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-md"
                           style={{ backgroundColor: ty.bg, color: ty.text, fontFamily: "Inter, sans-serif" }}
                         >
-                          {ty.label}
+                          {isOutgoing ? `${ty.label} (Dipakai)` : ty.label}
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="font-bold text-sm" style={{ color: "#242F43", fontFamily: "Montserrat, sans-serif" }}>
-                          {fmtRp(item.amount)}
+                        <span
+                          className="font-bold text-sm"
+                          style={{ color: isOutgoing ? "#991B1B" : "#242F43", fontFamily: "Montserrat, sans-serif" }}
+                        >
+                          {isOutgoing ? "-" : ""}{fmtRp(item.amount)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -313,7 +321,22 @@ export default function SavingsOverviewPage() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        {item.transfer_proof_url ? (
+                        {item.source === "LOAN_INSTALLMENT" ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs" style={{ color: "#6B7280", fontFamily: "Inter, sans-serif" }}>
+                              {item.description || "Pembayaran pinjaman via simpanan sukarela"}
+                            </span>
+                            {item.loan_pk ? (
+                              <Link
+                                href={`/dashboard/member/loans/${item.loan_pk}`}
+                                className="text-sm font-bold transition-opacity hover:opacity-60"
+                                style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                              >
+                                Lihat Pinjaman →
+                              </Link>
+                            ) : null}
+                          </div>
+                        ) : item.transfer_proof_url ? (
                           <a
                             href={item.transfer_proof_url}
                             target="_blank"
