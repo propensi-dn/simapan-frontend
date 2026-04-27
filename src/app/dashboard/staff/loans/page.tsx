@@ -109,7 +109,7 @@ export default function StaffLoanDashboardPage() {
 
   if (loading && !dashboard) {
     return (
-      <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
+      <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-0001">
         <DashboardHeader variant="default" title="Dashboard Aktivitas Pinjaman" />
         <main className="flex-1 p-8 flex items-center justify-center">
           <Loader className="w-8 h-8 animate-spin text-gray-400" />
@@ -119,7 +119,7 @@ export default function StaffLoanDashboardPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
+    <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-0001">
       <DashboardHeader
         variant="default"
         title="Dashboard Aktivitas Pinjaman"
@@ -195,7 +195,7 @@ export default function StaffLoanDashboardPage() {
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="font-bold text-lg" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                Pinjaman Mendekati Due Date
+                Pinjaman Mendekati Jatuh Tempo
               </h2>
               <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif', marginTop: '4px' }}>
                 Pinjaman dengan jatuh tempo dalam 2 minggu ke depan
@@ -211,7 +211,7 @@ export default function StaffLoanDashboardPage() {
                   <thead>
                     <tr style={{ borderBottom: '1px solid #E5E7EB' }}>
                       <th className="text-left py-3 px-4 font-semibold" style={{ color: '#6B7280' }}>
-                        Loan ID
+                        ID Pinjaman
                       </th>
                       <th className="text-left py-3 px-4 font-semibold" style={{ color: '#6B7280' }}>
                         Nama Member
@@ -220,7 +220,7 @@ export default function StaffLoanDashboardPage() {
                         Sisa Cicilan
                       </th>
                       <th className="text-center py-3 px-4 font-semibold" style={{ color: '#6B7280' }}>
-                        Due Date
+                        Tanggal Jatuh Tempo
                       </th>
                       <th className="text-center py-3 px-4 font-semibold" style={{ color: '#6B7280' }}>
                         Sisa Hari
@@ -344,7 +344,7 @@ export default function StaffLoanDashboardPage() {
               style={{ backgroundColor: '#F9FAFB' }}
             >
               <p style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                Tidak ada pinjaman yang mendekati due date dalam 2 minggu ke depan
+                Tidak ada pinjaman yang mendekati jatuh tempo dalam 2 minggu ke depan
               </p>
             </div>
           )}
