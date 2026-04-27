@@ -40,22 +40,22 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
   }, []);
 
   const memberIdLabel = useMemo(() => {
-    if (!profile?.member_id) return "No Member ID";
+    if (!profile?.member_id) return "Belum Ada ID Anggota";
     return `#${profile.member_id}`;
   }, [profile]);
 
   return (
     <DashboardLayout
       role="MEMBER"
-      userName={profile?.full_name || "Member"}
+      userName={profile?.full_name || "Anggota"}
       userID={memberIdLabel}
       avatarUrl={profile?.profile_picture || undefined}
     >
       {isDepositPage ? (
         <DashboardHeader
           variant="form"
-          title="Deposit Form"
-          backLabel="Back to Savings Overview"
+          title="Form Setoran"
+          backLabel="Kembali ke Ringkasan Simpanan"
           backHref="/savings"
           notifCount={2}
         />
@@ -64,7 +64,7 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
           variant="detail"
           parentLabel="Dashboard"
           parentHref="/dashboard/member"
-          currentLabel="Savings"
+          currentLabel="Simpanan"
           notifCount={2}
         />
       )}
