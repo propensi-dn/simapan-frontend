@@ -289,10 +289,8 @@ export default function ProfilePage() {
       avatarUrl={profile?.profile_picture || undefined}
     >
       <DashboardHeader
-        variant="detail"
-        parentLabel="Dashboard"
-        parentHref="/dashboard/member"
-        currentLabel="Profil Anggota"
+        variant="default"
+        title="Profil Anggota"
         notifCount={2}
       />
 
@@ -450,22 +448,15 @@ export default function ProfilePage() {
                   {showBankForm && (
                     <div className="mb-6 p-6 bg-bg border border-gray-100 rounded-[24px]">
                       <div className="grid md:grid-cols-2 gap-4">
-                        {/* 3. UBAH INPUT BANK MENJADI DROPDOWN */}
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">Nama Bank</label>
-                          <select
+                          <input
+                            type="text"
                             value={bankForm.bank_name}
                             onChange={(e) => setBankForm((prev) => ({ ...prev, bank_name: e.target.value }))}
-                            className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-text-primary focus:ring-2 focus:ring-secondary-100 transition-all outline-none appearance-none cursor-pointer"
-                          >
-                            <option value="" disabled>Pilih Bank</option>
-                            <option value="Bank Central Asia (BCA)">Bank Central Asia (BCA)</option>
-                            <option value="Bank Mandiri">Bank Mandiri</option>
-                            <option value="Bank Negara Indonesia (BNI)">Bank Negara Indonesia (BNI)</option>
-                            <option value="Bank Rakyat Indonesia (BRI)">Bank Rakyat Indonesia (BRI)</option>
-                            <option value="Bank Syariah Indonesia (BSI)">Bank Syariah Indonesia (BSI)</option>
-                            <option value="Lainnya">Lainnya</option>
-                          </select>
+                            className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-text-primary focus:ring-2 focus:ring-secondary-100 transition-all outline-none"
+                            placeholder="Masukkan nama bank"
+                          />
                         </div>
                         <div className="space-y-2">
                           <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">Nomor Rekening</label>
@@ -529,19 +520,13 @@ export default function ProfilePage() {
                             <div className="grid md:grid-cols-2 gap-4">
                               <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">Nama Bank</label>
-                                <select
+                                <input
+                                  type="text"
                                   value={editBankForm.bank_name}
                                   onChange={(e) => setEditBankForm((prev) => ({ ...prev, bank_name: e.target.value }))}
-                                  className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-text-primary focus:ring-2 focus:ring-secondary-100 transition-all outline-none appearance-none cursor-pointer"
-                                >
-                                  <option value="" disabled>Pilih Bank</option>
-                                  <option value="Bank Central Asia (BCA)">Bank Central Asia (BCA)</option>
-                                  <option value="Bank Mandiri">Bank Mandiri</option>
-                                  <option value="Bank Negara Indonesia (BNI)">Bank Negara Indonesia (BNI)</option>
-                                  <option value="Bank Rakyat Indonesia (BRI)">Bank Rakyat Indonesia (BRI)</option>
-                                  <option value="Bank Syariah Indonesia (BSI)">Bank Syariah Indonesia (BSI)</option>
-                                  <option value="Lainnya">Lainnya</option>
-                                </select>
+                                  className="w-full p-4 bg-white border border-gray-100 rounded-2xl text-text-primary focus:ring-2 focus:ring-secondary-100 transition-all outline-none"
+                                  placeholder="Masukkan nama bank"
+                                />
                               </div>
                               <div className="space-y-2">
                                 <label className="text-[10px] font-bold uppercase text-text-tertiary tracking-widest">Nomor Rekening</label>
@@ -599,7 +584,7 @@ export default function ProfilePage() {
                             </div>
                             <div className="md:col-span-2 flex md:justify-start">
                               {account.is_primary && (
-                                <span className="px-4 py-1.5 bg-primary-950 text-white text-[10px] font-bold rounded-xl uppercase tracking-widest">Primary</span>
+                                <span className="px-4 py-1.5 bg-primary-950 text-white text-[10px] font-bold rounded-xl uppercase tracking-widest">Utama</span>
                               )}
                             </div>
                             <div className="md:col-span-4 flex items-center gap-2 md:justify-end">
