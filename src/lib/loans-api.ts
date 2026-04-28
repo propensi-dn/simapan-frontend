@@ -209,6 +209,7 @@ export interface ManagerLoanDetail {
   application_date: string
   status: LoanStatus
   status_display: string
+  rejection_reason: string
   amount: string
   tenor: number
   category: LoanCategory
@@ -245,6 +246,29 @@ export interface ManagerLoanDetailResponse {
     label: string
     passed: boolean
   }>
+  monitoring: ManagerLoanMonitoringDetail | null
+}
+
+export interface ManagerLoanMonitoringInstallmentItem {
+  id: number
+  installment_number: number
+  due_date: string
+  amount: string
+  status: InstallmentStatus
+  status_display: string
+  submitted_at: string | null
+  paid_at: string | null
+  transaction_id: string | null
+  transfer_proof_url: string | null
+}
+
+export interface ManagerLoanMonitoringDetail {
+  payment_progress_percent: number
+  paid_installments: number
+  total_installments: number
+  outstanding_balance: string
+  next_due_date: string | null
+  installments: ManagerLoanMonitoringInstallmentItem[]
 }
 
 // ── API calls ─────────────────────────────────────────────────────────────

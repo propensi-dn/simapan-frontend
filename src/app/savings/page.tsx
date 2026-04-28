@@ -15,6 +15,10 @@ type SavingItem = {
   status: "PENDING" | "SUCCESS" | "REJECTED";
   submitted_at: string;
   transfer_proof_url?: string | null;
+  direction?: "IN" | "OUT";
+  source?: "SAVINGS_DEPOSIT" | "LOAN_INSTALLMENT";
+  description?: string;
+  loan_pk?: number | null;
 };
 
 type OverviewResponse = {
@@ -34,9 +38,9 @@ const fmtRp = (value: string | number) =>
   }).format(Number(value));
 
 const STATUS_CONFIG: Record<SavingItem["status"], { bg: string; text: string; dot: string; label: string }> = {
-  SUCCESS:  { bg: "#D1FAE5", text: "#065F46", dot: "#10B981", label: "Success" },
-  PENDING:  { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B", label: "Pending" },
-  REJECTED: { bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444", label: "Rejected" },
+  SUCCESS:  { bg: "#D1FAE5", text: "#065F46", dot: "#10B981", label: "Berhasil" },
+  PENDING:  { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B", label: "Menunggu" },
+  REJECTED: { bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444", label: "Ditolak" },
 };
 
 const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string; label: string }> = {
@@ -47,9 +51,9 @@ const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string;
 
 const STATUS_FILTERS: { key: "ALL" | SavingItem["status"]; label: string }[] = [
   { key: "ALL",      label: "Semua" },
-  { key: "SUCCESS",  label: "Success" },
-  { key: "PENDING",  label: "Pending" },
-  { key: "REJECTED", label: "Rejected" },
+  { key: "SUCCESS",  label: "Berhasil" },
+  { key: "PENDING",  label: "Menunggu" },
+  { key: "REJECTED", label: "Ditolak" },
 ];
 
 const TYPE_FILTERS: { key: "ALL" | SavingItem["saving_type"]; label: string }[] = [
@@ -95,7 +99,7 @@ export default function SavingsOverviewPage() {
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
-    return "Manage and track your mandatory and voluntary savings.";
+    return "Kelola dan pantau simpanan wajib dan sukarela kamu.";
   }, [data]);
 
   const visibleTransactions = useMemo(() => {
@@ -141,7 +145,7 @@ export default function SavingsOverviewPage() {
       <div className="flex items-center justify-between">
         <div>
           <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
-            Savings Overview
+            Ringkasan Simpanan
           </h2>
           <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
             {summaryText}
@@ -263,10 +267,10 @@ export default function SavingsOverviewPage() {
                       className="inline-flex items-center gap-1"
                       onClick={() => setDateSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
                     >
-                      DATE {dateSortOrder === "desc" ? "↓" : "↑"}
+                      TANGGAL {dateSortOrder === "desc" ? "↓" : "↑"}
                     </button>
                   </th>
-                  {["TYPE", "AMOUNT", "STATUS", "ACTION"].map((h) => (
+                  {["JENIS", "JUMLAH", "STATUS", "AKSI"].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
                       {h}
                     </th>
@@ -277,6 +281,7 @@ export default function SavingsOverviewPage() {
                 {visibleTransactions.map((item, i) => {
                   const st = STATUS_CONFIG[item.status];
                   const ty = TYPE_CONFIG[item.saving_type];
+                  const isOutgoing = item.direction === "OUT";
                   return (
                     <tr
                       key={item.id}
@@ -295,12 +300,15 @@ export default function SavingsOverviewPage() {
                           className="inline-flex items-center text-xs font-bold px-2.5 py-1 rounded-md"
                           style={{ backgroundColor: ty.bg, color: ty.text, fontFamily: "Inter, sans-serif" }}
                         >
-                          {ty.label}
+                          {isOutgoing ? `${ty.label} (Dipakai)` : ty.label}
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        <span className="font-bold text-sm" style={{ color: "#242F43", fontFamily: "Montserrat, sans-serif" }}>
-                          {fmtRp(item.amount)}
+                        <span
+                          className="font-bold text-sm"
+                          style={{ color: isOutgoing ? "#991B1B" : "#242F43", fontFamily: "Montserrat, sans-serif" }}
+                        >
+                          {isOutgoing ? "-" : ""}{fmtRp(item.amount)}
                         </span>
                       </td>
                       <td className="px-5 py-4">
@@ -313,7 +321,22 @@ export default function SavingsOverviewPage() {
                         </span>
                       </td>
                       <td className="px-5 py-4">
-                        {item.transfer_proof_url ? (
+                        {item.source === "LOAN_INSTALLMENT" ? (
+                          <div className="flex flex-col gap-1">
+                            <span className="text-xs" style={{ color: "#6B7280", fontFamily: "Inter, sans-serif" }}>
+                              {item.description || "Pembayaran pinjaman via simpanan sukarela"}
+                            </span>
+                            {item.loan_pk ? (
+                              <Link
+                                href={`/dashboard/member/loans/${item.loan_pk}`}
+                                className="text-sm font-bold transition-opacity hover:opacity-60"
+                                style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                              >
+                                Lihat Pinjaman →
+                              </Link>
+                            ) : null}
+                          </div>
+                        ) : item.transfer_proof_url ? (
                           <a
                             href={item.transfer_proof_url}
                             target="_blank"
@@ -341,7 +364,7 @@ export default function SavingsOverviewPage() {
           style={{ borderTop: "1px solid #F1F5F9" }}
         >
           <p className="text-xs" style={{ color: "#B0BAC5", fontFamily: "Inter, sans-serif" }}>
-            Showing {visibleTransactions.length} of {data.count} transactions
+            Menampilkan {visibleTransactions.length} dari {data.count} transaksi
           </p>
           <div className="flex gap-2">
             <button
@@ -350,7 +373,7 @@ export default function SavingsOverviewPage() {
               className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
               style={{ border: "1px solid #E5E7EB", color: "#525E71", fontFamily: "Inter, sans-serif" }}
             >
-              ← Previous
+              ← Sebelumnya
             </button>
             <button
               onClick={() => setPage((prev) => prev + 1)}
@@ -358,7 +381,7 @@ export default function SavingsOverviewPage() {
               className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
               style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Inter, sans-serif" }}
             >
-              Next →
+              Selanjutnya →
             </button>
           </div>
         </div>

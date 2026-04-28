@@ -289,10 +289,8 @@ export default function ProfilePage() {
       avatarUrl={profile?.profile_picture || undefined}
     >
       <DashboardHeader
-        variant="detail"
-        parentLabel="Dashboard"
-        parentHref="/dashboard/member"
-        currentLabel="Profil Anggota"
+        variant="default"
+        title="Profil Anggota"
         notifCount={2}
       />
 
