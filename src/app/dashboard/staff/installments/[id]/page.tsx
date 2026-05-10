@@ -131,12 +131,12 @@ export default function StaffInstallmentReviewPage() {
   const canVerify = detail?.status === 'PENDING'
 
   const headerTitle = useMemo(() => {
-    if (!detail) return 'Installment Payment'
+    if (!detail) return 'Pembayaran Cicilan'
 
     return (
       <span className="text-sm font-normal" style={{ fontFamily: 'Inter, sans-serif', color: '#8E99A8' }}>
         <Link href="/dashboard/staff/installments" className="hover:underline">
-          Installment Payment
+          Pembayaran Cicilan
         </Link>
         <span className="mx-2">›</span>
         <Link href={`/dashboard/staff/loans/${detail.loan_pk}/detail`} className="hover:underline">
@@ -144,14 +144,14 @@ export default function StaffInstallmentReviewPage() {
         </Link>
         <span className="mx-2">›</span>
         <span className="font-semibold" style={{ color: '#242F43' }}>
-          Month {detail.installment_number}
+          Bulan {detail.installment_number}
         </span>
       </span>
     )
   }, [detail])
 
   return (
-    <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
+    <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-0001">
       <DashboardHeader
         variant="default"
         title={headerTitle}
@@ -166,7 +166,7 @@ export default function StaffInstallmentReviewPage() {
           <section className="space-y-5">
             <div className="flex flex-wrap items-center gap-3">
               <h1 className="text-[32px] font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                Verification Detail: #{detail.loan_id}
+                Detail Verifikasi: #{detail.loan_id}
               </h1>
               <span
                 className="inline-flex items-center text-[11px] font-bold px-3 py-1 rounded-md"
@@ -176,19 +176,19 @@ export default function StaffInstallmentReviewPage() {
                   fontFamily: 'Inter, sans-serif',
                 }}
               >
-                {detail.status === 'PENDING' ? 'PENDING AUDIT' : detail.status === 'PAID' ? 'TERVERIFIKASI' : 'DITOLAK'}
+                {detail.status === 'PENDING' ? 'MENUNGGU VERIFIKASI' : detail.status === 'PAID' ? 'TERVERIFIKASI' : 'DITOLAK'}
               </span>
             </div>
 
             <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Received on {formatDateTime(detail.submitted_at)}
+              Diterima pada {formatDateTime(detail.submitted_at)}
             </p>
 
             <div className="grid grid-cols-1 xl:grid-cols-3 gap-6 items-start">
               <div className="xl:col-span-2 bg-white rounded-2xl p-4" style={{ border: '1px solid #E5E7EB' }}>
                 <div className="flex items-center justify-between mb-4">
                   <h3 className="font-semibold text-base flex items-center gap-2" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                    <FileText size={16} /> Uploaded Transfer Receipt
+                    <FileText size={16} /> Bukti Transfer yang Diunggah
                   </h3>
                   {detail.transfer_proof_url && (
                     <a
@@ -198,7 +198,7 @@ export default function StaffInstallmentReviewPage() {
                       className="inline-flex items-center gap-1 text-xs font-semibold"
                       style={{ color: '#11447D' }}
                     >
-                      Open <ExternalLink size={14} />
+                      Buka <ExternalLink size={14} />
                     </a>
                   )}
                 </div>
@@ -214,7 +214,7 @@ export default function StaffInstallmentReviewPage() {
                           className="inline-flex items-center gap-2 px-4 py-2 rounded-lg"
                           style={{ border: '1px solid #D1D5DB', color: '#11447D', backgroundColor: '#FFFFFF' }}
                         >
-                          <FileText size={16} /> Open PDF Receipt
+                          <FileText size={16} /> Buka Bukti PDF
                         </a>
                       </div>
                     ) : (
@@ -236,20 +236,20 @@ export default function StaffInstallmentReviewPage() {
               <div className="space-y-4">
                 <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB' }}>
                   <h3 className="font-semibold text-base mb-3 flex items-center gap-2" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                    <UserRound size={16} /> Member&apos;s Reported Data
+                    <UserRound size={16} /> Data yang Diisi Anggota
                   </h3>
 
                   <div className="grid grid-cols-2 gap-4 mb-4 text-xs" style={{ color: '#8E99A8' }}>
                     <div>
-                      <p>FULL NAME</p>
+                      <p>NAMA LENGKAP</p>
                       <p className="font-semibold text-sm mt-1" style={{ color: '#242F43' }}>{detail.member_name}</p>
                     </div>
                     <div>
-                      <p>LOAN ID</p>
+                      <p>ID PINJAMAN</p>
                       <p className="font-semibold text-sm mt-1" style={{ color: '#242F43' }}>{detail.loan_id}</p>
                     </div>
                     <div>
-                      <p>MEMBER ID</p>
+                      <p>ID ANGGOTA</p>
                       <p className="font-semibold text-sm mt-1" style={{ color: '#242F43' }}>{detail.member_id || '-'}</p>
                     </div>
                     <div>
@@ -268,20 +268,20 @@ export default function StaffInstallmentReviewPage() {
 
                 <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E5E7EB' }}>
                   <h3 className="font-semibold text-base mb-4 flex items-center gap-2" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                    <Calculator size={16} /> System Auto-Calculation
+                    <Calculator size={16} /> Perhitungan Otomatis Sistem
                   </h3>
 
                   <div className="rounded-xl p-4 space-y-3" style={{ backgroundColor: '#F9FAFB' }}>
                     <div className="flex items-center justify-between text-sm">
-                      <span style={{ color: '#6B7280' }}>Principal Portion</span>
+                      <span style={{ color: '#6B7280' }}>Porsi Pokok</span>
                       <span className="font-semibold" style={{ color: '#242F43' }}>{formatCurrency(detail.principal_component)}</span>
                     </div>
                     <div className="flex items-center justify-between text-sm">
-                      <span style={{ color: '#6B7280' }}>Interest &amp; Fees</span>
+                      <span style={{ color: '#6B7280' }}>Bunga &amp; Biaya</span>
                       <span className="font-semibold" style={{ color: '#242F43' }}>{formatCurrency(detail.interest_component)}</span>
                     </div>
                     <div className="flex items-center justify-between pt-3" style={{ borderTop: '1px solid #E5E7EB' }}>
-                      <span className="text-xs font-bold" style={{ color: '#8E99A8' }}>TOTAL CREDIT</span>
+                      <span className="text-xs font-bold" style={{ color: '#8E99A8' }}>TOTAL KREDIT</span>
                       <span className="text-2xl font-bold" style={{ color: '#111827', fontFamily: 'Montserrat, sans-serif' }}>
                         {formatCurrency(detail.amount)}
                       </span>
@@ -292,7 +292,7 @@ export default function StaffInstallmentReviewPage() {
                 {showRejectInput && (
                   <div className="bg-white rounded-2xl p-4" style={{ border: '1px solid #FECACA' }}>
                     <label className="text-xs font-semibold block mb-2" style={{ color: '#991B1B' }}>
-                      Rejection Reason (mandatory)
+                      Alasan Penolakan (wajib)
                     </label>
                     <textarea
                       value={rejectionReason}
@@ -320,7 +320,7 @@ export default function StaffInstallmentReviewPage() {
                   className="w-full px-4 py-3 rounded-xl text-sm font-semibold disabled:opacity-50"
                   style={{ border: '1px solid #D1D5DB', color: '#6B7280', backgroundColor: '#FFFFFF' }}
                 >
-                  Reject Proof
+                  Tolak Bukti
                 </button>
 
                 {!canVerify && (

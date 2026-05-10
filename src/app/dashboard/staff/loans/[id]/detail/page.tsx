@@ -162,11 +162,11 @@ export default function StaffLoanDetailMonitoringPage() {
         title={
           <span className="text-sm font-normal" style={{ fontFamily: 'Inter, sans-serif', color: '#8E99A8' }}>
             <Link href="/dashboard/staff/installments" className="hover:underline">
-              Installment Payment
+              Pembayaran Cicilan
             </Link>
             <span className="mx-2">›</span>
             <span className="font-semibold" style={{ color: '#242F43' }}>
-              {loan?.loan_id || `Loan #${loanPk}`}
+              {loan?.loan_id || `Pinjaman #${loanPk}`}
             </span>
           </span>
         }
@@ -186,7 +186,7 @@ export default function StaffLoanDetailMonitoringPage() {
         <section className="grid grid-cols-1 md:grid-cols-3 gap-4">
           <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              REPAYMENT PROGRESS
+              PROGRES PEMBAYARAN
             </p>
             <div className="flex items-end justify-between">
               <div className="w-full pr-4">
@@ -197,7 +197,7 @@ export default function StaffLoanDetailMonitoringPage() {
                   />
                 </div>
                 <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                  {(loan?.paid_installments || 0)} of {(loan?.total_installments || 0)} Months Paid
+                  {(loan?.paid_installments || 0)} dari {(loan?.total_installments || 0)} Bulan Sudah Dibayar
                 </p>
               </div>
               <span className="text-2xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
@@ -208,25 +208,25 @@ export default function StaffLoanDetailMonitoringPage() {
 
           <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              OUTSTANDING BALANCE
+              SISA TAGIHAN
             </p>
             <p className="text-4xl font-bold" style={{ color: '#111827', fontFamily: 'Montserrat, sans-serif' }}>
               {loan ? formatCurrency(loan.outstanding_balance) : '-'}
             </p>
             <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Principal + Interest
+              Pokok + Bunga
             </p>
           </div>
 
           <div className="bg-white rounded-xl p-4" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-[11px] font-bold mb-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              NEXT DUE DATE
+              JATUH TEMPO BERIKUTNYA
             </p>
             <p className="text-4xl font-bold" style={{ color: '#111827', fontFamily: 'Montserrat, sans-serif' }}>
               {formatDate(loan?.next_due_date || null)}
             </p>
             <p className="text-xs mt-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Cycle {loan?.paid_installments ?? 0}/{loan?.total_installments ?? 0}
+              Siklus {loan?.paid_installments ?? 0}/{loan?.total_installments ?? 0}
             </p>
           </div>
         </section>
@@ -234,7 +234,7 @@ export default function StaffLoanDetailMonitoringPage() {
         <section className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
             <h2 className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-              Full Installment Schedule
+              Jadwal Cicilan Lengkap
             </h2>
             <Button type="button" size="sm" variant="ghost" onClick={handleExport} loading={exporting}>
               Export CSV
@@ -245,7 +245,7 @@ export default function StaffLoanDetailMonitoringPage() {
             <table className="w-full">
               <thead>
                 <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}>
-                  {['MONTH', 'DUE DATE', 'AMOUNT', 'STATUS', 'ACTION'].map((head) => (
+                  {['BULAN', 'JATUH TEMPO', 'JUMLAH', 'STATUS', 'AKSI'].map((head) => (
                     <th
                       key={head}
                       className="px-6 py-3 text-left text-[11px] font-semibold"
@@ -295,7 +295,7 @@ export default function StaffLoanDetailMonitoringPage() {
                             title="Lihat bukti transfer"
                           >
                             <Eye size={16} />
-                            See
+                            Lihat
                           </button>
                         ) : row.status === 'PENDING' ? (
                           <Link
@@ -303,7 +303,7 @@ export default function StaffLoanDetailMonitoringPage() {
                             className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg"
                             style={{ backgroundColor: '#111827', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
                           >
-                            Review
+                            Tinjau
                           </Link>
                         ) : (
                           <span className="text-sm" style={{ color: '#B0BAC5' }}>-</span>
@@ -318,7 +318,7 @@ export default function StaffLoanDetailMonitoringPage() {
 
           <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid #F1F5F9' }}>
             <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Showing {showingFrom} to {showingTo} of {count} entries
+              Menampilkan {showingFrom} sampai {showingTo} dari {count} data
             </span>
 
             <div className="flex items-center gap-2">

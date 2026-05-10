@@ -165,7 +165,7 @@ export default function StaffInstallmentsPage() {
     <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-001">
       <DashboardHeader
         variant="default"
-        title="Installment Payment"
+        title="Pembayaran Cicilan"
         notifCount={0}
         notifHref="/dashboard/staff/notifications"
       />
@@ -203,7 +203,7 @@ export default function StaffInstallmentsPage() {
               <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-[#B0BAC5]" size={16} />
               <input
                 type="text"
-                placeholder="Search Member Name, Loan ID, or Date..."
+                placeholder="Cari nama anggota, ID pinjaman, atau tanggal..."
                 value={searchInput}
                 onChange={(event) => setSearchInput(event.target.value)}
                 className="w-full pl-9 pr-3 py-2.5 rounded-xl text-sm outline-none"
@@ -236,11 +236,11 @@ export default function StaffInstallmentsPage() {
             </div>
 
             <Button type="submit" size="sm" variant="secondary" className="rounded-xl px-5">
-              Apply Filters
+              Terapkan Filter
             </Button>
 
             <Button type="button" size="sm" variant="ghost" className="rounded-xl" onClick={clearFilters}>
-              Reset
+              Atur Ulang
             </Button>
           </form>
         </section>
@@ -248,13 +248,13 @@ export default function StaffInstallmentsPage() {
         <section className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
             <h2 className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-              {statusTab === 'PENDING' ? 'Pending Payment Reports' : 'Riwayat Verifikasi Pembayaran'}
+              {statusTab === 'PENDING' ? 'Laporan Pembayaran Menunggu Verifikasi' : 'Riwayat Verifikasi Pembayaran'}
             </h2>
             <span
               className="text-[10px] font-bold px-2 py-1 rounded-full"
               style={{ color: '#8E99A8', backgroundColor: '#F1F5F9', fontFamily: 'Inter, sans-serif' }}
             >
-              {count} RESULTS
+              {count} HASIL
             </span>
           </div>
 
@@ -263,12 +263,12 @@ export default function StaffInstallmentsPage() {
               <thead>
                 <tr style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}>
                   {[
-                    statusTab === 'PENDING' ? 'DATE SUBMITTED' : 'LAST UPDATED',
-                    'MEMBER NAME',
-                    'LOAN ID',
-                    'AMOUNT PAID',
+                    statusTab === 'PENDING' ? 'TANGGAL KIRIM' : 'TERAKHIR DIPERBARUI',
+                    'NAMA ANGGOTA',
+                    'ID PINJAMAN',
+                    'JUMLAH DIBAYAR',
                     'STATUS',
-                    'ACTIONS',
+                    'AKSI',
                   ].map((head) => (
                     <th
                       key={head}
@@ -321,7 +321,7 @@ export default function StaffInstallmentsPage() {
                             className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg"
                             style={{ backgroundColor: '#EA580C', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
                           >
-                            Review
+                            Tinjau
                           </Link>
                         ) : (
                           <Link
@@ -342,7 +342,7 @@ export default function StaffInstallmentsPage() {
 
           <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid #F1F5F9' }}>
             <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              Showing {showingFrom} to {showingTo} of {count} entries
+              Menampilkan {showingFrom} sampai {showingTo} dari {count} data
             </span>
 
             <div className="flex items-center gap-1">
