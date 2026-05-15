@@ -84,41 +84,40 @@ type NavItem = { label: string; href: string; icon: React.ReactNode; group?: str
 
 const NAV_CONFIG: Record<string, NavItem[]> = {
   MEMBER: [
-    { label: 'Dashboard',  href: '/dashboard/member',         icon: <DashboardIcon />, group: 'OVERVIEW' },
-    { label: 'Savings',    href: '/dashboard/member/savings', icon: <SavingsIcon />,   group: 'FINANCE' },
-    { label: 'Loans',      href: '/dashboard/member/loans',   icon: <LoanIcon />,      group: 'FINANCE' },
-    { label: 'Profile',    href: '/dashboard/member/profile', icon: <ProfileIcon />,   group: 'ACCOUNT' },
+    { label: 'Dasbor',           href: '/dashboard/member',               icon: <DashboardIcon />, group: 'RINGKASAN' },
+    { label: 'Simpanan',         href: '/dashboard/member/savings',       icon: <SavingsIcon />,   group: 'KEUANGAN' },
+    { label: 'Pinjaman',         href: '/dashboard/member/loans',         icon: <LoanIcon />,      group: 'KEUANGAN' },
+    { label: 'Profil',           href: '/dashboard/member/profile',       icon: <ProfileIcon />,   group: 'AKUN' },
+    { label: 'Penutupan Akun',   href: '/dashboard/member/resignations',  icon: <ResignIcon />,    group: 'AKUN' },
   ],
   STAFF: [
-    { label: 'Dashboard',            href: '/dashboard/staff',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    // ── MEMBER & SAVINGS ──
-    { label: 'Member Verification',  href: '/dashboard/staff/verification',  icon: <VerificationIcon />, group: 'MEMBER & SAVINGS' },
-    { label: 'Savings Verification', href: '/dashboard/staff/verifications/savings',       icon: <SavingsVerifIcon />, group: 'MEMBER & SAVINGS' },
-    { label: 'Withdrawal Requests',  href: '/dashboard/staff/withdrawals',   icon: <WithdrawalIcon />,   group: 'MEMBER & SAVINGS' },
-    // ── LOANS ──
-    { label: 'Loan Dashboard',       href: '/dashboard/staff/loans',         icon: <LoanApprovalIcon />, group: 'LOANS' },
-    { label: 'Disbursement',         href: '/dashboard/staff/disbursement',  icon: <DisburseIcon />,     group: 'LOANS' },
-    { label: 'Installment Payment',  href: '/dashboard/staff/installments',  icon: <InstallmentIcon />,  group: 'LOANS' },
+    { label: 'Dasbor',                 href: '/dashboard/staff',               icon: <DashboardIcon />,    group: 'RINGKASAN' },
+    { label: 'Verifikasi Anggota',     href: '/dashboard/staff/verification',  icon: <VerificationIcon />, group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Verifikasi Simpanan',    href: '/dashboard/staff/verifications/savings',       icon: <SavingsVerifIcon />, group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Permintaan Penarikan',   href: '/dashboard/staff/withdrawals',   icon: <WithdrawalIcon />,   group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Dasbor Pinjaman',        href: '/dashboard/staff/loans',         icon: <LoanApprovalIcon />, group: 'PINJAMAN' },
+    { label: 'Pencairan',              href: '/dashboard/staff/disbursement',  icon: <DisburseIcon />,     group: 'PINJAMAN' },
+    { label: 'Pembayaran Angsuran',    href: '/dashboard/staff/installments',  icon: <InstallmentIcon />,  group: 'PINJAMAN' },
   ],
   MANAGER: [
-    { label: 'Dashboard',        href: '/dashboard/manager',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    { label: 'Loan Approvals',   href: '/dashboard/manager/loans',         icon: <LoanApprovalIcon />, group: 'MANAGERIAL' },
-    { label: 'Resign Approvals', href: '/dashboard/manager/resignations',  icon: <ResignIcon />,       group: 'MANAGERIAL' },
-    { label: 'Credit Monitoring',href: '/dashboard/manager/credit',        icon: <CreditIcon />,       group: 'REPORTING' },
-    { label: 'Financial Reports',href: '/dashboard/manager/finance',       icon: <FinanceIcon />,      group: 'REPORTING' },
+    { label: 'Dasbor',                 href: '/dashboard/manager',               icon: <DashboardIcon />,    group: 'RINGKASAN' },
+    { label: 'Persetujuan Pinjaman',   href: '/dashboard/manager/loans',         icon: <LoanApprovalIcon />, group: 'MANAJERIAL' },
+    { label: 'Persetujuan Resign',     href: '/dashboard/manager/resignations',  icon: <ResignIcon />,       group: 'MANAJERIAL' },
+    { label: 'Pemantauan Kredit',      href: '/dashboard/manager/credit',        icon: <CreditIcon />,       group: 'LAPORAN' },
+    { label: 'Laporan Keuangan',       href: '/dashboard/manager/finance',       icon: <FinanceIcon />,      group: 'LAPORAN' },
   ],
   CHAIRMAN: [
-    { label: 'Dashboard',        href: '/dashboard/chairman',              icon: <DashboardIcon />,  group: 'OVERVIEW' },
-    { label: 'Financial Reports',href: '/dashboard/chairman/finance',      icon: <FinanceIcon />,    group: 'REPORTING' },
-    { label: 'Credit Monitoring',href: '/dashboard/chairman/credit',       icon: <CreditIcon />,     group: 'REPORTING' },
+    { label: 'Dasbor',                 href: '/dashboard/chairman',              icon: <DashboardIcon />,  group: 'RINGKASAN' },
+    { label: 'Laporan Keuangan',       href: '/dashboard/chairman/finance',      icon: <FinanceIcon />,    group: 'LAPORAN' },
+    { label: 'Pemantauan Kredit',      href: '/dashboard/chairman/credit',       icon: <CreditIcon />,     group: 'LAPORAN' },
   ],
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  MEMBER:   'Credit Union System',
-  STAFF:    'Staff Portal',
-  MANAGER:  'Executive Portal',
-  CHAIRMAN: 'Chairman Portal',
+  MEMBER:   'Sistem Koperasi Simpan Pinjam',
+  STAFF:    'Portal Petugas',
+  MANAGER:  'Portal Manajer',
+  CHAIRMAN: 'Portal Ketua',
 }
 
 interface SidebarProps {
@@ -251,7 +250,7 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
               onClick={() => setLogoutOpen(true)}
               className="flex-shrink-0 p-1.5 rounded-lg transition-colors"
               style={{ color: '#8E99A8' }}
-              title="Logout"
+              title="Keluar"
             >
               <LogoutIcon />
             </button>
