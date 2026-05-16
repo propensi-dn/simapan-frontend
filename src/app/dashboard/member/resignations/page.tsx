@@ -1,6 +1,7 @@
 'use client'
 
 import { useEffect, useState } from 'react'
+import { useRouter } from 'next/navigation'
 import toast from 'react-hot-toast'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -11,6 +12,7 @@ import {
   type ResignationSettlement,
   type ResignationRequestDetail,
 } from '@/lib/resignations-api'
+import { logout } from '@/lib/auth'
 import api from '@/lib/axios'
 
 const fmtRp = (v: string | number) =>
@@ -33,10 +35,10 @@ const fmtDate = (iso: string | null) => {
 }
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; label: string }> = {
-  PENDING:  { bg: '#FEF3C7', text: '#92400E', label: 'Menunggu Review Manajer' },
-  APPROVED: { bg: '#D1FAE5', text: '#065F46', label: 'Disetujui' },
+  PENDING:  { bg: '#FEF3C7', text: '#92400E', label: 'Menunggu Persetujuan Manajer' },
+  APPROVED: { bg: '#D1FAE5', text: '#065F46', label: 'Disetujui — Menunggu Pencairan' },
   REJECTED: { bg: '#FEE2E2', text: '#991B1B', label: 'Ditolak' },
-  RESIGNED: { bg: '#F1F5F9', text: '#525E71', label: 'Akun Sudah Ditutup' },
+  RESIGNED: { bg: '#F1F5F9', text: '#525E71', label: 'Akun Telah Ditutup' },
 }
 
 const PiggyIcon = () => (
@@ -56,6 +58,80 @@ const InfoIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M11.25 11.25l.041-.02a.75.75 0 011.063.852l-.708 2.836a.75.75 0 001.063.853l.041-.021M21 12a9 9 0 11-18 0 9 9 0 0118 0zm-9-3.75h.008v.008H12V8.25z" />
   </svg>
 )
+
+const CheckCircleIcon = () => (
+  <svg width="56" height="56" fill="none" viewBox="0 0 24 24" stroke="#10B981" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+  </svg>
+)
+
+const DoorIcon = () => (
+  <svg width="56" height="56" fill="none" viewBox="0 0 24 24" stroke="#525E71" strokeWidth={1.5}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M8.25 21v-4.875c0-.621.504-1.125 1.125-1.125h5.25c.621 0 1.125.504 1.125 1.125V21M3 13.125V21h18v-7.875M19.5 9.75V21M4.5 21V9.75m0 0L12 3l7.5 6.75" />
+  </svg>
+)
+
+/**
+ * Auto-logout banner shown when the member's account is fully closed (RESIGNED).
+ * Counts down then forcibly clears the session, mimicking Instagram-style deact UX.
+ */
+function ResignedNotice({ memberName }: { memberName: string }) {
+  const router = useRouter()
+  const [countdown, setCountdown] = useState(5)
+
+  useEffect(() => {
+    if (countdown <= 0) {
+      logout().finally(() => router.push('/'))
+      return
+    }
+    const t = setTimeout(() => setCountdown((c) => c - 1), 1000)
+    return () => clearTimeout(t)
+  }, [countdown, router])
+
+  return (
+    <div className="min-h-screen flex items-center justify-center p-6" style={{ backgroundColor: '#F8FAFC' }}>
+      <div
+        className="bg-white rounded-2xl p-10 max-w-md w-full text-center"
+        style={{ border: '1px solid #F1F5F9', boxShadow: '0 4px 24px rgba(15, 23, 42, 0.06)' }}
+      >
+        <div className="flex justify-center mb-5">
+          <div
+            className="w-20 h-20 rounded-full flex items-center justify-center"
+            style={{ backgroundColor: '#F1F5F9' }}
+          >
+            <DoorIcon />
+          </div>
+        </div>
+        <h2
+          className="font-bold text-2xl mb-2"
+          style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
+        >
+          Akun Anda Telah Ditutup
+        </h2>
+        <p className="text-sm mb-6" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+          Halo {memberName}, pengajuan penutupan akun Anda telah diselesaikan dan dana
+          pengembalian sudah dicairkan oleh petugas. Anda akan otomatis keluar dari sistem.
+        </p>
+        <div
+          className="rounded-xl p-4 text-sm"
+          style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+        >
+          Keluar otomatis dalam <span className="font-bold">{countdown}</span> detik...
+        </div>
+        <button
+          type="button"
+          onClick={() => {
+            logout().finally(() => router.push('/'))
+          }}
+          className="mt-5 px-5 py-2.5 rounded-xl text-sm font-bold text-white w-full"
+          style={{ backgroundColor: '#242F43' }}
+        >
+          Keluar Sekarang
+        </button>
+      </div>
+    </div>
+  )
+}
 
 export default function MemberResignationsPage() {
   const [settlement, setSettlement] = useState<ResignationSettlement | null>(null)
@@ -121,8 +197,58 @@ export default function MemberResignationsPage() {
     }
   }
 
-  const userName = profile?.full_name || 'Anggota'
-  const hasActiveRequest = !!existing && (existing.status === 'PENDING' || existing.status === 'APPROVED' || existing.status === 'RESIGNED')
+  const userName = profile?.full_name || settlement?.member_name || 'Anggota'
+
+  // ── Full-screen states ────────────────────────────────────────────────────
+  // RESIGNED = account fully closed. Force a logout flow.
+  if (!loading && existing?.status === 'RESIGNED') {
+    return <ResignedNotice memberName={userName} />
+  }
+
+  // User is logged in but has no Member row — not eligible at all.
+  const notAMember = !loading && settlement && settlement.is_member === false
+
+  const hasActiveRequest =
+    !!existing && (existing.status === 'PENDING' || existing.status === 'APPROVED')
+
+  // For PENDING/APPROVED, prefer the snapshot taken at submission time, since
+  // live settlement values can shift (e.g. installments paid, savings drained).
+  const display = existing && hasActiveRequest
+    ? {
+        total_pokok: existing.total_pokok_snapshot,
+        total_wajib: existing.total_wajib_snapshot,
+        total_sukarela: existing.total_sukarela_snapshot,
+        total_savings: existing.total_savings_snapshot,
+        total_loan_outstanding: existing.total_loan_outstanding_snapshot,
+        estimated_payout: existing.estimated_payout,
+      }
+    : settlement
+      ? {
+          total_pokok: settlement.total_pokok,
+          total_wajib: settlement.total_wajib,
+          total_sukarela: settlement.total_sukarela,
+          total_savings: settlement.total_savings,
+          total_loan_outstanding: settlement.total_loan_outstanding,
+          estimated_payout: settlement.estimated_payout,
+        }
+      : null
+
+  // Page title/subtitle adapt to current state so the heading isn't misleading.
+  const heading = (() => {
+    if (existing?.status === 'PENDING') return 'Pengajuan Penutupan Akun Sedang Direview'
+    if (existing?.status === 'APPROVED') return 'Pengajuan Disetujui'
+    if (existing?.status === 'REJECTED') return 'Pengajuan Sebelumnya Ditolak'
+    return 'Ringkasan Penyelesaian Akhir'
+  })()
+  const subheading = (() => {
+    if (existing?.status === 'PENDING')
+      return 'Pengajuan Anda telah dikirim ke manajer dan sedang menunggu persetujuan. Anda akan mendapat notifikasi setelah ada keputusan.'
+    if (existing?.status === 'APPROVED')
+      return 'Pengajuan Anda telah disetujui oleh manajer. Petugas akan segera mencairkan dana pengembalian ke rekening Anda.'
+    if (existing?.status === 'REJECTED')
+      return 'Pengajuan sebelumnya ditolak. Anda dapat mengajukan ulang setelah meninjau alasan penolakan di bawah.'
+    return 'Tinjau rincian simpanan dan pinjaman Anda di bawah ini. Pastikan semua data sudah benar sebelum melakukan konfirmasi akhir penutupan akun koperasi.'
+  })()
 
   return (
     <DashboardLayout role="MEMBER" userName={userName}>
@@ -135,14 +261,13 @@ export default function MemberResignationsPage() {
               className="font-bold text-2xl"
               style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
             >
-              Ringkasan Penyelesaian Akhir
+              {heading}
             </h2>
             <p
               className="text-sm mt-2 max-w-xl"
               style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
-              Tinjau rincian simpanan dan pinjaman Anda di bawah ini. Pastikan semua data sudah benar
-              sebelum melakukan konfirmasi akhir penutupan akun koperasi.
+              {subheading}
             </p>
           </div>
 
@@ -160,9 +285,43 @@ export default function MemberResignationsPage() {
             >
               {error}
             </div>
-          ) : settlement ? (
+          ) : notAMember ? (
+            <div
+              className="bg-white rounded-2xl p-8 text-center text-sm"
+              style={{ border: '1px solid #F1F5F9', color: '#525E71' }}
+            >
+              Akun Anda belum terdaftar sebagai anggota koperasi, sehingga tidak dapat mengajukan
+              penutupan akun. Silakan hubungi admin koperasi jika ini tidak sesuai.
+            </div>
+          ) : display ? (
             <>
-              {/* Status banner kalau sudah ada pengajuan */}
+              {/* Approved success banner */}
+              {existing?.status === 'APPROVED' && (
+                <div
+                  className="bg-white rounded-2xl p-6 flex items-start gap-4"
+                  style={{ border: '1px solid #D1FAE5', backgroundColor: '#F0FDF4' }}
+                >
+                  <CheckCircleIcon />
+                  <div>
+                    <p
+                      className="font-bold text-base"
+                      style={{ color: '#065F46', fontFamily: 'Montserrat, sans-serif' }}
+                    >
+                      Pengajuan Anda Disetujui Manajer
+                    </p>
+                    <p
+                      className="text-sm mt-1"
+                      style={{ color: '#047857', fontFamily: 'Inter, sans-serif' }}
+                    >
+                      Petugas akan segera mencairkan dana sebesar {fmtRp(display.estimated_payout)}{' '}
+                      ke rekening Anda. Akun Anda akan ditutup otomatis setelah pencairan selesai.
+                      Anda tidak perlu melakukan tindakan apa pun di halaman ini.
+                    </p>
+                  </div>
+                </div>
+              )}
+
+              {/* Status badge card (shown for any existing request) */}
               {existing && (
                 <div
                   className="bg-white rounded-2xl p-6"
@@ -219,7 +378,9 @@ export default function MemberResignationsPage() {
                     className="text-xs px-3 py-1 rounded-full"
                     style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
                   >
-                    Per Tanggal: {fmtDateLong(new Date())}
+                    {hasActiveRequest && existing
+                      ? `Snapshot per ${fmtDate(existing.submitted_at)}`
+                      : `Per Tanggal: ${fmtDateLong(new Date())}`}
                   </span>
                 </div>
 
@@ -253,16 +414,16 @@ export default function MemberResignationsPage() {
                         className="text-base font-bold whitespace-nowrap"
                         style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
                       >
-                        {fmtRp(settlement.total_savings)}
+                        {fmtRp(display.total_savings)}
                       </p>
                     </div>
 
                     {/* Breakdown rincian simpanan */}
                     <div className="mt-3 space-y-2" style={{ paddingLeft: '52px' }}>
                       {[
-                        { label: 'Simpanan Pokok', value: settlement.total_pokok },
-                        { label: 'Simpanan Wajib', value: settlement.total_wajib },
-                        { label: 'Simpanan Sukarela', value: settlement.total_sukarela },
+                        { label: 'Simpanan Pokok', value: display.total_pokok },
+                        { label: 'Simpanan Wajib', value: display.total_wajib },
+                        { label: 'Simpanan Sukarela', value: display.total_sukarela },
                       ].map(({ label, value }) => (
                         <div key={label} className="flex justify-between items-center text-sm">
                           <span style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
@@ -306,7 +467,7 @@ export default function MemberResignationsPage() {
                       className="text-base font-bold whitespace-nowrap"
                       style={{ color: '#525E71', fontFamily: 'Montserrat, sans-serif' }}
                     >
-                      ({fmtRp(settlement.total_loan_outstanding)})
+                      ({fmtRp(display.total_loan_outstanding)})
                     </p>
                   </div>
 
@@ -329,16 +490,20 @@ export default function MemberResignationsPage() {
                       <p
                         className="text-2xl font-bold whitespace-nowrap"
                         style={{
-                          color: settlement.can_resign ? '#242F43' : '#991B1B',
+                          color:
+                            hasActiveRequest || (settlement && settlement.can_resign)
+                              ? '#242F43'
+                              : '#991B1B',
                           fontFamily: 'Montserrat, sans-serif',
                         }}
                       >
-                        {fmtRp(settlement.estimated_payout)}
+                        {fmtRp(display.estimated_payout)}
                       </p>
                     </div>
                   </div>
 
-                  {!settlement.can_resign && (
+                  {/* Live-state warnings — only relevant when no active request */}
+                  {!hasActiveRequest && settlement && !settlement.can_resign && (
                     <div
                       className="rounded-xl p-4 text-sm"
                       style={{ backgroundColor: '#FEF2F2', color: '#991B1B', border: '1px solid #FECACA' }}
@@ -347,27 +512,10 @@ export default function MemberResignationsPage() {
                       diproses sebelum kewajiban pinjaman dipenuhi.
                     </div>
                   )}
-
-                  {existing?.status === 'PENDING' && (
-                    <div
-                      className="rounded-xl p-4 text-sm"
-                      style={{ backgroundColor: '#FFFBEB', color: '#92400E', border: '1px solid #FDE68A' }}
-                    >
-                      Anda sudah memiliki pengajuan penutupan akun yang sedang menunggu persetujuan manajer.
-                    </div>
-                  )}
-
-                  {(existing?.status === 'APPROVED' || existing?.status === 'RESIGNED') && (
-                    <div
-                      className="rounded-xl p-4 text-sm"
-                      style={{ backgroundColor: '#F1F5F9', color: '#242F43', border: '1px solid #E5E7EB' }}
-                    >
-                      Pengajuan penutupan akun sebelumnya sudah disetujui dan sedang diproses.
-                    </div>
-                  )}
                 </div>
 
-                {!hasActiveRequest && (
+                {/* Confirmation form: only shown when there's no active request */}
+                {!hasActiveRequest && settlement && (
                   <div style={{ borderTop: '1px solid #F1F5F9' }} className="pt-6 mt-8 space-y-4">
                     <label className="flex items-start gap-3 cursor-pointer">
                       <input
@@ -389,9 +537,7 @@ export default function MemberResignationsPage() {
                     <div className="flex items-center justify-end gap-3">
                       <button
                         type="button"
-                        onClick={() => {
-                          setAgreed(false)
-                        }}
+                        onClick={() => setAgreed(false)}
                         className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
                         style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                       >
@@ -404,7 +550,7 @@ export default function MemberResignationsPage() {
                         className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ backgroundColor: '#242F43' }}
                       >
-                        {submitting ? 'Memproses...' : 'Konfirmasi Resign'}
+                        {submitting ? 'Memproses...' : 'Konfirmasi Penutupan Akun'}
                       </button>
                     </div>
                   </div>

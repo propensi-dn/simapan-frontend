@@ -138,7 +138,7 @@ export default function ManagerResignationDetailPage({
             className="font-bold text-2xl mb-1"
             style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
           >
-            Resign Request Details
+            Detail Pengajuan Penutupan Akun
           </h2>
           <p
             className="text-sm"
@@ -205,13 +205,13 @@ export default function ManagerResignationDetailPage({
                 className="font-bold text-base"
                 style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
               >
-                1. Debits Section
+                1. Bagian Simpanan
               </h3>
               <span
                 className="text-[10px] uppercase font-bold tracking-widest"
                 style={{ color: '#8E99A8' }}
               >
-                Accrued Savings
+                Total Simpanan
               </span>
             </div>
             <div className="space-y-3">
@@ -247,7 +247,7 @@ export default function ManagerResignationDetailPage({
                   className="text-sm font-bold"
                   style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
                 >
-                  Sub-total Debits
+                  Sub-total Simpanan
                 </span>
                 <span
                   className="text-base font-bold"
@@ -268,13 +268,13 @@ export default function ManagerResignationDetailPage({
                 className="font-bold text-base"
                 style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
               >
-                2. Credits Section
+                2. Bagian Pinjaman
               </h3>
               <span
                 className="text-[10px] uppercase font-bold tracking-widest"
                 style={{ color: '#8E99A8' }}
               >
-                Outstanding Balances
+                Saldo Pinjaman Terutang
               </span>
             </div>
             {detail.loan_history.filter((l) => Number(l.outstanding_balance) > 0).length === 0 ? (
@@ -305,7 +305,7 @@ export default function ManagerResignationDetailPage({
                 className="text-sm font-bold"
                 style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
               >
-                Sub-total Credits
+                Sub-total Pinjaman
               </span>
               <span
                 className="text-base font-bold"
@@ -325,12 +325,12 @@ export default function ManagerResignationDetailPage({
             className="text-[10px] uppercase font-bold tracking-widest text-center mb-5"
             style={{ color: '#9CA3AF' }}
           >
-            Final Settlement Calculation
+            Kalkulasi Penyelesaian Akhir
           </p>
           <div className="flex items-center justify-center gap-8 flex-wrap">
             <div className="text-center">
               <p className="text-[10px] uppercase font-bold tracking-widest" style={{ color: '#9CA3AF' }}>
-                Total Debits
+                Total Simpanan
               </p>
               <p className="text-xl font-bold mt-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 {fmtRp(detail.snapshot.total_savings)}
@@ -341,7 +341,7 @@ export default function ManagerResignationDetailPage({
             </span>
             <div className="text-center">
               <p className="text-[10px] uppercase font-bold tracking-widest" style={{ color: '#9CA3AF' }}>
-                Total Credits
+                Total Pinjaman
               </p>
               <p className="text-xl font-bold mt-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 {fmtRp(detail.snapshot.total_loan_outstanding)}
@@ -352,7 +352,7 @@ export default function ManagerResignationDetailPage({
             </span>
             <div className="rounded-xl px-5 py-3 text-center" style={{ backgroundColor: '#374151' }}>
               <p className="text-[10px] uppercase font-bold tracking-widest" style={{ color: '#9CA3AF' }}>
-                Final Payout Amount
+                Estimasi Payout Final
               </p>
               <p className="text-2xl font-bold mt-1" style={{ fontFamily: 'Montserrat, sans-serif' }}>
                 {fmtRp(detail.snapshot.estimated_payout)}
@@ -436,7 +436,7 @@ export default function ManagerResignationDetailPage({
             className="font-bold text-base mb-4"
             style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
           >
-            4. Approval Actions
+            4. Tindakan Persetujuan
           </h3>
 
           {!isPending && (
@@ -456,14 +456,14 @@ export default function ManagerResignationDetailPage({
                 className="text-xs font-semibold"
                 style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
               >
-                Rejection Reason (Required if rejecting)
+                Alasan Penolakan (Wajib diisi jika menolak)
               </label>
               <textarea
                 value={rejectReason}
                 onChange={(e) => setRejectReason(e.target.value)}
                 disabled={!isPending}
                 rows={4}
-                placeholder="State clearly the reason for rejection (e.g., mismatch in loan balance, missing documentation)..."
+                placeholder="Jelaskan alasan penolakan secara jelas (mis. saldo pinjaman tidak sesuai, dokumen kurang lengkap)..."
                 className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none disabled:opacity-50"
                 style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
               />
@@ -476,7 +476,7 @@ export default function ManagerResignationDetailPage({
                 className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ backgroundColor: '#242F43' }}
               >
-                {submitting === 'approve' ? 'Memproses...' : 'Confirm Approval'}
+                {submitting === 'approve' ? 'Memproses...' : 'Setujui Pengajuan'}
               </button>
               <button
                 type="button"
@@ -485,7 +485,7 @@ export default function ManagerResignationDetailPage({
                 className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                 style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
               >
-                {submitting === 'reject' ? 'Memproses...' : 'Reject Request'}
+                {submitting === 'reject' ? 'Memproses...' : 'Tolak Pengajuan'}
               </button>
             </div>
           </div>
@@ -494,8 +494,8 @@ export default function ManagerResignationDetailPage({
             className="text-xs mt-5"
             style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
           >
-            Approval will trigger the transfer workflow for the final payout amount. This action is
-            irreversible once processed.
+            Setelah disetujui, sistem akan memicu alur pencairan dana payout final. Tindakan ini
+            tidak dapat dibatalkan setelah diproses.
           </p>
         </div>
       </main>

@@ -15,6 +15,7 @@ export interface ResignationSettlement {
   has_pending_request: boolean
   has_active_resignation: boolean
   pending_request_id: number | null
+  is_member?: boolean
 }
 
 export interface ResignationRequestDetail {

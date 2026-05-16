@@ -309,7 +309,7 @@ export default function StaffRefundsPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['LOAN ID', 'NAMA ANGGOTA', 'TOTAL PENGEMBALIAN', 'TANGGAL APPROVAL', 'AKSI'].map(
+                    {['ID PINJAMAN', 'NAMA ANGGOTA', 'TOTAL PENGEMBALIAN', 'TANGGAL PERSETUJUAN', 'AKSI'].map(
                       (col) => (
                         <th
                           key={col}
@@ -442,7 +442,7 @@ export default function StaffRefundsPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['LOAN ID', 'NAMA ANGGOTA', 'TOTAL PENGEMBALIAN', 'TANGGAL PENCAIRAN'].map(
+                    {['ID PINJAMAN', 'NAMA ANGGOTA', 'TOTAL PENGEMBALIAN', 'TANGGAL PENCAIRAN'].map(
                       (col) => (
                         <th
                           key={col}
@@ -566,7 +566,7 @@ export default function StaffRefundsPage() {
                 >
                   {confirmItem.loan_id && (
                     <div className="flex justify-between text-sm">
-                      <span style={{ color: '#525E71' }}>Loan ID</span>
+                      <span style={{ color: '#525E71' }}>ID Pinjaman</span>
                       <span className="font-semibold" style={{ color: '#242F43' }}>
                         {confirmItem.loan_id}
                       </span>
@@ -741,7 +741,7 @@ export default function StaffRefundsPage() {
                     className="px-4 py-2 rounded-xl text-sm font-bold text-white disabled:opacity-50"
                     style={{ backgroundColor: '#242F43' }}
                   >
-                    {submitting ? 'Memproses...' : 'Submit Transfer'}
+                    {submitting ? 'Memproses...' : 'Konfirmasi Pencairan'}
                   </button>
                 </div>
               </>
