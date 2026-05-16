@@ -183,7 +183,7 @@ export default function ManagerCreditPage() {
 
   return (
     <DashboardLayout role="MANAGER" userName="Manajer">
-      <DashboardHeader variant="default" title="Credit Monitoring" />
+      <DashboardHeader variant="default" title="Pemantauan Kredit" />
 
       <main className="flex-1 p-8 space-y-6">
         <div>
@@ -191,7 +191,7 @@ export default function ManagerCreditPage() {
             className="font-bold text-2xl mb-1"
             style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
           >
-            Credit Monitoring (Kredit Macet)
+            Pemantauan Kredit Macet
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
             Pantau dan tindak lanjuti pinjaman anggota yang sudah lewat jatuh tempo.
@@ -201,7 +201,7 @@ export default function ManagerCreditPage() {
         <div className="grid grid-cols-1 md:grid-cols-3 gap-5">
           <div className="bg-white rounded-2xl px-6 py-5" style={{ border: '1px solid #F1F5F9' }}>
             <p className="text-xs font-semibold tracking-wider uppercase" style={{ color: '#8E99A8' }}>
-              Total Pinjaman Overdue
+              Total Pinjaman Jatuh Tempo
             </p>
             <p
               className="font-bold text-3xl mt-1"
@@ -299,7 +299,7 @@ export default function ManagerCreditPage() {
               className="px-3 py-2 rounded-xl text-xs font-bold"
               style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
             >
-              Export CSV
+              Ekspor CSV
             </button>
           </div>
 
@@ -316,7 +316,7 @@ export default function ManagerCreditPage() {
             </div>
           ) : rows.length === 0 ? (
             <div className="px-6 py-12 text-center text-sm" style={{ color: '#8E99A8' }}>
-              Tidak ada pinjaman overdue saat ini.
+              Tidak ada pinjaman yang jatuh tempo saat ini.
             </div>
           ) : (
             <div className="overflow-x-auto">
@@ -324,12 +324,12 @@ export default function ManagerCreditPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
                     {[
-                      'MEMBER NAME',
-                      'DAYS LATE',
-                      'AMOUNT OVERDUE',
-                      'PHONE NUMBER',
+                      'NAMA ANGGOTA',
+                      'HARI TERLAMBAT',
+                      'NOMINAL TUNGGAKAN',
+                      'NO. TELEPON',
                       'STATUS',
-                      'ACTIONS',
+                      'TINDAKAN',
                     ].map((col) => (
                       <th
                         key={col}
@@ -488,7 +488,7 @@ export default function ManagerCreditPage() {
               Ubah Status
             </h4>
             <p className="text-sm mt-2" style={{ color: '#525E71' }}>
-              Update status monitoring untuk pinjaman <strong>{statusModal.loan_id}</strong> milik{' '}
+              Perbarui status pemantauan untuk pinjaman <strong>{statusModal.loan_id}</strong> milik{' '}
               <strong>{statusModal.member_name}</strong>.
             </p>
             <div className="mt-4">

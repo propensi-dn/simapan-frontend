@@ -93,7 +93,7 @@ export default function ManagerResignationDetailPage({
       <DashboardLayout role="MANAGER" userName="Manajer">
         <DashboardHeader
           variant="detail"
-          parentLabel="Resign Approvals"
+          parentLabel="Persetujuan Resign"
           parentHref="/dashboard/manager/resignations"
           currentLabel="Detail"
         />
@@ -109,7 +109,7 @@ export default function ManagerResignationDetailPage({
       <DashboardLayout role="MANAGER" userName="Manajer">
         <DashboardHeader
           variant="detail"
-          parentLabel="Resign Approvals"
+          parentLabel="Persetujuan Resign"
           parentHref="/dashboard/manager/resignations"
           currentLabel="Detail"
         />
@@ -127,7 +127,7 @@ export default function ManagerResignationDetailPage({
     <DashboardLayout role="MANAGER" userName="Manajer">
       <DashboardHeader
         variant="detail"
-        parentLabel="Resign Approvals"
+        parentLabel="Persetujuan Resign"
         parentHref="/dashboard/manager/resignations"
         currentLabel={detail.member_name}
       />
@@ -383,7 +383,7 @@ export default function ManagerResignationDetailPage({
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['LOAN ID', 'AMOUNT', 'OUTSTANDING', 'STATUS', 'TANGGAL'].map((col) => (
+                    {['ID PINJAMAN', 'JUMLAH', 'SISA TUNGGAKAN', 'STATUS', 'TANGGAL'].map((col) => (
                       <th
                         key={col}
                         className="px-4 py-3 text-left text-xs font-semibold tracking-wider"

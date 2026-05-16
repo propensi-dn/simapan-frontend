@@ -67,6 +67,7 @@ export interface PaginatedPayload<T> {
 export interface ManagerResignationListResponse {
   summary: {
     total_pending: number
+    total_approved: number
     total_inactive: number
   }
   pending_requests: PaginatedPayload<ManagerResignationListItem>

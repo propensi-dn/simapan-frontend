@@ -38,7 +38,7 @@ const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
 export default function ManagerResignationsPage() {
   const [pendingRows, setPendingRows] = useState<ManagerResignationListItem[]>([])
   const [historyRows, setHistoryRows] = useState<ManagerResignationHistoryItem[]>([])
-  const [summary, setSummary] = useState({ total_pending: 0, total_inactive: 0 })
+  const [summary, setSummary] = useState({ total_pending: 0, total_approved: 0, total_inactive: 0 })
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
