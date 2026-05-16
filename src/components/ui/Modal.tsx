@@ -100,14 +100,16 @@ export default function Modal({
         {/* Action buttons */}
         {(onConfirm || cancelLabel) && (
           <div className="flex gap-3 mt-6">
-            <Button
-              variant="outline"
-              fullWidth
-              onClick={onClose}
-              disabled={loading}
-            >
-              {cancelLabel}
-            </Button>
+            {cancelLabel && (
+              <Button
+                variant="outline"
+                fullWidth
+                onClick={onClose}
+                disabled={loading}
+              >
+                {cancelLabel}
+              </Button>
+            )}
             {onConfirm && (
               <Button
                 variant={confirmVariant}
