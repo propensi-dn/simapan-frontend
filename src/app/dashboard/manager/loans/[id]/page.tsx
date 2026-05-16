@@ -98,8 +98,18 @@ function InstallmentStatusBadge({ status }: { status: string }) {
   )
 }
 
+function isImageFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return /\.(png|jpg|jpeg|webp|gif)$/i.test(parsed.pathname)
+  } catch {
+    const normalized = url.split('?')[0].split('#')[0]
+    return /\.(png|jpg|jpeg|webp|gif)$/i.test(normalized)
+  }
+}
+
 function DocumentCard({ title, url }: { title: string; url: string | null }) {
-  const isImage = !!url && /\.(png|jpg|jpeg|webp|gif)$/i.test(url)
+  const isImage = !!url && isImageFileUrl(url)
 
   return (
     <div className="rounded-2xl p-4" style={{ border: '1px dashed #D1D5DB', backgroundColor: '#FAFAFA' }}>
