@@ -22,18 +22,11 @@ const LoanIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M21 12a2.25 2.25 0 00-2.25-2.25H15a3 3 0 11-6 0H5.25A2.25 2.25 0 003 12m18 0v6a2.25 2.25 0 01-2.25 2.25H5.25A2.25 2.25 0 013 18v-6m18 0V9M3 12V9m18-3a2.25 2.25 0 00-2.25-2.25H5.25A2.25 2.25 0 003 6v3m18-3v3M3 6v3" />
   </svg>
 )
-const WithdrawIcon = () => (
-  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75l3 3m0 0l3-3m-3 3v-7.5M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-  </svg>
-)
-
 // ── Category badge styles ──────────────────────────────────────────────────
 const CATEGORY_STYLE: Record<string, { bg: string; text: string }> = {
-  MEMBER:     { bg: '#DBEAFE', text: '#1E40AF' },
-  SAVINGS:    { bg: '#D1FAE5', text: '#065F46' },
-  LOAN:       { bg: '#FEF3C7', text: '#92400E' },
-  WITHDRAWAL: { bg: '#F3E8FF', text: '#6B21A8' },
+  MEMBER:  { bg: '#DBEAFE', text: '#1E40AF' },
+  SAVINGS: { bg: '#D1FAE5', text: '#065F46' },
+  LOAN:    { bg: '#FEF3C7', text: '#92400E' },
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -43,7 +36,7 @@ const STATUS_DOT: Record<string, string> = {
 }
 
 // ── Mock data ──────────────────────────────────────────────────────────────
-type TaskCategory = 'MEMBER' | 'SAVINGS' | 'LOAN' | 'WITHDRAWAL'
+type TaskCategory = 'MEMBER' | 'SAVINGS' | 'LOAN'
 
 const MOCK_TASKS: {
   id: string
@@ -56,7 +49,6 @@ const MOCK_TASKS: {
   { id: 'T-8801', category: 'MEMBER',     subject: 'New Registration: Budi Santoso',   status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/1' },
   { id: 'T-8802', category: 'SAVINGS',    subject: 'Deposit Verification: Rp 500.000', status: 'In Progress', action: 'Check',    href: '/dashboard/staff/verification/2' },
   { id: 'T-8803', category: 'LOAN',       subject: 'Disbursement: Small Biz Grant',    status: 'Pending',     action: 'Disburse', href: '/dashboard/staff/disbursement/3' },
-  { id: 'T-8804', category: 'WITHDRAWAL', subject: 'Request: Emergency Fund',           status: 'Completed',   action: 'View',     href: '/dashboard/staff/withdrawals/4' },
   { id: 'T-8805', category: 'MEMBER',     subject: 'KYC Update: Siti Aminah',           status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/5' },
 ]
 
@@ -89,11 +81,10 @@ export default function StaffDashboardPage() {
         </div>
 
         {/* Stat Cards */}
-        <div className="grid grid-cols-4 gap-4 mb-8">
+        <div className="grid grid-cols-3 gap-4 mb-8">
           <StatCard label="Members"     value="124"       subtitle="Pending Members" icon={<MemberIcon />}   accent="#11447D" />
           <StatCard label="Savings"     value="Rp 15M"    subtitle="To Verify"       icon={<SavingsIcon />}  accent="#10B981" />
           <StatCard label="Loans"       value="Rp 45.2M"  subtitle="To Disburse"     icon={<LoanIcon />}     accent="#F2A025" />
-          <StatCard label="Withdrawals" value="38"         subtitle="New Requests"    icon={<WithdrawIcon />} accent="#8B5CF6" />
         </div>
 
         {/* Tasks Table */}

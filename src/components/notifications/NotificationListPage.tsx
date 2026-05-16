@@ -48,10 +48,6 @@ const TYPE_CONFIG: Record<
     bg: '#FEF3C7', text: '#92400E', dot: '#F59E0B',
     label: 'Pinjaman', icon: '💰',
   },
-  WITHDRAWAL: {
-    bg: '#F3E8FF', text: '#6B21A8', dot: '#A855F7',
-    label: 'Penarikan', icon: '📤',
-  },
   RESIGNATION: {
     bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444',
     label: 'Pengunduran Diri', icon: '🚪',
@@ -67,7 +63,6 @@ const TYPE_FILTER_OPTIONS: { key: string; label: string }[] = [
   { key: 'REGISTRATION', label: 'Registrasi' },
   { key: 'SAVING', label: 'Simpanan' },
   { key: 'LOAN', label: 'Pinjaman' },
-  { key: 'WITHDRAWAL', label: 'Penarikan' },
   { key: 'RESIGNATION', label: 'Pengunduran Diri' },
   { key: 'GENERAL', label: 'Umum' },
 ]

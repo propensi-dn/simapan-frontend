@@ -8,7 +8,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import Button from '@/components/ui/Button'
 import api from '@/lib/axios'
 import toast from 'react-hot-toast'
-import { User, Smartphone, MapPin, CreditCard, Lock, Camera } from 'lucide-react'
+import { User, Smartphone, MapPin, CreditCard, Lock, Camera, AlertTriangle } from 'lucide-react'
 
 type BankAccount = {
   id: number
@@ -600,6 +600,25 @@ export default function ProfilePage() {
                       Belum ada rekening bank.
                     </div>
                   )}
+                </section>
+
+                {/* Penutupan Akun (Resign) - PBI-32 */}
+                <section className="bg-white rounded-[32px] p-8 md:p-10 border border-red-100 shadow-sm">
+                  <div className="flex items-center gap-3 mb-4">
+                    <AlertTriangle className="text-red-500" size={20} />
+                    <h3 className="text-p2 font-bold uppercase tracking-[0.2em] text-red-500">Penutupan Akun</h3>
+                  </div>
+                  <p className="text-sm text-text-secondary mb-6 max-w-2xl">
+                    Dengan mengajukan penutupan akun (resign), Anda akan kehilangan akses ke semua layanan
+                    SI-MAPAN. Proses ini bersifat permanen dan tidak dapat dibatalkan setelah disetujui oleh admin.
+                  </p>
+                  <div className="flex justify-end">
+                    <Link href="/dashboard/member/profile/resign">
+                      <Button className="bg-red-500 text-white hover:bg-red-600 rounded-xl px-6">
+                        Ajukan Penutupan Akun (Resign)
+                      </Button>
+                    </Link>
+                  </div>
                 </section>
               </div>
             </div>
