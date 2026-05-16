@@ -70,19 +70,23 @@ export default function MemberResignationsPage() {
   useEffect(() => {
     const load = async () => {
       try {
-        const [settlementData, myData, profileData] = await Promise.all([
+        const [settlementData, myData] = await Promise.all([
           getResignationSettlement(),
           getMyResignation(),
-          api.get('/members/profile/').then((r) => r.data),
         ])
         setSettlement(settlementData)
         setExisting(myData.request)
-        setProfile(profileData)
       } catch (err) {
         console.error('Gagal memuat data resignation', err)
         setError('Gagal memuat data. Silakan coba lagi.')
       } finally {
         setLoading(false)
+      }
+      try {
+        const profileData = await api.get('/members/profile/').then((r) => r.data)
+        setProfile(profileData)
+      } catch {
+        // profile failure is non-fatal
       }
     }
     load()

@@ -33,10 +33,6 @@ const TYPE_CONFIG: Record<
     bg: '#FFFBEB', text: '#92400E', border: '#FDE68A',
     label: 'Pinjaman', icon: '💰', iconBg: '#FEF3C7',
   },
-  WITHDRAWAL: {
-    bg: '#FAF5FF', text: '#6B21A8', border: '#E9D5FF',
-    label: 'Penarikan', icon: '📤', iconBg: '#F3E8FF',
-  },
   RESIGNATION: {
     bg: '#FFF1F2', text: '#991B1B', border: '#FECACA',
     label: 'Pengunduran Diri', icon: '🚪', iconBg: '#FEE2E2',
