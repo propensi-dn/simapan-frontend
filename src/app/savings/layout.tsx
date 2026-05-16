@@ -24,6 +24,8 @@ type MemberProfile = {
 export default function SavingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
   const isDepositPage = pathname.startsWith("/savings/deposit");
+  const isWithdrawPage = pathname.startsWith("/savings/withdraw");
+  const isFormPage = isDepositPage || isWithdrawPage;
   const [profile, setProfile] = useState<MemberProfile | null>(null);
 
   useEffect(() => {
@@ -51,10 +53,10 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
       userID={memberIdLabel}
       avatarUrl={profile?.profile_picture || undefined}
     >
-      {isDepositPage ? (
+      {isFormPage ? (
         <DashboardHeader
           variant="form"
-          title="Form Setoran"
+          title={isWithdrawPage ? "Form Penarikan" : "Form Setoran"}
           backLabel="Kembali ke Ringkasan Simpanan"
           backHref="/savings"
           notifCount={2}

@@ -142,7 +142,7 @@ export default function SavingsOverviewPage() {
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
             Ringkasan Simpanan
@@ -151,16 +151,30 @@ export default function SavingsOverviewPage() {
             {summaryText}
           </p>
         </div>
-        <Link
-          href="/savings/deposit"
-          className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
-          style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
-        >
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Tambah Setoran
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/savings/deposit"
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+            style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah Setoran
+          </Link>
+          {data.member_status === "ACTIVE" && (
+            <Link
+              href="/savings/withdraw"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+              style={{ backgroundColor: "#11447D", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+              </svg>
+              Tarik Dana
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Summary cards */}
