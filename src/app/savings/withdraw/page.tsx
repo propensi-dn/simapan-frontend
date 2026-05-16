@@ -141,11 +141,11 @@ export default function WithdrawPage() {
     }
   };
 
-  const handleCancel = () => router.push("/savings");
+  const handleCancel = () => router.push("/dashboard/member/savings");
 
   const handleSuccessClose = () => {
     setIsSuccessModalOpen(false);
-    router.push("/savings");
+    router.push("/dashboard/member/savings");
   };
 
   if (memberStatus && memberStatus !== "ACTIVE") {
@@ -154,7 +154,7 @@ export default function WithdrawPage() {
         <p className="text-base font-medium" style={{ color: "#242F43", fontFamily: "Montserrat, sans-serif" }}>
           Penarikan simpanan sukarela hanya tersedia untuk anggota aktif.
         </p>
-        <button onClick={() => router.push("/savings")} className="text-sm underline" style={{ color: "#11447D" }}>
+        <button onClick={() => router.push("/dashboard/member/savings")} className="text-sm underline" style={{ color: "#11447D" }}>
           Kembali ke Simpanan
         </button>
       </div>

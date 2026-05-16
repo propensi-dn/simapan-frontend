@@ -1,5 +1,1 @@
-import { redirect } from 'next/navigation'
-
-export default function MemberSavingsWithdrawRedirectPage() {
-  redirect('/savings/withdraw')
-}
+export { default } from '@/app/savings/withdraw/page'
