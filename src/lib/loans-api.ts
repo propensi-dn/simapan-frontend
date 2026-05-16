@@ -333,6 +333,75 @@ export async function getManagerPendingLoans(params?: {
   return data
 }
 
+// ── Manager Overdue Loans (PBI-37) ────────────────────────────────────────
+
+export type BadDebtStatus = 'PENDING' | 'WARNING_SENT' | 'LEGAL_NOTICE' | 'VISIT_SCHEDULED'
+export type OverdueSeverity = 'LOW' | 'MEDIUM' | 'HIGH' | 'CRITICAL'
+
+export interface ManagerOverdueLoanItem {
+  id: number
+  loan_id: string
+  member_id: number
+  member_name: string
+  member_code: string
+  phone_number: string
+  email: string
+  days_late: number
+  amount_overdue: string
+  remaining_balance: string
+  tenor: number
+  status: BadDebtStatus
+  status_display: string
+  loan_status: LoanStatus
+  loan_status_display: string
+  application_date: string
+  severity: OverdueSeverity
+}
+
+export interface ManagerOverdueLoansResponse {
+  summary: {
+    total_overdue: number
+    total_amount_overdue: string
+    total_critical: number
+  }
+  monitoring_statuses: { value: BadDebtStatus; label: string }[]
+  overdue_loans: {
+    count: number
+    total_pages: number
+    current_page: number
+    page_size: number
+    next: string | null
+    previous: string | null
+    results: ManagerOverdueLoanItem[]
+  }
+}
+
+/** GET /api/manager/loans/overdue/ */
+export async function getManagerOverdueLoans(params?: {
+  page?: number
+  page_size?: number
+  search?: string
+  status?: BadDebtStatus
+}): Promise<ManagerOverdueLoansResponse> {
+  const { data } = await api.get('/manager/loans/overdue/', { params })
+  return data
+}
+
+/** POST /api/manager/loans/overdue/{id}/status/ */
+export async function updateOverdueLoanStatus(
+  id: number,
+  payload: { status: BadDebtStatus; notes?: string },
+): Promise<{ message: string; status: BadDebtStatus; status_display: string }> {
+  const { data } = await api.post(`/manager/loans/overdue/${id}/status/`, payload)
+  return data
+}
+
+/** POST /api/manager/loans/overdue/{id}/warning/ */
+export async function sendOverdueWarning(id: number): Promise<{ message: string; status: BadDebtStatus }> {
+  const { data } = await api.post(`/manager/loans/overdue/${id}/warning/`, {})
+  return data
+}
+
 /** GET /api/manager/loans/{id}/ */
 export async function getManagerLoanDetail(id: number): Promise<ManagerLoanDetailResponse> {
   const { data } = await api.get(`/manager/loans/${id}/`)
