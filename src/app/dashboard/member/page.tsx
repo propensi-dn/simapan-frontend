@@ -27,9 +27,9 @@ const StatusIcon = () => (
 
 // ── Mock data  ──────────────────────────────────────────
 const MOCK_TRANSACTIONS = [
-  { id: 'TRX-SV-0001', date: 'Oct 24, 2023', description: 'Monthly Mandatory Deposit', type: 'CREDIT', amount: 'Rp 100.000' },
-  { id: 'TRX-INS-0012', date: 'Oct 20, 2023', description: 'Loan Installment #LN-2023-001', type: 'DEBIT', amount: 'Rp 250.000' },
-  { id: 'TRX-SV-0002', date: 'Oct 15, 2023', description: 'Voluntary Deposit', type: 'CREDIT', amount: 'Rp 500.000' },
+  { id: 'TRX-SV-0001', date: '24 Okt 2023', description: 'Setoran Simpanan Wajib Bulanan', type: 'MASUK', amount: 'Rp 100.000' },
+  { id: 'TRX-INS-0012', date: '20 Okt 2023', description: 'Angsuran Pinjaman #LN-2023-001', type: 'KELUAR', amount: 'Rp 250.000' },
+  { id: 'TRX-SV-0002', date: '15 Okt 2023', description: 'Setoran Simpanan Sukarela', type: 'MASUK', amount: 'Rp 500.000' },
 ]
 
 export default function MemberDashboardPage() {
@@ -52,23 +52,23 @@ export default function MemberDashboardPage() {
 
   return (
     <DashboardLayout role="MEMBER" userName={userName} userID={memberId}>
-      <DashboardHeader variant="default" title="Dashboard" notifCount={2} />
+      <DashboardHeader variant="default" title="Dasbor" notifCount={2} />
 
       <main className="flex-1 p-8">
         {/* Welcome */}
         <div className="mb-8">
           <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-            Welcome back, {userName.split(' ')[0]} 👋
+            Selamat datang kembali, {userName.split(' ')[0]} 👋
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Here&apos;s a summary of your financial status as of today.
+            Berikut ringkasan status keuangan Anda hari ini.
           </p>
         </div>
 
         {/* Stat Cards */}
         <div className="grid grid-cols-3 gap-5 mb-8">
           <StatCard
-            label="Total Savings"
+            label="Total Simpanan"
             value="Rp 12.450.000"
             badge="+0.0%"
             badgePositive={true}
@@ -76,14 +76,14 @@ export default function MemberDashboardPage() {
             accent="#11447D"
           />
           <StatCard
-            label="Remaining Loan"
+            label="Sisa Pinjaman"
             value="Rp 4.200.000"
             icon={<LoanIcon />}
             accent="#F2A025"
           />
           <StatCard
-            label="Member Status"
-            value="Active"
+            label="Status Anggota"
+            value="Aktif"
             icon={<StatusIcon />}
             accent="#10B981"
           />
@@ -93,14 +93,14 @@ export default function MemberDashboardPage() {
         <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
           <div className="px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
             <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-              Recent Transactions
+              Transaksi Terbaru
             </h3>
           </div>
 
           <table className="w-full">
             <thead>
               <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                {['DATE', 'DESCRIPTION', 'TYPE', 'AMOUNT'].map(col => (
+                {['TANGGAL', 'KETERANGAN', 'JENIS', 'JUMLAH'].map(col => (
                   <th
                     key={col}
                     className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
@@ -127,8 +127,8 @@ export default function MemberDashboardPage() {
                     <span
                       className="text-xs font-semibold px-2.5 py-1 rounded-full"
                       style={{
-                        backgroundColor: tx.type === 'CREDIT' ? '#D1FAE5' : '#FEE2E2',
-                        color: tx.type === 'CREDIT' ? '#065F46' : '#991B1B',
+                        backgroundColor: tx.type === 'MASUK' ? '#D1FAE5' : '#FEE2E2',
+                        color: tx.type === 'MASUK' ? '#065F46' : '#991B1B',
                         fontFamily: 'Inter, sans-serif',
                       }}
                     >
@@ -138,11 +138,11 @@ export default function MemberDashboardPage() {
                   <td
                     className="px-6 py-4 text-sm font-bold"
                     style={{
-                      color: tx.type === 'CREDIT' ? '#10B981' : '#EF4444',
+                      color: tx.type === 'MASUK' ? '#10B981' : '#EF4444',
                       fontFamily: 'Montserrat, sans-serif',
                     }}
                   >
-                    {tx.type === 'DEBIT' ? '- ' : '+ '}{tx.amount}
+                    {tx.type === 'KELUAR' ? '- ' : '+ '}{tx.amount}
                   </td>
                 </tr>
               ))}

@@ -16,7 +16,7 @@ type SavingItem = {
   submitted_at: string;
   transfer_proof_url?: string | null;
   direction?: "IN" | "OUT";
-  source?: "SAVINGS_DEPOSIT" | "LOAN_INSTALLMENT";
+  source?: "SAVINGS_DEPOSIT" | "LOAN_INSTALLMENT" | "SAVINGS_WITHDRAWAL";
   description?: string;
   loan_pk?: number | null;
 };
@@ -25,6 +25,9 @@ type OverviewResponse = {
   member_status: "VERIFIED" | "ACTIVE" | "PENDING" | "REJECTED";
   totals: { wajib: string; sukarela: string };
   count: number;
+  total_pages?: number;
+  current_page?: number;
+  page_size?: number;
   next: string | null;
   previous: string | null;
   results: SavingItem[];
@@ -38,9 +41,9 @@ const fmtRp = (value: string | number) =>
   }).format(Number(value));
 
 const STATUS_CONFIG: Record<SavingItem["status"], { bg: string; text: string; dot: string; label: string }> = {
-  SUCCESS:  { bg: "#D1FAE5", text: "#065F46", dot: "#10B981", label: "Success" },
-  PENDING:  { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B", label: "Pending" },
-  REJECTED: { bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444", label: "Rejected" },
+  SUCCESS:  { bg: "#D1FAE5", text: "#065F46", dot: "#10B981", label: "Berhasil" },
+  PENDING:  { bg: "#FEF3C7", text: "#92400E", dot: "#F59E0B", label: "Menunggu" },
+  REJECTED: { bg: "#FEE2E2", text: "#991B1B", dot: "#EF4444", label: "Ditolak" },
 };
 
 const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string; label: string }> = {
@@ -51,9 +54,9 @@ const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string;
 
 const STATUS_FILTERS: { key: "ALL" | SavingItem["status"]; label: string }[] = [
   { key: "ALL",      label: "Semua" },
-  { key: "SUCCESS",  label: "Success" },
-  { key: "PENDING",  label: "Pending" },
-  { key: "REJECTED", label: "Rejected" },
+  { key: "SUCCESS",  label: "Berhasil" },
+  { key: "PENDING",  label: "Menunggu" },
+  { key: "REJECTED", label: "Ditolak" },
 ];
 
 const TYPE_FILTERS: { key: "ALL" | SavingItem["saving_type"]; label: string }[] = [
@@ -62,6 +65,23 @@ const TYPE_FILTERS: { key: "ALL" | SavingItem["saving_type"]; label: string }[] 
   { key: "WAJIB",    label: "Wajib" },
   { key: "SUKARELA", label: "Sukarela" },
 ];
+
+const buildPaginationRange = (currentPage: number, totalPages: number) => {
+  const delta = 2;
+  const range: (number | "…")[] = [];
+  for (let i = Math.max(1, currentPage - delta); i <= Math.min(totalPages, currentPage + delta); i++) {
+    range.push(i);
+  }
+  if (range[0] !== 1) {
+    range.unshift("…");
+    range.unshift(1);
+  }
+  if (range[range.length - 1] !== totalPages) {
+    range.push("…");
+    range.push(totalPages);
+  }
+  return range;
+};
 
 export default function SavingsOverviewPage() {
   const [data, setData] = useState<OverviewResponse | null>(null);
@@ -99,7 +119,7 @@ export default function SavingsOverviewPage() {
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
-    return "Manage and track your mandatory and voluntary savings.";
+    return "Kelola dan pantau simpanan wajib dan sukarela kamu.";
   }, [data]);
 
   const visibleTransactions = useMemo(() => {
@@ -139,28 +159,47 @@ export default function SavingsOverviewPage() {
 
   if (!data) return null;
 
+  const pageSize = data.page_size || Math.max(1, data.results.length || 1);
+  const totalPages = data.total_pages || Math.max(1, Math.ceil(data.count / pageSize));
+  const currentPage = data.current_page || page;
+  const paginationRange = buildPaginationRange(currentPage, totalPages);
+
   return (
     <div className="space-y-6">
       {/* Page header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
         <div>
           <h2 className="font-bold text-2xl mb-1" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
-            Savings Overview
+            Ringkasan Simpanan
           </h2>
           <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
             {summaryText}
           </p>
         </div>
-        <Link
-          href="/savings/deposit"
-          className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
-          style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
-        >
-          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
-            <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
-          </svg>
-          Tambah Setoran
-        </Link>
+        <div className="flex items-center gap-3">
+          <Link
+            href="/dashboard/member/savings/deposit"
+            className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+            style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
+          >
+            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+              <path strokeLinecap="round" strokeLinejoin="round" d="M12 4v16m8-8H4" />
+            </svg>
+            Tambah Setoran
+          </Link>
+          {data.member_status === "ACTIVE" && (
+            <Link
+              href="/dashboard/member/savings/withdraw"
+              className="flex items-center gap-2 px-5 py-3 rounded-xl font-bold text-sm transition-all hover:opacity-90"
+              style={{ backgroundColor: "#11447D", color: "#fff", fontFamily: "Montserrat, sans-serif" }}
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M5 12h14" />
+              </svg>
+              Tarik Dana
+            </Link>
+          )}
+        </div>
       </div>
 
       {/* Summary cards */}
@@ -267,10 +306,10 @@ export default function SavingsOverviewPage() {
                       className="inline-flex items-center gap-1"
                       onClick={() => setDateSortOrder((prev) => (prev === "desc" ? "asc" : "desc"))}
                     >
-                      DATE {dateSortOrder === "desc" ? "↓" : "↑"}
+                      TANGGAL {dateSortOrder === "desc" ? "↓" : "↑"}
                     </button>
                   </th>
-                  {["TYPE", "AMOUNT", "STATUS", "ACTION"].map((h) => (
+                  {["JENIS", "JUMLAH", "STATUS", "AKSI"].map((h) => (
                     <th key={h} className="px-5 py-3 text-left text-xs font-semibold tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
                       {h}
                     </th>
@@ -336,6 +375,14 @@ export default function SavingsOverviewPage() {
                               </Link>
                             ) : null}
                           </div>
+                        ) : item.source === "SAVINGS_WITHDRAWAL" ? (
+                          <Link
+                            href={`/dashboard/member/withdrawals/${encodeURIComponent(item.saving_id)}`}
+                            className="text-sm font-bold transition-opacity hover:opacity-60"
+                            style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                          >
+                            Lihat Penarikan →
+                          </Link>
                         ) : item.transfer_proof_url ? (
                           <a
                             href={item.transfer_proof_url}
@@ -359,29 +406,48 @@ export default function SavingsOverviewPage() {
         )}
 
         {/* Pagination */}
-        <div
-          className="flex items-center justify-between px-6 py-3"
-          style={{ borderTop: "1px solid #F1F5F9" }}
-        >
-          <p className="text-xs" style={{ color: "#B0BAC5", fontFamily: "Inter, sans-serif" }}>
-            Showing {visibleTransactions.length} of {data.count} transactions
-          </p>
-          <div className="flex gap-2">
+        <div className="px-6 py-3 flex items-center justify-between text-sm" style={{ borderTop: "1px solid #F1F5F9", color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+          <span>
+            Halaman {currentPage} dari {totalPages} • {data.count} total data
+          </span>
+          <div className="flex items-center gap-1">
             <button
               onClick={() => setPage((prev) => Math.max(1, prev - 1))}
-              disabled={!data.previous}
-              className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ border: "1px solid #E5E7EB", color: "#525E71", fontFamily: "Inter, sans-serif" }}
+              disabled={currentPage === 1 || !data.previous}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ border: "1px solid #E5E7EB", color: "#525E71" }}
             >
-              ← Previous
+              ‹
             </button>
+
+            {paginationRange.map((p, idx) =>
+              p === "…" ? (
+                <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: "#8E99A8" }}>
+                  …
+                </span>
+              ) : (
+                <button
+                  key={p}
+                  onClick={() => setPage(p as number)}
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                  style={{
+                    backgroundColor: p === currentPage ? "#242F43" : "transparent",
+                    color: p === currentPage ? "#FFFFFF" : "#525E71",
+                    border: p === currentPage ? "none" : "1px solid #E5E7EB",
+                  }}
+                >
+                  {p}
+                </button>
+              ),
+            )}
+
             <button
-              onClick={() => setPage((prev) => prev + 1)}
-              disabled={!data.next}
-              className="px-4 py-2 rounded-xl text-xs font-semibold transition-all disabled:cursor-not-allowed disabled:opacity-40"
-              style={{ backgroundColor: "#242F43", color: "#fff", fontFamily: "Inter, sans-serif" }}
+              onClick={() => setPage((prev) => Math.min(totalPages, prev + 1))}
+              disabled={currentPage === totalPages || !data.next}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+              style={{ border: "1px solid #E5E7EB", color: "#525E71" }}
             >
-              Next →
+              ›
             </button>
           </div>
         </div>

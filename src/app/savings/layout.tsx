@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import api from "@/lib/axios";
+import { getUserID, getUserName } from "@/lib/auth";
 
 type BankAccount = {
   id: number;
@@ -23,10 +24,17 @@ type MemberProfile = {
 
 export default function SavingsLayout({ children }: { children: React.ReactNode }) {
   const pathname = usePathname();
-  const isDepositPage = pathname.startsWith("/savings/deposit");
+  const isDepositPage = pathname.startsWith("/savings/deposit") || pathname.startsWith("/dashboard/member/savings/deposit");
+  const isWithdrawPage = pathname.startsWith("/savings/withdraw") || pathname.startsWith("/dashboard/member/savings/withdraw");
+  const isFormPage = isDepositPage || isWithdrawPage;
   const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [authUserName, setAuthUserName] = useState<string | undefined>(undefined);
+  const [authUserID, setAuthUserID] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    setAuthUserName(getUserName());
+    setAuthUserID(getUserID());
+
     const fetchProfile = async () => {
       try {
         const response = await api.get<MemberProfile>("/members/profile/");
@@ -40,23 +48,26 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
   }, []);
 
   const memberIdLabel = useMemo(() => {
-    if (!profile?.member_id) return "No Member ID";
-    return `#${profile.member_id}`;
-  }, [profile]);
+    if (profile?.member_id) return `#${profile.member_id}`;
+    if (authUserID) return authUserID.startsWith("#") ? authUserID : `#${authUserID}`;
+    return "Belum Ada ID Anggota";
+  }, [profile, authUserID]);
+
+  const displayName = profile?.full_name || authUserName || "Anggota";
 
   return (
     <DashboardLayout
       role="MEMBER"
-      userName={profile?.full_name || "Member"}
+      userName={displayName}
       userID={memberIdLabel}
       avatarUrl={profile?.profile_picture || undefined}
     >
-      {isDepositPage ? (
+      {isFormPage ? (
         <DashboardHeader
           variant="form"
-          title="Deposit Form"
-          backLabel="Back to Savings Overview"
-          backHref="/savings"
+          title={isWithdrawPage ? "Form Penarikan" : "Form Setoran"}
+          backLabel="Kembali ke Ringkasan Simpanan"
+          backHref="/dashboard/member/savings"
           notifCount={2}
         />
       ) : (
@@ -64,7 +75,7 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
           variant="detail"
           parentLabel="Dashboard"
           parentHref="/dashboard/member"
-          currentLabel="Savings"
+          currentLabel="Simpanan"
           notifCount={2}
         />
       )}
