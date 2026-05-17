@@ -5,6 +5,7 @@ import { usePathname } from "next/navigation";
 import DashboardLayout from "@/components/layout/DashboardLayout";
 import DashboardHeader from "@/components/layout/DashboardHeader";
 import api from "@/lib/axios";
+import { getUserID, getUserName } from "@/lib/auth";
 
 type BankAccount = {
   id: number;
@@ -27,8 +28,13 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
   const isWithdrawPage = pathname.startsWith("/savings/withdraw") || pathname.startsWith("/dashboard/member/savings/withdraw");
   const isFormPage = isDepositPage || isWithdrawPage;
   const [profile, setProfile] = useState<MemberProfile | null>(null);
+  const [authUserName, setAuthUserName] = useState<string | undefined>(undefined);
+  const [authUserID, setAuthUserID] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    setAuthUserName(getUserName());
+    setAuthUserID(getUserID());
+
     const fetchProfile = async () => {
       try {
         const response = await api.get<MemberProfile>("/members/profile/");
@@ -42,14 +48,17 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
   }, []);
 
   const memberIdLabel = useMemo(() => {
-    if (!profile?.member_id) return "Belum Ada ID Anggota";
-    return `#${profile.member_id}`;
-  }, [profile]);
+    if (profile?.member_id) return `#${profile.member_id}`;
+    if (authUserID) return authUserID.startsWith("#") ? authUserID : `#${authUserID}`;
+    return "Belum Ada ID Anggota";
+  }, [profile, authUserID]);
+
+  const displayName = profile?.full_name || authUserName || "Anggota";
 
   return (
     <DashboardLayout
       role="MEMBER"
-      userName={profile?.full_name || "Anggota"}
+      userName={displayName}
       userID={memberIdLabel}
       avatarUrl={profile?.profile_picture || undefined}
     >

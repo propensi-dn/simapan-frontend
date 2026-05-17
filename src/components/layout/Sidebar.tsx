@@ -94,6 +94,7 @@ const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: 'Dasbor',                 href: '/dashboard/staff',                        icon: <DashboardIcon />,    group: 'RINGKASAN' },
     { label: 'Verifikasi Anggota',     href: '/dashboard/staff/verification',           icon: <VerificationIcon />, group: 'ANGGOTA & SIMPANAN' },
     { label: 'Verifikasi Simpanan',    href: '/dashboard/staff/verifications/savings',  icon: <SavingsVerifIcon />, group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Penarikan Simpanan',     href: '/dashboard/staff/withdrawals',            icon: <DisburseIcon />,     group: 'ANGGOTA & SIMPANAN' },
     { label: 'Dasbor Pinjaman',        href: '/dashboard/staff/loans',                 icon: <LoanApprovalIcon />, group: 'PINJAMAN' },
     { label: 'Pencairan',              href: '/dashboard/staff/disbursement',           icon: <DisburseIcon />,     group: 'PINJAMAN' },
     { label: 'Pembayaran Angsuran',    href: '/dashboard/staff/installments',           icon: <InstallmentIcon />,  group: 'PINJAMAN' },
