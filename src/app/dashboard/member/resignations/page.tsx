@@ -140,7 +140,12 @@ export default function MemberResignationsPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
-  const [agreed, setAgreed] = useState(false)
+  const CHECKLIST = [
+    'Saya ingin menutup akun dan menerima estimasi pengembalian dana.',
+    'Saya telah memeriksa rincian simpanan dan pinjaman di atas dan setuju dengan jumlahnya.',
+    'Saya memahami bahwa penutupan akun tidak dapat dibatalkan setelah diproses.',
+  ]
+  const [checkedList, setCheckedList] = useState<boolean[]>(() => new Array(CHECKLIST.length).fill(false))
   const [submitting, setSubmitting] = useState(false)
 
   useEffect(() => {
@@ -176,8 +181,9 @@ export default function MemberResignationsPage() {
       return
     }
 
-    if (!agreed) {
-      toast.error('Mohon centang persetujuan syarat dan ketentuan.')
+    const allChecked = checkedList.every(Boolean)
+    if (!allChecked) {
+      toast.error('Mohon centang semua pernyataan sebelum melanjutkan.')
       return
     }
 
@@ -185,7 +191,7 @@ export default function MemberResignationsPage() {
     try {
       const result = await createResignationRequest()
       setExisting(result)
-      setAgreed(false)
+      setCheckedList(new Array(CHECKLIST.length).fill(false))
       toast.success('Permintaan penutupan akun berhasil dikirim.')
     } catch (err) {
       const message =
@@ -517,27 +523,34 @@ export default function MemberResignationsPage() {
                 {/* Confirmation form: only shown when there's no active request */}
                 {!hasActiveRequest && settlement && (
                   <div style={{ borderTop: '1px solid #F1F5F9' }} className="pt-6 mt-8 space-y-4">
-                    <label className="flex items-start gap-3 cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={agreed}
-                        onChange={(e) => setAgreed(e.target.checked)}
-                        disabled={!settlement.can_resign}
-                        className="w-4 h-4 mt-0.5 rounded border-gray-300 disabled:cursor-not-allowed"
-                      />
-                      <span
-                        className="text-sm leading-relaxed"
-                        style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-                      >
-                        Saya menyetujui <span className="underline font-semibold">syarat dan ketentuan</span>{' '}
-                        penutupan akun. Saya memahami bahwa tindakan ini tidak dapat dibatalkan setelah diproses.
-                      </span>
-                    </label>
+                    <div className="space-y-3">
+                      {CHECKLIST.map((text, idx) => (
+                        <label key={idx} className="flex items-start gap-3 cursor-pointer">
+                          <input
+                            type="checkbox"
+                            checked={checkedList[idx]}
+                            onChange={(e) => {
+                              const next = [...checkedList]
+                              next[idx] = e.target.checked
+                              setCheckedList(next)
+                            }}
+                            disabled={!settlement.can_resign}
+                            className="w-4 h-4 mt-0.5 rounded border-gray-300 disabled:cursor-not-allowed"
+                          />
+                          <span
+                            className="text-sm leading-relaxed"
+                            style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+                          >
+                            {text}
+                          </span>
+                        </label>
+                      ))}
+                    </div>
 
                     <div className="flex items-center justify-end gap-3">
                       <button
                         type="button"
-                        onClick={() => setAgreed(false)}
+                        onClick={() => setCheckedList(new Array(CHECKLIST.length).fill(false))}
                         className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
                         style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                       >
@@ -546,7 +559,7 @@ export default function MemberResignationsPage() {
                       <button
                         type="button"
                         onClick={handleConfirm}
-                        disabled={submitting || !agreed || !settlement.can_resign}
+                        disabled={submitting || !checkedList.every(Boolean) || !settlement.can_resign}
                         className="px-5 py-2.5 rounded-xl text-sm font-bold text-white transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                         style={{ backgroundColor: '#242F43' }}
                       >
