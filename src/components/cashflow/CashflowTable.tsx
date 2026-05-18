@@ -19,13 +19,15 @@ interface CashflowTableProps {
   }
 }
 
-const formatCurrency = (value: number) => {
+const formatCurrency = (value?: number | null) => {
+  const v = typeof value === 'number' && Number.isFinite(value) ? value : null
+  if (v === null) return '-'
   return new Intl.NumberFormat('id-ID', {
     style: 'currency',
     currency: 'IDR',
     minimumFractionDigits: 0,
     maximumFractionDigits: 0,
-  }).format(value)
+  }).format(v)
 }
 
 const formatDateTime = (dateString: string) => {
@@ -74,38 +76,49 @@ export default function CashflowTable({
     )
   }
 
-  const totalDebit = transactions.reduce((sum, t) => sum + t.debit, 0)
-  const totalCredit = transactions.reduce((sum, t) => sum + t.credit, 0)
+  const totalDebit = transactions.reduce((sum, t) => sum + Number(t.debit || 0), 0)
+  const totalCredit = transactions.reduce((sum, t) => sum + Number(t.credit || 0), 0)
   const runningBalance = totalDebit - totalCredit
+
+  // compute running balance per transaction (cumulative from top to bottom)
+  const rowsWithBalance: Transaction[] = (() => {
+    let acc = 0
+    return transactions.map((t) => {
+      const debit = Number(t.debit || 0)
+      const credit = Number(t.credit || 0)
+      acc = acc + debit - credit
+      return { ...t, balance: acc }
+    })
+  })()
 
   return (
     <div className="bg-bg-card overflow-hidden">
       <div className="overflow-x-auto">
         <table className="w-full">
           <thead>
-            <tr className="bg-bg border-b border-gray-200">
+              <tr className="bg-bg border-b border-gray-200">
               <th className="px-6 py-3 text-left text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-                Date
+                Tanggal
               </th>
               <th className="px-6 py-3 text-left text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-                Description
+                Deskripsi
               </th>
               <th className="px-6 py-3 text-left text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-                Category
+                Kategori
               </th>
               <th className="px-6 py-3 text-right text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
                 Debit (+)
               </th>
               <th className="px-6 py-3 text-right text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-                Credit (-)
+                Kredit (-)
               </th>
               <th className="px-6 py-3 text-right text-[11px] font-semibold text-text-tertiary uppercase tracking-wider">
-                Balance
+                Saldo
               </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-gray-200">
-            {transactions.map((transaction) => (
+            {rowsWithBalance.map((transaction) => (
               <tr key={transaction.id} className="hover:bg-bg transition">
                 <td className="px-6 py-4 whitespace-nowrap text-sm text-text-primary font-medium">
                   {formatDateTime(transaction.date)}
@@ -155,7 +168,7 @@ export default function CashflowTable({
 
             <tr className="bg-bg border-t border-gray-200">
               <td colSpan={3} className="px-6 py-3 text-right text-xs font-semibold text-text-secondary">
-                Daily Totals
+                Total Harian
               </td>
               <td className="px-6 py-3 text-right text-sm font-bold text-text-primary">
                 {formatCurrency(totalDebit)}

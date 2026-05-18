@@ -81,7 +81,7 @@ export default function DateRangeFilter({
             : 'border-gray-300 bg-bg-card text-text-secondary hover:bg-bg'
         }`}
         >
-        Custom Range{isCustom ? ' Active' : ''}
+        Rentang Kustom{isCustom ? ' Aktif' : ''}
       </button>
 
       {isCustom && (
@@ -102,13 +102,13 @@ export default function DateRangeFilter({
             onClick={handleApply}
             className="px-3 py-2 rounded-md bg-primary text-white text-xs font-semibold hover:bg-[#0d3765] transition"
           >
-            Apply
+            Terapkan
           </button>
           <button
             onClick={resetCustom}
             className="px-3 py-2 rounded-md border border-gray-300 bg-bg-card text-xs font-semibold text-text-secondary hover:bg-bg transition"
           >
-            Reset
+            Atur Ulang
           </button>
         </>
       )}
