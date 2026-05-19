@@ -49,8 +49,8 @@ const TYPE_CONFIG: Record<
     label: 'Pinjaman', icon: '💰',
   },
   WITHDRAWAL: {
-    bg: '#F3E8FF', text: '#6B21A8', dot: '#A855F7',
-    label: 'Penarikan', icon: '📤',
+    bg: '#FFF7ED', text: '#92400E', dot: '#FB923C',
+    label: 'Penarikan', icon: '💸',
   },
   RESIGNATION: {
     bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444',

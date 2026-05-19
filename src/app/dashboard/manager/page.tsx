@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
+import api from '@/lib/axios'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const LiquidityIcon = () => (
@@ -22,252 +24,329 @@ const ShuIcon = () => (
   </svg>
 )
 
-// ── Loan type badge styles ─────────────────────────────────────────────────
-const LOAN_TYPE_STYLE: Record<string, { bg: string; text: string }> = {
-  Emergency:  { bg: '#FEE2E2', text: '#991B1B' },
-  Investment: { bg: '#D1FAE5', text: '#065F46' },
-  Consumer:   { bg: '#DBEAFE', text: '#1E40AF' },
-  Education:  { bg: '#FEF3C7', text: '#92400E' },
+// ── Types ─────────────────────────────────────────────────────────────────
+interface DashboardData {
+  total_liquidity: number
+  total_outstanding_loans: number
+  interest_income_total: number
+  estimated_shu: number
+  npl_count: number
+  npl_amount: number
+  pending_loans_count: number
+  pending_loans?: Array<{
+    loan_id: string
+    member_name: string | null
+    amount: number
+    application_date: string | null
+    status: string
+  }>
+  portfolio_trend_6m: Array<{ month: string; date: string; value: number; count: number }>
+  portfolio_trend_1y: Array<{ month: string; date: string; value: number; count: number }>
+  recent_activities: Array<{
+    icon: string
+    title: string
+    detail: string
+    time: string
+    type: string
+  }>
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────
-const PENDING_LOANS = [
-  { member: 'Budi Santoso', amount: 'Rp 50.000.000',  type: 'Emergency',  date: '2023-10-24' },
-  { member: 'Siti Aminah',  amount: 'Rp 150.000.000', type: 'Investment', date: '2023-10-23' },
-  { member: 'Ahmad Fauzi',  amount: 'Rp 25.000.000',  type: 'Consumer',   date: '2023-10-23' },
-  { member: 'Dewi Lestari', amount: 'Rp 75.000.000',  type: 'Education',  date: '2023-10-22' },
-]
+// ── Helper functions ──────────────────────────────────────────────────────
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
 
-const RISK_PROFILE = [
-  { label: 'Current (No arrears)',     pct: 92, color: '#10B981' },
-  { label: 'Substandard (30-90 days)', pct: 5,  color: '#F59E0B' },
-  { label: 'Doubtful (90-180 days)',   pct: 2,  color: '#F97316' },
-  { label: 'Loss (>180 days)',         pct: 1,  color: '#EF4444' },
-]
+function formatTimeAgo(isoString: string): string {
+  const date = new Date(isoString)
+  const now = new Date()
+  const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-const RECENT_ACTIVITIES = [
-  { icon: '+',  title: 'New Loan Disbursed',        detail: 'Rp 120.000.000 - Siti Aminah', time: '10 minutes ago' },
-  { icon: '↓',  title: 'Payment Received',          detail: 'Rp 1.250.000 - John Doe',      time: '2 hours ago' },
-  { icon: '⊘',  title: 'Membership Resign Request', detail: 'Anton Sugiono - ID: CU-9283',   time: 'Yesterday' },
-]
+  if (seconds < 60) return 'just now'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`
 
-const BAR_DATA = [
-  { month: 'JAN', value: 30 }, { month: 'FEB', value: 45 }, { month: 'MAR', value: 38 },
-  { month: 'APR', value: 55 }, { month: 'MAY', value: 70 }, { month: 'JUN', value: 82 },
-  { month: 'JUL', value: 50 }, { month: 'AUG', value: 40 }, { month: 'SEP', value: 60 },
-  { month: 'OCT', value: 75 }, { month: 'NOV', value: 65 }, { month: 'DEC', value: 80 },
-]
-const MAX_BAR = Math.max(...BAR_DATA.map(d => d.value))
+  // Format date for older entries
+  return date.toLocaleDateString('en-GB')
+}
+
+function buildTrendSeries(
+  mode: '6m' | '1y',
+  trendData: Array<{ month: string; date: string; value: number; count: number }> | undefined
+) {
+  const monthsBack = mode === '6m' ? 6 : 12
+  const now = new Date()
+  const base = trendData || []
+  const byYearMonth = new Map<string, { value: number; count: number }>()
+
+  for (const item of base) {
+    if (item.date) {
+      const d = new Date(item.date)
+      const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+      byYearMonth.set(key, { value: item.value, count: item.count })
+      continue
+    }
+
+    if (item.month) {
+      const key = item.month
+      byYearMonth.set(key, { value: item.value, count: item.count })
+    }
+  }
+
+  const labels = ['JAN', 'FEB', 'MAR', 'APR', 'MAY', 'JUN', 'JUL', 'AUG', 'SEP', 'OCT', 'NOV', 'DEC']
+  const series = [] as Array<{ month: string; date: string; value: number; count: number }>
+
+  for (let i = monthsBack - 1; i >= 0; i -= 1) {
+    const d = new Date(now.getFullYear(), now.getMonth() - i, 1)
+    const label = labels[d.getMonth()]
+    const key = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}`
+    const item = byYearMonth.get(key) || byYearMonth.get(label)
+    series.push({
+      month: label,
+      date: d.toISOString(),
+      value: item?.value ?? 0,
+      count: item?.count ?? 0,
+    })
+  }
+
+  return series
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function ManagerDashboardPage() {
-  // TODO: fetch dari /api/dashboards/manager/ dan user session
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const [trendMode, setTrendMode] = useState<'6m' | '1y'>('6m')
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await api.get('/manager/loans/dashboard/')
+        setData(response.data)
+        setError(null)
+      } catch (err: any) {
+        console.error('Failed to fetch dashboard:', err)
+        setError(err.response?.data?.detail || 'Failed to load dashboard')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [])
+
   const userName = 'Budi Santoso'
+  const trendData = trendMode === '6m' ? data?.portfolio_trend_6m : data?.portfolio_trend_1y
+  const normalizedTrendData = buildTrendSeries(trendMode, trendData)
+  const hasTrendData = normalizedTrendData.some(d => d.value > 0 || d.count > 0)
+  const MAX_BAR = normalizedTrendData.length > 0 ? Math.max(...normalizedTrendData.map(d => d.value)) : 100
 
   return (
     <DashboardLayout role="MANAGER" userName={userName} userID="1092834">
-
       <DashboardHeader
         variant="default"
-        title="Executive Overview"
+        title="Dashboard"
         notifCount={3}
         notifHref="/dashboard/manager/notifications"
       />
 
       <main className="flex-1 p-8">
-
-        {/* Stat Cards */}
-        <div className="grid grid-cols-3 gap-5 mb-8">
-          <StatCard
-            label="Total Liquidity"
-            value="Rp 4.250.000.000"
-            badge="+2.4%"
-            badgePositive={true}
-            icon={<LiquidityIcon />}
-            accent="#11447D"
-          />
-          <StatCard
-            label="Total Outstanding Loans"
-            value="Rp 12.800.000.000"
-            badge="-1.2%"
-            badgePositive={false}
-            icon={<LoanIcon />}
-            accent="#EF4444"
-          />
-          <StatCard
-            label="Current SHU Estimate"
-            value="Rp 850.400.000"
-            badge="+5.7%"
-            badgePositive={true}
-            icon={<ShuIcon />}
-            accent="#10B981"
-          />
-        </div>
-
-        {/* 2-col layout */}
-        <div className="grid grid-cols-3 gap-5">
-
-          {/* Left — Pending Loans + Bar Chart */}
-          <div className="col-span-2 flex flex-col gap-5">
-
-            {/* Pending Loan Approvals */}
-            <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
-              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
-                <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                  Pending Loan Approvals
-                </h3>
-                <Link
-                  href="/dashboard/manager/loans"
-                  className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-                  style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-                >
-                  View All
-                </Link>
-              </div>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['MEMBER NAME', 'AMOUNT REQUESTED', 'LOAN TYPE', 'DATE', 'ACTION'].map(col => (
-                      <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
-                        style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PENDING_LOANS.map((loan, i) => {
-                    const typeStyle = LOAN_TYPE_STYLE[loan.type] || { bg: '#F3F4F6', text: '#525E71' }
-                    return (
-                      <tr key={i} style={{ borderBottom: i < PENDING_LOANS.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
-                        <td className="px-6 py-3 text-sm font-medium" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.member}
-                        </td>
-                        <td className="px-6 py-3 text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.amount}
-                        </td>
-                        <td className="px-6 py-3">
-                          <span
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                            style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, fontFamily: 'Inter, sans-serif' }}
-                          >
-                            {loan.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.date}
-                        </td>
-                        <td className="px-6 py-3">
-                          <Link
-                            href="/dashboard/manager/loans/1"
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all"
-                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
-                          >
-                            Review
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+        {loading ? (
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#242F43' }}></div>
+              <p className="mt-4" style={{ color: '#8E99A8' }}>Loading dashboard...</p>
+            </div>
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+            <p style={{ color: '#991B1B' }}>Error: {error}</p>
+          </div>
+        ) : data ? (
+          <>
+            {/* Stat Cards */}
+            <div className="grid grid-cols-3 gap-5 mb-8">
+              <StatCard
+                label="Total Liquidity"
+                value={formatCurrency(data.total_liquidity)}
+                badge="+2.4%"
+                badgePositive={true}
+                icon={<LiquidityIcon />}
+                accent="#11447D"
+              />
+              <StatCard
+                label="Total Outstanding Loans"
+                value={formatCurrency(data.total_outstanding_loans)}
+                badge="-1.2%"
+                badgePositive={false}
+                icon={<LoanIcon />}
+                accent="#EF4444"
+              />
+              <StatCard
+                label="Current SHU Estimate (Pure)"
+                value={formatCurrency(data.estimated_shu)}
+                badge="+5.7%"
+                badgePositive={true}
+                icon={<ShuIcon />}
+                accent="#10B981"
+              />
             </div>
 
-            {/* Portfolio Performance Bar Chart */}
-            <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                  Portfolio Performance Trend
-                </h3>
-                <div className="flex items-center gap-1">
-                  {['6M', '1Y'].map((v, i) => (
-                    <button key={v}
-                      className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
-                      style={{
-                        backgroundColor: i === 0 ? '#242F43' : 'transparent',
-                        color: i === 0 ? '#fff' : '#8E99A8',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+            <div className="grid grid-cols-2 gap-5 mb-8">
+              <StatCard
+                label="NPL Count"
+                value={String(data.npl_count ?? 0)}
+                badge="overdue loans"
+                badgePositive={false}
+                icon={<LoanIcon />}
+                accent="#DC2626"
+              />
+              <StatCard
+                label="NPL Amount"
+                value={formatCurrency(data.npl_amount ?? 0)}
+                badge="at risk"
+                badgePositive={false}
+                icon={<LoanIcon />}
+                accent="#B91C1C"
+              />
+            </div>
+
+            {/* 2-col layout */}
+            <div className="grid grid-cols-3 gap-5">
+              {/* Left — Pending Loans + Bar Chart */}
+              <div className="col-span-2 flex flex-col gap-5">
+                {/* Pending Loan Approvals */}
+                <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
+                  <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+                      Pending Loan Approvals ({data.pending_loans_count})
+                    </h3>
+                    <Link
+                      href="/dashboard/manager/loans"
+                      className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
+                      style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
                     >
-                      {v}
-                    </button>
-                  ))}
+                      View All
+                    </Link>
+                  </div>
+                  {data.pending_loans && data.pending_loans.length > 0 ? (
+                    <ul className="divide-y">
+                      {data.pending_loans.map((loan) => (
+                        <li key={loan.loan_id} className="px-6 py-4 flex items-center justify-between">
+                          <div>
+                            <div className="font-semibold" style={{ color: '#242F43' }}>{loan.member_name || loan.loan_id}</div>
+                            <div className="text-sm text-gray-500">{loan.loan_id} • {formatCurrency(loan.amount)}</div>
+                          </div>
+                          <div className="text-sm text-gray-500">{loan.application_date ? new Date(loan.application_date).toLocaleDateString() : ''}</div>
+                        </li>
+                      ))}
+                    </ul>
+                  ) : (
+                    <div className="px-6 py-4 text-center" style={{ color: '#8E99A8' }}>
+                      <p className="text-sm">No pending approvals</p>
+                    </div>
+                  )}
+                </div>
+
+                {/* Portfolio Performance Bar Chart */}
+                <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+                  <div className="flex items-center justify-between mb-6">
+                    <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+                      Portfolio Performance Trend
+                    </h3>
+                    <div className="flex items-center gap-1">
+                      {['6M', '1Y'].map((v) => (
+                        <button
+                          key={v}
+                          onClick={() => setTrendMode(v === '6M' ? '6m' : '1y')}
+                          className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
+                          style={{
+                            backgroundColor: (v === '6M' && trendMode === '6m') || (v === '1Y' && trendMode === '1y') ? '#242F43' : 'transparent',
+                            color: (v === '6M' && trendMode === '6m') || (v === '1Y' && trendMode === '1y') ? '#fff' : '#8E99A8',
+                            fontFamily: 'Inter, sans-serif',
+                          }}
+                        >
+                          {v}
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                  <div className="flex items-end gap-1.5 h-36">
+                    {hasTrendData ? (
+                      normalizedTrendData.map((d) => (
+                        <div key={d.month} className="flex-1 flex flex-col items-center h-full self-stretch">
+                          <div className="flex items-end h-full w-full">
+                            <div
+                              className="w-full rounded-t-md transition-all hover:opacity-80"
+                              title={`${d.month}: ${d.count} loans, Rp ${d.value}M`}
+                              style={{
+                                height: MAX_BAR > 0 ? `${(d.value / MAX_BAR) * 100}%` : '5%',
+                                backgroundColor: '#242F43',
+                                minHeight: '3px',
+                              }}
+                            />
+                          </div>
+                          <span className="text-xs mt-1" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif', fontSize: '9px' }}>
+                            {d.month}
+                          </span>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="w-full text-center text-sm" style={{ color: '#8E99A8' }}>
+                        No data available for this period
+                      </div>
+                    )}
+                  </div>
                 </div>
               </div>
-              <div className="flex items-end gap-1.5 h-36">
-                {BAR_DATA.map((d) => (
-                  <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-t-md"
-                      style={{
-                        height: `${(d.value / MAX_BAR) * 100}%`,
-                        backgroundColor: d.month === 'JUN' ? '#242F43' : '#E5E7EB',
-                      }}
-                    />
-                    <span className="text-xs" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif', fontSize: '9px' }}>
-                      {d.month}
-                    </span>
+
+              {/* Right — Recent Activities */}
+              <div className="flex flex-col gap-5">
+                {/* Recent Activities */}
+                <div className="bg-white rounded-2xl p-6 flex-1 flex flex-col" style={{ border: '1px solid #F1F5F9' }}>
+                  <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+                    Recent Credit Activities
+                  </h3>
+                  <div className="space-y-4 flex-1 overflow-y-auto" style={{ maxHeight: '600px' }}>
+                    {data.recent_activities && data.recent_activities.length > 0 ? (
+                      data.recent_activities.map((a, i) => (
+                        <div key={i} className="flex items-start gap-3 pb-3" style={{ borderBottom: i < data.recent_activities.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
+                          <div
+                            className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm font-bold"
+                            style={{ backgroundColor: '#F1F5F9', color: '#525E71' }}
+                          >
+                            {a.icon}
+                          </div>
+                          <div className="flex-1 min-w-0">
+                            <p className="text-sm font-semibold truncate" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                              {a.title}
+                            </p>
+                            <p className="text-xs line-clamp-2" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                              {a.detail}
+                            </p>
+                            <p className="text-xs mt-0.5" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif' }}>
+                              {formatTimeAgo(a.time)}
+                            </p>
+                          </div>
+                        </div>
+                      ))
+                    ) : (
+                      <div className="text-center py-8">
+                        <p className="text-sm" style={{ color: '#8E99A8' }}>No recent activities</p>
+                      </div>
+                    )}
                   </div>
-                ))}
+                </div>
               </div>
             </div>
-          </div>
-
-          {/* Right — Risk Profile + Recent Activities */}
-          <div className="flex flex-col gap-5">
-
-            {/* Risk Profile */}
-            <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
-              <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                Risk Profile Overview
-              </h3>
-              <div className="space-y-4">
-                {RISK_PROFILE.map((r) => (
-                  <div key={r.label}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>{r.label}</span>
-                      <span className="text-xs font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>{r.pct}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full" style={{ backgroundColor: '#F1F5F9' }}>
-                      <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: r.color }} />
-                    </div>
-                  </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Activities */}
-            <div className="bg-white rounded-2xl p-6 flex-1" style={{ border: '1px solid #F1F5F9' }}>
-              <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                Recent Credit Activities
-              </h3>
-              <div className="space-y-4">
-                {RECENT_ACTIVITIES.map((a, i) => (
-                  <div key={i} className="flex items-start gap-3">
-                    <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm"
-                      style={{ backgroundColor: '#F1F5F9', color: '#525E71' }}
-                    >
-                      {a.icon}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>{a.title}</p>
-                      <p className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>{a.detail}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif' }}>{a.time}</p>
-                    </div>
-                  </div>
-                ))}
-              </div>
-              <button
-                className="w-full mt-5 py-2 rounded-xl text-xs font-semibold tracking-wider transition-colors"
-                style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-              >
-                VIEW ACTIVITY LOG
-              </button>
-            </div>
-
-          </div>
-        </div>
+          </>
+        ) : null}
       </main>
     </DashboardLayout>
   )

@@ -120,7 +120,7 @@ export default function MemberDashboardPage() {
             Welcome back, {userName.split(' ')[0]} 👋
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Here&apos;s a summary of your financial status as of today.
+            Berikut ringkasan status keuangan Anda hari ini.
           </p>
         </div>
 
