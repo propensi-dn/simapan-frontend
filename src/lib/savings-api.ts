@@ -4,6 +4,7 @@ import api from './axios'
 
 export type SavingType   = 'POKOK' | 'WAJIB' | 'SUKARELA'
 export type SavingStatus = 'PENDING' | 'SUCCESS' | 'REJECTED'
+export type WithdrawalStatus = 'PENDING' | 'COMPLETED'
 
 export interface SavingTransaction {
   id:                    number
@@ -59,6 +60,35 @@ export interface PaginatedSavings {
   results:      SavingTransaction[]
 }
 
+export interface SavingsWithdrawal {
+  id:             number
+  withdrawal_id:  string
+  amount:         string
+  bank_name:      string
+  account_number: string
+  account_holder: string
+  notes:          string
+  status:         WithdrawalStatus
+  created_at:     string
+}
+
+export interface WithdrawalCreatePayload {
+  amount:         number
+  bank_name:      string
+  account_number: string
+  account_holder: string
+  notes?:         string
+}
+
+export interface WithdrawalCreateResponse {
+  message: string
+  data:    SavingsWithdrawal
+}
+
+export interface WithdrawalBalanceResponse {
+  total_sukarela: string
+}
+
 // ── API calls ─────────────────────────────────────────────────────────────
 
 /** GET /api/verifications/savings/ */
@@ -91,5 +121,19 @@ export async function verifySaving(
 /** GET /api/verifications/savings/balance/{member_pk}/ */
 export async function getMemberSavingsBalance(memberPk: number): Promise<SavingsBalance> {
   const { data } = await api.get(`/verifications/savings/balance/${memberPk}/`)
+  return data
+}
+
+/** GET /api/savings/withdrawals/balance/ */
+export async function getWithdrawalBalance(): Promise<WithdrawalBalanceResponse> {
+  const { data } = await api.get('/savings/withdrawals/balance/')
+  return data
+}
+
+/** POST /api/savings/withdrawals/create/ */
+export async function createWithdrawal(
+  payload: WithdrawalCreatePayload,
+): Promise<WithdrawalCreateResponse> {
+  const { data } = await api.post('/savings/withdrawals/create/', payload)
   return data
 }

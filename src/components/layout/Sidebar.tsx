@@ -143,6 +143,9 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
 
   // Active check: savings detail pages should also highlight "Savings Verification"
   const isActive = (href: string) => {
+    if (href === '/dashboard/chairman/finance') {
+      return pathname === href || pathname.startsWith('/dashboard/chairman/cashflow')
+    }
     if (href === '/dashboard/staff/verifications/savings') {
       return pathname === href || pathname.startsWith('/dashboard/staff/verifications/savings/')
     }
