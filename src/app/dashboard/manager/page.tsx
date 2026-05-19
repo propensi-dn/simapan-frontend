@@ -123,6 +123,7 @@ export default function ManagerDashboardPage() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const [trendMode, setTrendMode] = useState<'6m' | '1y'>('6m')
+  const pendingPreviewLimit = 8
 
   useEffect(() => {
     const fetchDashboard = async () => {
@@ -236,17 +237,22 @@ export default function ManagerDashboardPage() {
                     </Link>
                   </div>
                   {data.pending_loans && data.pending_loans.length > 0 ? (
-                    <ul className="divide-y">
-                      {data.pending_loans.map((loan) => (
-                        <li key={loan.loan_id} className="px-6 py-4 flex items-center justify-between">
-                          <div>
-                            <div className="font-semibold" style={{ color: '#242F43' }}>{loan.member_name || loan.loan_id}</div>
-                            <div className="text-sm text-gray-500">{loan.loan_id} • {formatCurrency(loan.amount)}</div>
-                          </div>
-                          <div className="text-sm text-gray-500">{loan.application_date ? new Date(loan.application_date).toLocaleDateString() : ''}</div>
-                        </li>
-                      ))}
-                    </ul>
+                    <>
+                      <ul className="divide-y">
+                        {data.pending_loans.slice(0, pendingPreviewLimit).map((loan) => (
+                          <li key={loan.loan_id} className="px-6 py-4 flex items-center justify-between">
+                            <div>
+                              <div className="font-semibold" style={{ color: '#242F43' }}>{loan.member_name || loan.loan_id}</div>
+                              <div className="text-sm text-gray-500">{loan.loan_id} • {formatCurrency(loan.amount)}</div>
+                            </div>
+                            <div className="text-sm text-gray-500">{loan.application_date ? new Date(loan.application_date).toLocaleDateString() : ''}</div>
+                          </li>
+                        ))}
+                      </ul>
+                      <p className="px-6 py-3 text-xs" style={{ color: '#8E99A8' }}>
+                        Lihat seluruh pengajuan di halaman Pending Loan.
+                      </p>
+                    </>
                   ) : (
                     <div className="px-6 py-4 text-center" style={{ color: '#8E99A8' }}>
                       <p className="text-sm">No pending approvals</p>
@@ -313,7 +319,7 @@ export default function ManagerDashboardPage() {
                   <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                     Recent Credit Activities
                   </h3>
-                  <div className="space-y-4 flex-1 overflow-y-auto" style={{ maxHeight: '600px' }}>
+                  <div className="space-y-4">
                     {data.recent_activities && data.recent_activities.length > 0 ? (
                       data.recent_activities.map((a, i) => (
                         <div key={i} className="flex items-start gap-3 pb-3" style={{ borderBottom: i < data.recent_activities.length - 1 ? '1px solid #F1F5F9' : 'none' }}>
