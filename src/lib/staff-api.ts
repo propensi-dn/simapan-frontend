@@ -437,14 +437,14 @@ export async function getStaffWithdrawals(params?: {
   start_date?: string
   end_date?: string
 }): Promise<StaffWithdrawalDashboardResponse> {
-  const { data } = await api.get('/v1/staff/withdrawals/', { params })
+  const { data } = await api.get('/staff/withdrawals/', { params })
   return data
 }
 
 export async function exportStaffWithdrawals(params?: {
   scope?: 'pending' | 'history' | 'all'
 }): Promise<Blob> {
-  const { data } = await api.get('/v1/staff/withdrawals/export/', {
+  const { data } = await api.get('/staff/withdrawals/export/', {
     params,
     responseType: 'blob',
   })
