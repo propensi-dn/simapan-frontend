@@ -32,7 +32,6 @@ const VerificationIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 1.268-.63 2.39-1.593 3.068a3.745 3.745 0 01-1.043 3.296 3.745 3.745 0 01-3.296 1.043A3.745 3.745 0 0112 21c-1.268 0-2.39-.63-3.068-1.593a3.746 3.746 0 01-3.296-1.043 3.745 3.745 0 01-1.043-3.296A3.745 3.745 0 013 12c0-1.268.63-2.39 1.593-3.068a3.745 3.745 0 011.043-3.296 3.746 3.746 0 013.296-1.043A3.746 3.746 0 0112 3c1.268 0 2.39.63 3.068 1.593a3.746 3.746 0 013.296 1.043 3.746 3.746 0 011.043 3.296A3.745 3.745 0 0121 12z" />
   </svg>
 )
-
 const SavingsVerifIcon = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
@@ -51,6 +50,11 @@ const DisburseIcon = () => (
 const InstallmentIcon = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
+  </svg>
+)
+const RefundIcon = () => (
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
   </svg>
 )
 const LoanApprovalIcon = () => (
@@ -78,62 +82,123 @@ const LogoutIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
   </svg>
 )
+const CloseIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M6 18L18 6M6 6l12 12" />
+  </svg>
+)
 
 // ── Nav config per role ────────────────────────────
 type NavItem = { label: string; href: string; icon: React.ReactNode; group?: string }
 
 const NAV_CONFIG: Record<string, NavItem[]> = {
   MEMBER: [
-    { label: 'Dashboard',  href: '/dashboard/member',         icon: <DashboardIcon />, group: 'OVERVIEW' },
-    { label: 'Savings',    href: '/dashboard/member/savings', icon: <SavingsIcon />,   group: 'FINANCE' },
-    { label: 'Loans',      href: '/dashboard/member/loans',   icon: <LoanIcon />,      group: 'FINANCE' },
-    { label: 'Profile',    href: '/dashboard/member/profile', icon: <ProfileIcon />,   group: 'ACCOUNT' },
+    { label: 'Dasbor',   href: '/dashboard/member',          icon: <DashboardIcon />, group: 'RINGKASAN' },
+    { label: 'Simpanan', href: '/dashboard/member/savings',  icon: <SavingsIcon />,   group: 'KEUANGAN' },
+    { label: 'Pinjaman', href: '/dashboard/member/loans',    icon: <LoanIcon />,      group: 'KEUANGAN' },
+    { label: 'Profil',   href: '/dashboard/member/profile',  icon: <ProfileIcon />,   group: 'AKUN' },
   ],
   STAFF: [
-    { label: 'Dashboard',            href: '/dashboard/staff',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    // ── MEMBER & SAVINGS ──
-    { label: 'Member Verification',  href: '/dashboard/staff/verification',  icon: <VerificationIcon />, group: 'MEMBER & SAVINGS' },
-    { label: 'Savings Verification', href: '/dashboard/staff/verifications/savings',       icon: <SavingsVerifIcon />, group: 'MEMBER & SAVINGS' },
-    { label: 'Withdrawal Requests',  href: '/dashboard/staff/withdrawals',   icon: <WithdrawalIcon />,   group: 'MEMBER & SAVINGS' },
-    // ── LOANS ──
-    { label: 'Loan Dashboard',       href: '/dashboard/staff/loans',         icon: <LoanApprovalIcon />, group: 'LOANS' },
-    { label: 'Disbursement',         href: '/dashboard/staff/disbursement',  icon: <DisburseIcon />,     group: 'LOANS' },
-    { label: 'Installment Payment',  href: '/dashboard/staff/installments',  icon: <InstallmentIcon />,  group: 'LOANS' },
+    { label: 'Dasbor',               href: '/dashboard/staff',                      icon: <DashboardIcon />,    group: 'RINGKASAN' },
+    { label: 'Verifikasi Anggota',   href: '/dashboard/staff/verification',         icon: <VerificationIcon />, group: 'ANGGOTA' },
+    { label: 'Verifikasi Simpanan',  href: '/dashboard/staff/verifications/savings',icon: <SavingsVerifIcon />, group: 'SIMPANAN' },
+    { label: 'Penarikan Simpanan',   href: '/dashboard/staff/withdrawals',          icon: <WithdrawalIcon />,   group: 'SIMPANAN' },
+    { label: 'Dasbor Pinjaman',      href: '/dashboard/staff/loans',               icon: <LoanApprovalIcon />, group: 'PINJAMAN' },
+    { label: 'Pencairan',            href: '/dashboard/staff/disbursement',         icon: <DisburseIcon />,     group: 'PINJAMAN' },
+    { label: 'Pembayaran Angsuran',  href: '/dashboard/staff/installments',         icon: <InstallmentIcon />,  group: 'PINJAMAN' },
+    { label: 'Pengembalian Dana',    href: '/dashboard/staff/refunds',             icon: <RefundIcon />,       group: 'PINJAMAN' },
   ],
   MANAGER: [
-    { label: 'Dashboard',        href: '/dashboard/manager',               icon: <DashboardIcon />,    group: 'OVERVIEW' },
-    { label: 'Loan Approvals',   href: '/dashboard/manager/loans',         icon: <LoanApprovalIcon />, group: 'MANAGERIAL' },
-    { label: 'Resign Approvals', href: '/dashboard/manager/resignations',  icon: <ResignIcon />,       group: 'MANAGERIAL' },
-    { label: 'Credit Monitoring',href: '/dashboard/manager/credit',        icon: <CreditIcon />,       group: 'REPORTING' },
-    { label: 'Financial Reports',href: '/dashboard/manager/finance',       icon: <FinanceIcon />,      group: 'REPORTING' },
+    { label: 'Dasbor',                   href: '/dashboard/manager',              icon: <DashboardIcon />,    group: 'RINGKASAN' },
+    { label: 'Persetujuan Pinjaman',     href: '/dashboard/manager/loans',        icon: <LoanApprovalIcon />, group: 'MANAJERIAL' },
+    { label: 'Persetujuan Pengunduran',  href: '/dashboard/manager/resignations', icon: <ResignIcon />,       group: 'MANAJERIAL' },
+    { label: 'Pemantauan Kredit',        href: '/dashboard/manager/credit',       icon: <CreditIcon />,       group: 'LAPORAN' },
   ],
   CHAIRMAN: [
-    { label: 'Dashboard',        href: '/dashboard/chairman',              icon: <DashboardIcon />,  group: 'OVERVIEW' },
-    { label: 'Financial Reports',href: '/dashboard/chairman/finance',      icon: <FinanceIcon />,    group: 'REPORTING' },
-    { label: 'Credit Monitoring',href: '/dashboard/chairman/credit',       icon: <CreditIcon />,     group: 'REPORTING' },
+    { label: 'Dasbor',           href: '/dashboard/chairman',         icon: <DashboardIcon />, group: 'RINGKASAN' },
+    { label: 'Laporan Keuangan', href: '/dashboard/chairman/finance', icon: <FinanceIcon />,   group: 'LAPORAN' },
   ],
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  MEMBER:   'Credit Union System',
-  STAFF:    'Staff Portal',
-  MANAGER:  'Executive Portal',
-  CHAIRMAN: 'Chairman Portal',
+  MEMBER:   'Sistem Credit Union',
+  STAFF:    'Portal Staf',
+  MANAGER:  'Portal Eksekutif',
+  CHAIRMAN: 'Portal Ketua',
 }
 
+// ── Skeleton ───────────────────────────────────────
+const SKELETON_GROUPS = [
+  { labelW: '38%', items: [{ w: '75%' }] },
+  { labelW: '55%', items: [{ w: '85%' }, { w: '72%' }, { w: '90%' }, { w: '78%' }] },
+  { labelW: '30%', items: [{ w: '80%' }] },
+]
+
+function SidebarSkeleton() {
+  return (
+    <aside
+      className="hidden lg:flex flex-col w-56 h-screen flex-shrink-0"
+      style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #F1F5F9' }}
+    >
+      {/* Logo */}
+      <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid #F1F5F9' }}>
+        <div className="w-8 h-8 rounded-lg flex-shrink-0 animate-pulse" style={{ backgroundColor: '#E5E7EB' }} />
+        <div className="flex-1 space-y-1.5">
+          <div className="h-3.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '55%' }} />
+          <div className="h-2.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
+        </div>
+      </div>
+
+      {/* Nav */}
+      <div className="flex-1 px-3 py-4 space-y-5 overflow-hidden">
+        {SKELETON_GROUPS.map((group, gi) => (
+          <div key={gi}>
+            <div className="h-2.5 rounded animate-pulse mb-2 ml-2" style={{ backgroundColor: '#E5E7EB', width: group.labelW }} />
+            <div className="space-y-0.5">
+              {group.items.map((item, ii) => (
+                <div key={ii} className="flex items-center gap-2.5 px-3 py-2">
+                  <div className="w-4 h-3 rounded flex-shrink-0 animate-pulse" style={{ backgroundColor: '#E5E7EB' }} />
+                  <div className="h-3 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: item.w }} />
+                </div>
+              ))}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* User */}
+      <div className="px-3 py-4" style={{ borderTop: '1px solid #F1F5F9' }}>
+        <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl" style={{ backgroundColor: '#FAFAFA' }}>
+          <div className="w-8 h-8 rounded-full flex-shrink-0 animate-pulse" style={{ backgroundColor: '#E5E7EB' }} />
+          <div className="flex-1">
+            <div className="h-3.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '60%' }} />
+          </div>
+          <div className="w-7 h-7 rounded-lg flex-shrink-0 animate-pulse" style={{ backgroundColor: '#E5E7EB' }} />
+        </div>
+      </div>
+    </aside>
+  )
+}
+
+// ── Props ──────────────────────────────────────────
 interface SidebarProps {
   role: 'MEMBER' | 'STAFF' | 'MANAGER' | 'CHAIRMAN'
   userName?: string
   userID?: string
   avatarUrl?: string
+  isLoading?: boolean
+  mobileOpen?: boolean
+  onClose?: () => void
 }
 
-export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: SidebarProps) {
-  const pathname  = usePathname()
+export default function Sidebar({ role, userName = 'User', avatarUrl, isLoading, mobileOpen = false, onClose }: SidebarProps) {
+  const pathname = usePathname()
   const [logoutOpen, setLogoutOpen] = useState(false)
-  const navItems  = NAV_CONFIG[role] || []
 
-  // Group nav items
+  if (isLoading) return <SidebarSkeleton />
+
+  const navItems = NAV_CONFIG[role] || []
+
   const groups: Record<string, NavItem[]> = {}
   navItems.forEach(item => {
     const g = item.group || 'MENU'
@@ -141,7 +206,6 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
     groups[g].push(item)
   })
 
-  // Active check: savings detail pages should also highlight "Savings Verification"
   const isActive = (href: string) => {
     if (href === '/dashboard/chairman/finance') {
       return pathname === href || pathname.startsWith('/dashboard/chairman/cashflow')
@@ -155,36 +219,67 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
     if (href === '/dashboard/staff/loans') {
       return pathname === href || pathname.startsWith('/dashboard/staff/loans/')
     }
+    if (href === '/dashboard/staff/disbursement') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/disbursement/')
+    }
     if (href === '/dashboard/staff/installments') {
       return pathname === href || pathname.startsWith('/dashboard/staff/installments/')
+    }
+    if (href === '/dashboard/staff/refunds') {
+      return pathname === href || pathname.startsWith('/dashboard/staff/refunds/')
     }
     return pathname === href
   }
 
   return (
     <>
+      {/* Backdrop — mobile only */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 lg:hidden"
+          style={{ backgroundColor: 'rgba(0, 0, 0, 0.5)' }}
+          onClick={onClose}
+        />
+      )}
+
+      {/* Sidebar */}
       <aside
-        className="flex flex-col w-56 h-full flex-shrink-0"
+        className={`fixed inset-y-0 left-0 lg:static flex flex-col w-56 h-screen flex-shrink-0 z-50 lg:z-auto transition-transform duration-300 ${
+          mobileOpen ? 'translate-x-0' : '-translate-x-full lg:translate-x-0'
+        }`}
         style={{ backgroundColor: '#FFFFFF', borderRight: '1px solid #F1F5F9' }}
       >
-        {/* Logo */}
-        <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid #F1F5F9' }}>
-          <div
-            className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-            style={{ backgroundColor: '#242F43' }}
+        {/* Logo + mobile close */}
+        <div
+          className="flex items-center justify-between px-5 py-5"
+          style={{ borderBottom: '1px solid #F1F5F9' }}
+        >
+          <div className="flex items-center gap-2.5">
+            <div
+              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
+              style={{ backgroundColor: '#242F43' }}
+            >
+              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
+              </svg>
+            </div>
+            <div>
+              <p className="font-bold text-sm leading-tight" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+                SI-MAPAN
+              </p>
+              <p className="text-xs leading-tight" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                {ROLE_LABELS[role]}
+              </p>
+            </div>
+          </div>
+          <button
+            className="lg:hidden p-1 rounded-lg"
+            style={{ color: '#8E99A8' }}
+            onClick={onClose}
+            aria-label="Tutup menu"
           >
-            <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-              <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-            </svg>
-          </div>
-          <div>
-            <p className="font-bold text-sm leading-tight" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-              SI-MAPAN
-            </p>
-            <p className="text-xs leading-tight" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              {ROLE_LABELS[role]}
-            </p>
-          </div>
+            <CloseIcon />
+          </button>
         </div>
 
         {/* Nav */}
@@ -204,6 +299,7 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
                     <Link
                       key={item.href}
                       href={item.href}
+                      onClick={onClose}
                       className="flex items-center gap-2.5 px-3 py-2.5 rounded-xl transition-all duration-150 text-sm font-medium"
                       style={{
                         backgroundColor: active ? '#F1F5F9' : 'transparent',
@@ -227,9 +323,10 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
         {/* User + Logout */}
         <div className="px-3 py-4" style={{ borderTop: '1px solid #F1F5F9' }}>
           <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl" style={{ backgroundColor: '#FAFAFA' }}>
-            {/* Avatar */}
-            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
-              style={{ backgroundColor: '#E5E7EB' }}>
+            <div
+              className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+              style={{ backgroundColor: '#E5E7EB' }}
+            >
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={userName} width={32} height={32} className="object-cover" />
               ) : (
@@ -238,18 +335,11 @@ export default function Sidebar({ role, userName = 'User', userID, avatarUrl }: 
                 </svg>
               )}
             </div>
-            {/* Name */}
             <div className="flex-1 min-w-0">
               <p className="text-xs font-semibold truncate" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                 {userName}
               </p>
-              {userID && (
-                <p className="text-xs truncate" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                  ID: {userID}
-                </p>
-              )}
             </div>
-            {/* Logout button */}
             <button
               onClick={() => setLogoutOpen(true)}
               className="flex-shrink-0 p-1.5 rounded-lg transition-colors"
