@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import Button from '@/components/ui/Button'
 
+
 const navLinks = [
   { label: 'Beranda', href: '/' },
   { label: 'Tentang', href: '/about' },
