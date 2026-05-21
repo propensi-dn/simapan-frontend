@@ -66,10 +66,10 @@ function formatTimeAgo(isoString: string): string {
   const now = new Date()
   const seconds = Math.floor((now.getTime() - date.getTime()) / 1000)
 
-  if (seconds < 60) return 'just now'
-  if (seconds < 3600) return `${Math.floor(seconds / 60)} minutes ago`
-  if (seconds < 86400) return `${Math.floor(seconds / 3600)} hours ago`
-  if (seconds < 604800) return `${Math.floor(seconds / 86400)} days ago`
+  if (seconds < 60) return 'baru saja'
+  if (seconds < 3600) return `${Math.floor(seconds / 60)} menit yang lalu`
+  if (seconds < 86400) return `${Math.floor(seconds / 3600)} jam yang lalu`
+  if (seconds < 604800) return `${Math.floor(seconds / 86400)} hari yang lalu`
 
   // Format date for older entries
   return date.toLocaleDateString('en-GB')
@@ -152,7 +152,7 @@ export default function ManagerDashboardPage() {
     <DashboardLayout role="MANAGER" userName={userName} userID="1092834">
       <DashboardHeader
         variant="default"
-        title="Dashboard"
+        title="Dasbor"
         notifCount={3}
         notifHref="/dashboard/manager/notifications"
       />
@@ -162,7 +162,7 @@ export default function ManagerDashboardPage() {
           <div className="flex items-center justify-center h-96">
             <div className="text-center">
               <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#242F43' }}></div>
-              <p className="mt-4" style={{ color: '#8E99A8' }}>Loading dashboard...</p>
+              <p className="mt-4" style={{ color: '#8E99A8' }}>Memuat dasbor...</p>
             </div>
           </div>
         ) : error ? (
@@ -174,7 +174,7 @@ export default function ManagerDashboardPage() {
             {/* Stat Cards */}
             <div className="grid grid-cols-3 gap-5 mb-8">
               <StatCard
-                label="Total Liquidity"
+                label="Total Likuiditas"
                 value={formatCurrency(data.total_liquidity)}
                 badge="+2.4%"
                 badgePositive={true}
@@ -182,7 +182,7 @@ export default function ManagerDashboardPage() {
                 accent="#11447D"
               />
               <StatCard
-                label="Total Outstanding Loans"
+                label="Total Pinjaman Aktif"
                 value={formatCurrency(data.total_outstanding_loans)}
                 badge="-1.2%"
                 badgePositive={false}
@@ -190,7 +190,7 @@ export default function ManagerDashboardPage() {
                 accent="#EF4444"
               />
               <StatCard
-                label="Current SHU Estimate (Pure)"
+                label="Estimasi SHU Saat Ini (Murni)"
                 value={formatCurrency(data.estimated_shu)}
                 badge="+5.7%"
                 badgePositive={true}
@@ -201,17 +201,17 @@ export default function ManagerDashboardPage() {
 
             <div className="grid grid-cols-2 gap-5 mb-8">
               <StatCard
-                label="NPL Count"
+                label="Jumlah Pinjaman Bermasalah"
                 value={String(data.npl_count ?? 0)}
-                badge="overdue loans"
+                badge="pinjaman terlambat"
                 badgePositive={false}
                 icon={<LoanIcon />}
                 accent="#DC2626"
               />
               <StatCard
-                label="NPL Amount"
+                label="Nilai Pinjaman Bermasalah"
                 value={formatCurrency(data.npl_amount ?? 0)}
-                badge="at risk"
+                badge="berisiko"
                 badgePositive={false}
                 icon={<LoanIcon />}
                 accent="#B91C1C"
@@ -219,21 +219,21 @@ export default function ManagerDashboardPage() {
             </div>
 
             {/* 2-col layout */}
-            <div className="grid grid-cols-3 gap-5">
+            <div className="grid grid-cols-3 gap-5 items-stretch">
               {/* Left — Pending Loans + Bar Chart */}
-              <div className="col-span-2 flex flex-col gap-5">
+              <div className="col-span-2 flex flex-col gap-5 h-full">
                 {/* Pending Loan Approvals */}
                 <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
                   <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
                     <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                      Pending Loan Approvals ({data.pending_loans_count})
+                      Persetujuan Pinjaman Pending ({data.pending_loans_count})
                     </h3>
                     <Link
                       href="/dashboard/manager/loans"
                       className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
                       style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
                     >
-                      View All
+                      Lihat Semua
                     </Link>
                   </div>
                   {data.pending_loans && data.pending_loans.length > 0 ? (
@@ -250,12 +250,12 @@ export default function ManagerDashboardPage() {
                         ))}
                       </ul>
                       <p className="px-6 py-3 text-xs" style={{ color: '#8E99A8' }}>
-                        Lihat seluruh pengajuan di halaman Pending Loan.
+                        Lihat seluruh pengajuan di halaman pinjaman pending.
                       </p>
                     </>
                   ) : (
                     <div className="px-6 py-4 text-center" style={{ color: '#8E99A8' }}>
-                      <p className="text-sm">No pending approvals</p>
+                      <p className="text-sm">Tidak ada persetujuan pending</p>
                     </div>
                   )}
                 </div>
@@ -264,7 +264,7 @@ export default function ManagerDashboardPage() {
                 <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
                   <div className="flex items-center justify-between mb-6">
                     <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                      Portfolio Performance Trend
+                      Tren Kinerja Portofolio
                     </h3>
                     <div className="flex items-center gap-1">
                       {['6M', '1Y'].map((v) => (
@@ -305,7 +305,7 @@ export default function ManagerDashboardPage() {
                       ))
                     ) : (
                       <div className="w-full text-center text-sm" style={{ color: '#8E99A8' }}>
-                        No data available for this period
+                        Tidak ada data untuk periode ini
                       </div>
                     )}
                   </div>
@@ -313,11 +313,11 @@ export default function ManagerDashboardPage() {
               </div>
 
               {/* Right — Recent Activities */}
-              <div className="flex flex-col gap-5">
+              <div className="flex flex-col gap-5 h-full">
                 {/* Recent Activities */}
-                <div className="bg-white rounded-2xl p-6 flex-1 flex flex-col" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="bg-white rounded-2xl p-6 flex flex-col h-full" style={{ border: '1px solid #F1F5F9' }}>
                   <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                    Recent Credit Activities
+                    Aktivitas Kredit Terbaru
                   </h3>
                   <div className="space-y-4">
                     {data.recent_activities && data.recent_activities.length > 0 ? (
@@ -344,7 +344,7 @@ export default function ManagerDashboardPage() {
                       ))
                     ) : (
                       <div className="text-center py-8">
-                        <p className="text-sm" style={{ color: '#8E99A8' }}>No recent activities</p>
+                        <p className="text-sm" style={{ color: '#8E99A8' }}>Belum ada aktivitas terbaru</p>
                       </div>
                     )}
                   </div>
