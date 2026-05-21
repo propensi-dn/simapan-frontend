@@ -3,8 +3,8 @@
 import { useEffect, useState } from 'react'
 import {
   ResponsiveContainer,
-  PieChart, Pie, Cell, Label,
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip,
+  PieChart, Pie, Cell, Label, Tooltip as PieTooltip,
+  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip,
 } from 'recharts'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -95,7 +95,7 @@ function SkeletonCard() {
   )
 }
 
-// ── Donut label ────────────────────────────────────────────────────────────
+// ── Donut center label ─────────────────────────────────────────────────────
 
 function DonutLabel({ viewBox, ratio }: {
   viewBox?: { cx?: number; cy?: number }
@@ -106,16 +106,16 @@ function DonutLabel({ viewBox, ratio }: {
   return (
     <g>
       <text
-        x={cx} y={cy - 8}
+        x={cx} y={cy - 10}
         textAnchor="middle" dominantBaseline="middle"
-        fill="#242F43" fontFamily="Montserrat, sans-serif" fontWeight={700} fontSize={26}
+        fill="#242F43" fontFamily="Montserrat, sans-serif" fontWeight={700} fontSize={24}
       >
         {ratio.toFixed(1)}%
       </text>
       <text
-        x={cx} y={cy + 18}
+        x={cx} y={cy + 14}
         textAnchor="middle" dominantBaseline="middle"
-        fill="#8E99A8" fontFamily="Inter, sans-serif" fontSize={11}
+        fill="#8E99A8" fontFamily="Inter, sans-serif" fontSize={10}
         style={{ letterSpacing: '0.08em' }}
       >
         LIKUIDITAS
@@ -124,7 +124,26 @@ function DonutLabel({ viewBox, ratio }: {
   )
 }
 
-// ── Custom tooltip (line chart) ────────────────────────────────────────────
+// ── Donut custom tooltip ───────────────────────────────────────────────────
+
+function DonutTooltip({ active, payload }: {
+  active?: boolean
+  payload?: Array<{ name: string; value: number }>
+}) {
+  if (!active || !payload?.length) return null
+  return (
+    <div style={{
+      background: '#fff', border: '1px solid #F1F5F9', borderRadius: 10,
+      padding: '7px 12px', fontFamily: 'Inter, sans-serif', fontSize: 12,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
+    }}>
+      <p style={{ color: '#242F43', fontWeight: 600, marginBottom: 2 }}>{payload[0].name}</p>
+      <p style={{ color: '#525E71' }}>{formatRupiah(payload[0].value)}</p>
+    </div>
+  )
+}
+
+// ── Area chart custom tooltip ──────────────────────────────────────────────
 
 function TrendTooltip({ active, payload, label }: {
   active?: boolean
@@ -135,14 +154,16 @@ function TrendTooltip({ active, payload, label }: {
   return (
     <div style={{
       background: '#fff', border: '1px solid #F1F5F9', borderRadius: 12,
-      padding: '8px 14px', fontFamily: 'Inter, sans-serif', fontSize: 12,
-      boxShadow: '0 4px 12px rgba(0,0,0,0.06)',
+      padding: '10px 14px', fontFamily: 'Inter, sans-serif', fontSize: 12,
+      boxShadow: '0 4px 16px rgba(0,0,0,0.08)',
     }}>
-      <p style={{ color: '#242F43', fontWeight: 600, marginBottom: 4 }}>{label}</p>
+      <p style={{ color: '#242F43', fontWeight: 600, marginBottom: 6 }}>{label}</p>
       {payload.map((entry, i) => (
-        <p key={i} style={{ color: entry.color, margin: '2px 0' }}>
-          {entry.name}: {entry.value}
-        </p>
+        <div key={i} style={{ display: 'flex', alignItems: 'center', gap: 6, margin: '3px 0' }}>
+          <div style={{ width: 8, height: 8, borderRadius: '50%', backgroundColor: entry.color, flexShrink: 0 }} />
+          <span style={{ color: '#525E71' }}>{entry.name}:</span>
+          <span style={{ color: '#242F43', fontWeight: 600 }}>{entry.value}</span>
+        </div>
       ))}
     </div>
   )
@@ -193,13 +214,19 @@ export default function ChairmanDashboardPage() {
   // ── Donut data ──────────────────────────────────────────────────────────
   const cashVal  = parseFloat(data?.liquidity_components.cash_in_bank  ?? '0')
   const loanVal  = parseFloat(data?.liquidity_components.loans_disbursed ?? '0')
-  const pieData  = cashVal === 0 && loanVal === 0
+  const isEmpty  = cashVal === 0 && loanVal === 0
+  const pieData  = isEmpty
     ? [{ name: 'Tidak ada data', value: 1 }]
     : [
-        { name: 'Kas di Bank',         value: cashVal },
-        { name: 'Pinjaman Dicairkan',  value: loanVal },
+        { name: 'Kas di Bank',        value: cashVal },
+        { name: 'Pinjaman Dicairkan', value: loanVal },
       ]
-  const PIE_COLORS = ['#242F43', '#E5E7EB']
+  const PIE_COLORS = ['#242F43', '#E2E8F0']
+
+  const legendItems = [
+    { label: 'Kas di Bank',        value: data?.liquidity_components.cash_in_bank  ?? '0', color: '#242F43' },
+    { label: 'Pinjaman Dicairkan', value: data?.liquidity_components.loans_disbursed ?? '0', color: '#CBD5E1' },
+  ]
 
   return (
     <DashboardLayout role="CHAIRMAN" userName={userName} userID={userID}>
@@ -210,12 +237,12 @@ export default function ChairmanDashboardPage() {
         notifHref="/dashboard/chairman/notifications"
       />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
 
         {/* Welcome */}
-        <div className="mb-2">
+        <div className="mb-6">
           <h2
-            className="font-bold text-2xl mb-1"
+            className="font-bold text-xl sm:text-2xl mb-1"
             style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
           >
             Dashboard Ketua
@@ -236,7 +263,7 @@ export default function ChairmanDashboardPage() {
         )}
 
         {/* ── Summary cards ─────────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4 mb-6 mt-6">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
@@ -267,21 +294,19 @@ export default function ChairmanDashboardPage() {
         </div>
 
         {/* ── Charts row ────────────────────────────────────────────────── */}
-        <div className="grid grid-cols-5 gap-4 mb-6">
+        <div className="grid grid-cols-1 lg:grid-cols-5 gap-4 mb-6">
 
           {/* Donut — Rasio Likuiditas */}
           <div
-            className="col-span-2 bg-white rounded-2xl p-6"
+            className="lg:col-span-2 bg-white rounded-2xl p-6"
             style={{ border: '1px solid #F1F5F9' }}
           >
-            <div className="flex items-center justify-between mb-4">
-              <h3
-                className="font-bold text-base"
-                style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
-              >
-                Rasio Likuiditas
-              </h3>
-            </div>
+            <h3
+              className="font-bold text-base mb-4"
+              style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
+            >
+              Rasio Likuiditas
+            </h3>
 
             {loading ? (
               <div className="flex items-center justify-center h-56 animate-pulse">
@@ -289,23 +314,31 @@ export default function ChairmanDashboardPage() {
               </div>
             ) : (
               <>
-                <div style={{ position: 'relative', height: 240 }}>
+                <div style={{ height: 220 }}>
                   <ResponsiveContainer width="100%" height="100%">
                     <PieChart>
+                      <PieTooltip content={<DonutTooltip />} />
                       <Pie
                         data={pieData}
                         cx="50%"
                         cy="50%"
-                        innerRadius={75}
-                        outerRadius={105}
+                        innerRadius={72}
+                        outerRadius={100}
                         paddingAngle={pieData.length > 1 ? 3 : 0}
                         dataKey="value"
                         startAngle={90}
                         endAngle={-270}
                         strokeWidth={0}
+                        isAnimationActive
+                        animationDuration={800}
+                        animationEasing="ease-out"
                       >
                         {pieData.map((_, i) => (
-                          <Cell key={i} fill={PIE_COLORS[i] ?? '#E5E7EB'} />
+                          <Cell
+                            key={i}
+                            fill={PIE_COLORS[i] ?? '#E2E8F0'}
+                            style={{ cursor: 'pointer', outline: 'none' }}
+                          />
                         ))}
                         <Label
                           content={<DonutLabel ratio={data?.liquidity_ratio ?? 0} />}
@@ -317,19 +350,28 @@ export default function ChairmanDashboardPage() {
                 </div>
 
                 {/* Legend */}
-                <div className="mt-2 space-y-2">
-                  {[
-                    { label: 'Kas di Bank',        value: data?.liquidity_components.cash_in_bank  ?? '0', color: '#242F43' },
-                    { label: 'Pinjaman Dicairkan',  value: data?.liquidity_components.loans_disbursed ?? '0', color: '#E5E7EB' },
-                  ].map(item => (
+                <div
+                  className="mt-3 rounded-xl p-3 space-y-3"
+                  style={{ backgroundColor: '#F8FAFC' }}
+                >
+                  {legendItems.map(item => (
                     <div key={item.label} className="flex items-center justify-between">
-                      <div className="flex items-center gap-2">
-                        <div className="w-3 h-3 rounded-sm" style={{ backgroundColor: item.color, border: item.color === '#E5E7EB' ? '1px solid #D1D5DB' : 'none' }} />
-                        <span className="text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                      <div className="flex items-center gap-2.5">
+                        <div
+                          className="w-3 h-3 rounded-sm flex-shrink-0"
+                          style={{
+                            backgroundColor: item.color,
+                            border: item.color === '#CBD5E1' ? '1px solid #D1D5DB' : 'none',
+                          }}
+                        />
+                        <span className="text-xs" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                           {item.label}
                         </span>
                       </div>
-                      <span className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                      <span
+                        className="text-xs font-semibold ml-2 text-right"
+                        style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
+                      >
                         {formatRupiah(item.value)}
                       </span>
                     </div>
@@ -339,12 +381,12 @@ export default function ChairmanDashboardPage() {
             )}
           </div>
 
-          {/* Line chart — Tren Keanggotaan */}
+          {/* Area chart — Tren Keanggotaan */}
           <div
-            className="col-span-3 bg-white rounded-2xl p-6"
+            className="lg:col-span-3 bg-white rounded-2xl p-6"
             style={{ border: '1px solid #F1F5F9' }}
           >
-            <div className="flex items-center justify-between mb-4">
+            <div className="flex flex-wrap items-center justify-between gap-2 mb-4">
               <h3
                 className="font-bold text-base"
                 style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
@@ -357,20 +399,30 @@ export default function ChairmanDashboardPage() {
                   <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>Anggota Baru</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#8E99A8' }} />
+                  <div className="w-2.5 h-2.5 rounded-full" style={{ backgroundColor: '#94A3B8' }} />
                   <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>Keluar</span>
                 </div>
               </div>
             </div>
 
             {loading ? (
-              <div className="animate-pulse h-56 rounded-xl" style={{ backgroundColor: '#F1F5F9' }} />
+              <div className="animate-pulse rounded-xl" style={{ backgroundColor: '#F1F5F9', height: 220 }} />
             ) : (
-              <ResponsiveContainer width="100%" height={240}>
-                <LineChart
+              <ResponsiveContainer width="100%" height={220}>
+                <AreaChart
                   data={data?.membership_trends ?? []}
-                  margin={{ top: 4, right: 8, left: -24, bottom: 0 }}
+                  margin={{ top: 4, right: 4, left: -28, bottom: 0 }}
                 >
+                  <defs>
+                    <linearGradient id="gradNew" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#11447D" stopOpacity={0.15} />
+                      <stop offset="95%" stopColor="#11447D" stopOpacity={0} />
+                    </linearGradient>
+                    <linearGradient id="gradResigned" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%"  stopColor="#94A3B8" stopOpacity={0.12} />
+                      <stop offset="95%" stopColor="#94A3B8" stopOpacity={0} />
+                    </linearGradient>
+                  </defs>
                   <CartesianGrid strokeDasharray="3 3" stroke="#F1F5F9" vertical={false} />
                   <XAxis
                     dataKey="month"
@@ -384,26 +436,32 @@ export default function ChairmanDashboardPage() {
                     tickLine={false}
                     allowDecimals={false}
                   />
-                  <Tooltip content={<TrendTooltip />} />
-                  <Line
+                  <Tooltip content={<TrendTooltip />} cursor={{ stroke: '#E2E8F0', strokeWidth: 1 }} />
+                  <Area
                     type="monotone"
                     dataKey="new_members"
                     name="Anggota Baru"
                     stroke="#11447D"
                     strokeWidth={2}
+                    fill="url(#gradNew)"
                     dot={false}
-                    activeDot={{ r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 4, strokeWidth: 0, fill: '#11447D' }}
+                    animationDuration={900}
+                    animationEasing="ease-out"
                   />
-                  <Line
+                  <Area
                     type="monotone"
                     dataKey="resigned_members"
                     name="Keluar"
-                    stroke="#8E99A8"
+                    stroke="#94A3B8"
                     strokeWidth={2}
+                    fill="url(#gradResigned)"
                     dot={false}
-                    activeDot={{ r: 4, strokeWidth: 0 }}
+                    activeDot={{ r: 4, strokeWidth: 0, fill: '#94A3B8' }}
+                    animationDuration={900}
+                    animationEasing="ease-out"
                   />
-                </LineChart>
+                </AreaChart>
               </ResponsiveContainer>
             )}
           </div>
@@ -411,14 +469,10 @@ export default function ChairmanDashboardPage() {
 
         {/* Footer */}
         <div
-          className="flex items-center justify-between text-xs pt-4"
+          className="flex flex-wrap items-center justify-between gap-3 text-xs pt-4"
           style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
         >
           <span>Data diperbarui secara real-time dari sistem.</span>
-          <div className="flex items-center gap-4">
-            <button style={{ color: '#8E99A8' }}>Ekspor CSV</button>
-            <button style={{ color: '#8E99A8' }}>Cetak Laporan</button>
-          </div>
         </div>
 
       </main>

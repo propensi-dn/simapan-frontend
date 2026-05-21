@@ -200,18 +200,18 @@ export default function StaffDashboardPage() {
         notifHref="/dashboard/staff/notifications"
       />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
 
         {/* Welcome */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2
-            className="font-bold text-2xl mb-1"
+            className="font-bold text-xl sm:text-2xl mb-1"
             style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
           >
-            Good morning, {firstName} 👋
+            Dashboard Staff
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Here&apos;s what needs your attention today.
+            Selamat datang, {firstName}. Berikut tugas yang perlu Anda tindaklanjuti hari ini.
           </p>
         </div>
 
@@ -226,7 +226,7 @@ export default function StaffDashboardPage() {
         )}
 
         {/* ── Row 1: 4 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
@@ -271,16 +271,16 @@ export default function StaffDashboardPage() {
         </div>
 
         {/* ── Row 2: 3 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
             <>
-              {/* 5 — Completed Withdrawals */}
+              {/* 5 — Pending Withdrawals */}
               <StatCard
-                label="Penarikan Selesai"
-                value={String(data?.total_completed_withdrawals ?? 0)}
-                subtitle="Penarikan telah diproses"
+                label="Penarikan Menunggu"
+                value={String(data?.total_pending_withdrawals ?? 0)}
+                subtitle="Penarikan perlu diproses"
                 icon={<WithdrawalIcon />}
                 accent="#06B6D4"
               />
