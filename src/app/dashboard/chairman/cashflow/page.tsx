@@ -106,8 +106,15 @@ export default function ChairmanCashflowPage() {
     const firstDay = new Date(today.getFullYear(), today.getMonth(), 1)
     const lastDay = new Date(today.getFullYear(), today.getMonth() + 1, 0)
 
-    setStartDate(firstDay.toISOString().split('T')[0])
-    setEndDate(lastDay.toISOString().split('T')[0])
+    const formatLocalDate = (value: Date) => {
+      const year = value.getFullYear()
+      const month = String(value.getMonth() + 1).padStart(2, '0')
+      const day = String(value.getDate()).padStart(2, '0')
+      return `${year}-${month}-${day}`
+    }
+
+    setStartDate(formatLocalDate(firstDay))
+    setEndDate(formatLocalDate(lastDay))
   }, [])
 
   // Fetch cashflow data
@@ -164,7 +171,7 @@ export default function ChairmanCashflowPage() {
 
   const selectedPeriodLabel =
     rangeMode === 'custom'
-      ? `${new Date(startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} - ${new Date(endDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} (Custom Range)`
+      ? `${new Date(startDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} - ${new Date(endDate).toLocaleDateString('id-ID', { day: '2-digit', month: 'short', year: 'numeric' })} (Rentang Kustom)`
       : new Date(startDate || new Date()).toLocaleDateString('id-ID', {
           month: 'long',
           year: 'numeric',
@@ -190,7 +197,7 @@ export default function ChairmanCashflowPage() {
     <DashboardLayout role="CHAIRMAN" userName="Ketua" userID="">
       <DashboardHeader
         variant="default"
-        title="Financial & SHU Report"
+        title="Laporan Keuangan & SHU"
       />
 
       <main className="flex-1 p-6 md:p-8 bg-bg-sections">
@@ -206,14 +213,14 @@ export default function ChairmanCashflowPage() {
             </div>
             <div className="rounded-xl border border-gray-200 bg-bg-card p-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] font-semibold tracking-wider uppercase text-text-tertiary">Total Credit</p>
+                <p className="text-[11px] font-semibold tracking-wider uppercase text-text-tertiary">Total Kredit</p>
                 <span className="text-text-tertiary"><CreditIcon /></span>
               </div>
               <p className="text-3xl font-extrabold text-text-primary leading-tight">{formatCompactCurrency(data.summary.total_credit)}</p>
             </div>
             <div className="rounded-xl border border-gray-200 bg-bg-card p-5">
               <div className="flex items-center justify-between mb-2">
-                <p className="text-[11px] font-semibold tracking-wider uppercase text-text-tertiary">Net Cash Flow</p>
+                <p className="text-[11px] font-semibold tracking-wider uppercase text-text-tertiary">Arus Kas Bersih</p>
                 <span className="text-text-tertiary"><CashflowIcon /></span>
               </div>
               <p className="text-3xl font-extrabold text-text-primary leading-tight">{formatSignedCompactCurrency(data.summary.net_cash_flow)}</p>
@@ -225,7 +232,7 @@ export default function ChairmanCashflowPage() {
           <div className="flex flex-col xl:flex-row xl:items-center xl:justify-between gap-3 px-5 py-4 border-b border-gray-200 bg-bg">
             <div className="flex items-center gap-2 text-text-primary">
               <CalendarIcon />
-              <h3 className="text-lg font-bold font-heading">Daily Cash Flow</h3>
+              <h3 className="text-lg font-bold font-heading">Arus Kas Harian</h3>
             </div>
             <DateRangeFilter
               startDate={startDate}
@@ -236,7 +243,7 @@ export default function ChairmanCashflowPage() {
           </div>
 
           {loading ? (
-            <div className="p-8 text-center text-gray-500">Loading transactions...</div>
+            <div className="p-8 text-center text-gray-500">Memuat transaksi...</div>
           ) : (
             <CashflowTable
               transactions={data?.transactions || []}
