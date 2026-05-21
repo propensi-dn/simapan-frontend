@@ -10,7 +10,6 @@ import api from '@/lib/axios'
 // ── Types ─────────────────────────────────────────────────────────────────
 
 type TransactionType = 'CREDIT' | 'DEBIT'
-type TransactionSource = 'SAVING' | 'INSTALLMENT'
 
 interface Transaction {
   transaction_id: string
@@ -19,7 +18,7 @@ interface Transaction {
   type: TransactionType
   amount: string
   status: string
-  source: TransactionSource
+  source: 'SAVING' | 'INSTALLMENT'
 }
 
 interface DashboardData {
@@ -69,6 +68,21 @@ const StatusIcon = () => (
   </svg>
 )
 
+// ── Skeleton ──────────────────────────────────────────────────────────────
+
+function SkeletonCard() {
+  return (
+    <div className="bg-white rounded-2xl p-6 animate-pulse" style={{ border: '1px solid #F1F5F9' }}>
+      <div className="flex items-start justify-between mb-3">
+        <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: '#F1F5F9' }} />
+      </div>
+      <div className="h-3 rounded w-20 mb-2" style={{ backgroundColor: '#F1F5F9' }} />
+      <div className="h-6 rounded w-28 mb-1" style={{ backgroundColor: '#F1F5F9' }} />
+      <div className="h-3 rounded w-24" style={{ backgroundColor: '#F1F5F9' }} />
+    </div>
+  )
+}
+
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function MemberDashboardPage() {
@@ -80,28 +94,40 @@ export default function MemberDashboardPage() {
   } | null>(null)
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
 
   useEffect(() => {
+    let cancelled = false
+
     const fetchAll = async () => {
       try {
-        const [profileRes, dashboardRes] = await Promise.all([
+        const [profileRes, dashboardRes] = await Promise.allSettled([
           api.get('/members/profile/'),
           api.get('/dashboards/member/'),
         ])
-        setProfile(profileRes.data)
-        setDashboard(dashboardRes.data)
-      } catch (err) {
-        console.error('Gagal memuat data dashboard', err)
+        if (cancelled) return
+
+        if (profileRes.status === 'fulfilled') setProfile(profileRes.value.data)
+        if (dashboardRes.status === 'fulfilled') {
+          setDashboard(dashboardRes.value.data)
+        } else {
+          setError('Gagal memuat data dashboard.')
+        }
+      } catch {
+        if (!cancelled) setError('Terjadi kesalahan jaringan.')
       } finally {
-        setLoading(false)
+        if (!cancelled) setLoading(false)
       }
     }
+
     fetchAll()
+    return () => { cancelled = true }
   }, [])
 
-  const userName = profile?.full_name || 'Member'
-  const memberId = profile?.member_id ? `#${profile.member_id}` : ''
+  const userName     = profile?.full_name || 'Anggota'
+  const memberId     = profile?.member_id ? `#${profile.member_id}` : undefined
   const memberStatus = profile?.status || '—'
+  const firstName    = userName.split(' ')[0]
 
   return (
     <DashboardLayout
@@ -112,57 +138,87 @@ export default function MemberDashboardPage() {
     >
       <DashboardHeader variant="default" title="Dashboard" notifCount={0} />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
+
         {/* Welcome */}
-        <div className="mb-8">
-          <h2 className="font-bold text-2xl mb-1"
-            style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-            Welcome back, {userName.split(' ')[0]} 👋
+        <div className="mb-6">
+          <h2
+            className="font-bold text-xl sm:text-2xl mb-1"
+            style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
+          >
+            Dashboard Anggota
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Berikut ringkasan status keuangan Anda hari ini.
+            Selamat datang, {firstName}. Berikut ringkasan status keuangan Anda hari ini.
           </p>
         </div>
 
+        {/* Error banner */}
+        {error && (
+          <div
+            className="mb-6 px-4 py-3 rounded-xl text-sm"
+            style={{ backgroundColor: '#FEE2E2', color: '#991B1B', fontFamily: 'Inter, sans-serif' }}
+          >
+            ⚠️ {error}
+          </div>
+        )}
+
         {/* Stat Cards */}
-        <div className="grid grid-cols-3 gap-5 mb-8">
-          <StatCard
-            label="Total Simpanan"
-            value={loading ? '...' : fmtRp(dashboard?.total_savings ?? 0)}
-            icon={<SavingsIcon />}
-            accent="#11447D"
-          />
-          <StatCard
-            label="Sisa Pinjaman"
-            value={loading ? '...' : fmtRp(dashboard?.total_loan ?? 0)}
-            icon={<LoanIcon />}
-            accent="#F2A025"
-          />
-          <StatCard
-            label="Status Keanggotaan"
-            value={loading ? '...' : memberStatus}
-            icon={<StatusIcon />}
-            accent="#10B981"
-          />
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
+          {loading ? (
+            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
+          ) : (
+            <>
+              <StatCard
+                label="Total Simpanan"
+                value={fmtRp(dashboard?.total_savings ?? 0)}
+                subtitle="Total saldo simpanan Anda"
+                icon={<SavingsIcon />}
+                accent="#11447D"
+              />
+              <StatCard
+                label="Sisa Pinjaman"
+                value={fmtRp(dashboard?.total_loan ?? 0)}
+                subtitle="Outstanding pinjaman aktif"
+                icon={<LoanIcon />}
+                accent="#F2A025"
+              />
+              <StatCard
+                label="Status Keanggotaan"
+                value={memberStatus}
+                subtitle="Status akun Anda saat ini"
+                icon={<StatusIcon />}
+                accent="#10B981"
+              />
+            </>
+          )}
         </div>
 
-        {/* Recent Transactions */}
+        {/* Transaksi Terbaru */}
         <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
-          <div className="px-6 py-4 flex items-center justify-between"
-            style={{ borderBottom: '1px solid #F1F5F9' }}>
-            <h3 className="font-bold text-base"
-              style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-              Recent Transactions
+          <div
+            className="px-6 py-4 flex items-center justify-between"
+            style={{ borderBottom: '1px solid #F1F5F9' }}
+          >
+            <h3
+              className="font-bold text-base"
+              style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
+            >
+              Transaksi Terbaru
             </h3>
             <div className="flex gap-2">
-              <Link href="/dashboard/member/savings"
+              <Link
+                href="/dashboard/member/savings"
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-                style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+              >
                 Lihat Simpanan
               </Link>
-              <Link href="/dashboard/member/loans"
+              <Link
+                href="/dashboard/member/loans"
                 className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all hover:opacity-80"
-                style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+              >
                 Lihat Pinjaman
               </Link>
             </div>
@@ -170,8 +226,10 @@ export default function MemberDashboardPage() {
 
           {loading ? (
             <div className="flex justify-center py-16">
-              <div className="w-8 h-8 rounded-full border-2 animate-spin"
-                style={{ borderColor: '#11447D', borderTopColor: 'transparent' }} />
+              <div
+                className="w-8 h-8 rounded-full border-2 animate-spin"
+                style={{ borderColor: '#11447D', borderTopColor: 'transparent' }}
+              />
             </div>
           ) : !dashboard || dashboard.recent_transactions.length === 0 ? (
             <div className="py-16 text-center text-sm" style={{ color: '#8E99A8' }}>
@@ -183,9 +241,11 @@ export default function MemberDashboardPage() {
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
                     {['TANGGAL', 'ID TRANSAKSI', 'DESKRIPSI', 'JENIS', 'JUMLAH'].map(col => (
-                      <th key={col}
+                      <th
+                        key={col}
                         className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
-                        style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                        style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+                      >
                         {col}
                       </th>
                     ))}
@@ -193,25 +253,24 @@ export default function MemberDashboardPage() {
                 </thead>
                 <tbody>
                   {dashboard.recent_transactions.map((tx, i) => (
-                    <tr key={tx.transaction_id || i}
+                    <tr
+                      key={tx.transaction_id || i}
                       className="hover:bg-[#FAFAFA] transition-colors"
                       style={{
                         borderBottom: i < dashboard.recent_transactions.length - 1
                           ? '1px solid #F8FAFC'
                           : 'none',
-                      }}>
-                      <td className="px-6 py-4 text-sm"
-                        style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                      }}
+                    >
+                      <td className="px-6 py-4 text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                         {fmtDate(tx.date)}
                       </td>
                       <td className="px-6 py-4">
-                        <span className="font-mono text-xs font-semibold"
-                          style={{ color: '#11447D' }}>
+                        <span className="font-mono text-xs font-semibold" style={{ color: '#11447D' }}>
                           {tx.transaction_id || '—'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-medium"
-                        style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                      <td className="px-6 py-4 text-sm font-medium" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                         {tx.description}
                       </td>
                       <td className="px-6 py-4">
@@ -221,15 +280,18 @@ export default function MemberDashboardPage() {
                             backgroundColor: tx.type === 'CREDIT' ? '#D1FAE5' : '#FEE2E2',
                             color: tx.type === 'CREDIT' ? '#065F46' : '#991B1B',
                             fontFamily: 'Inter, sans-serif',
-                          }}>
+                          }}
+                        >
                           {tx.type === 'CREDIT' ? 'Kredit' : 'Debit'}
                         </span>
                       </td>
-                      <td className="px-6 py-4 text-sm font-bold"
+                      <td
+                        className="px-6 py-4 text-sm font-bold"
                         style={{
                           color: tx.type === 'CREDIT' ? '#10B981' : '#EF4444',
                           fontFamily: 'Montserrat, sans-serif',
-                        }}>
+                        }}
+                      >
                         {tx.type === 'DEBIT' ? '− ' : '+ '}{fmtRp(tx.amount)}
                       </td>
                     </tr>
@@ -239,6 +301,7 @@ export default function MemberDashboardPage() {
             </div>
           )}
         </div>
+
       </main>
     </DashboardLayout>
   )
