@@ -250,7 +250,7 @@ export default function ManagerDashboardPage() {
                         ))}
                       </ul>
                       <p className="px-6 py-3 text-xs" style={{ color: '#8E99A8' }}>
-                        Lihat seluruh pengajuan di halaman pinjaman pending.
+                        Lihat seluruh pengajuan di halaman persetujuan pinjaman.
                       </p>
                     </>
                   ) : (
@@ -283,7 +283,7 @@ export default function ManagerDashboardPage() {
                       ))}
                     </div>
                   </div>
-                  <div className="flex items-end gap-1.5 h-36">
+                  <div className="flex items-end gap-1.5 h-48">
                     {hasTrendData ? (
                       normalizedTrendData.map((d) => (
                         <div key={d.month} className="flex-1 flex flex-col items-center h-full self-stretch">
@@ -292,9 +292,11 @@ export default function ManagerDashboardPage() {
                               className="w-full rounded-t-md transition-all hover:opacity-80"
                               title={`${d.month}: ${d.count} loans, Rp ${d.value}M`}
                               style={{
-                                height: MAX_BAR > 0 ? `${(d.value / MAX_BAR) * 100}%` : '5%',
+                                height:
+                                  MAX_BAR > 0
+                                    ? `max(${(d.value / MAX_BAR) * 100}%, ${d.value > 0 ? '6px' : '2px'})`
+                                    : '5% ',
                                 backgroundColor: '#242F43',
-                                minHeight: '3px',
                               }}
                             />
                           </div>
