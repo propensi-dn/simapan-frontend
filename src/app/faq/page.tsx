@@ -119,7 +119,7 @@ export default function FAQPage() {
             <div>
               <h2 className="text-h3 text-text-primary mb-4">Hubungi Kami</h2>
               <p className="text-text-secondary mb-10 leading-relaxed">
-                Tim dukungan kami siap membantu Anda setiap Senin - Jumat pukul 08:00 - 17:00 WIB.
+                Tim dukungan kami siap membantu Anda setiap Senin - Jumat pukul 08:00 - 17:00 WITA.
               </p>
               
               <div className="space-y-6">
