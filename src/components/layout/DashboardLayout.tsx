@@ -3,32 +3,23 @@
 import { useState, ReactNode } from 'react'
 import Sidebar from '@/components/layout/Sidebar'
 import { SidebarContext } from '@/components/layout/sidebar-context'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 interface DashboardLayoutProps {
   children: ReactNode
   role: 'MEMBER' | 'STAFF' | 'MANAGER' | 'CHAIRMAN'
-  userName?: string
-  userID?: string
-  avatarUrl?: string
-  isLoading?: boolean
 }
 
-export default function DashboardLayout({
-  children,
-  role,
-  userName = 'User',
-  userID,
-  avatarUrl,
-  isLoading,
-}: DashboardLayoutProps) {
+export default function DashboardLayout({ children, role }: DashboardLayoutProps) {
   const [mobileOpen, setMobileOpen] = useState(false)
+  const { userName, userID, avatarUrl, isLoading } = useUserProfile()
 
   return (
     <SidebarContext.Provider value={{ onMenuOpen: () => setMobileOpen(true) }}>
       <div className="flex h-screen overflow-hidden" style={{ backgroundColor: '#F1F5F9' }}>
         <Sidebar
           role={role}
-          userName={userName}
+          userName={userName || 'User'}
           userID={userID}
           avatarUrl={avatarUrl}
           isLoading={isLoading}

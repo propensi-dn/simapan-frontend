@@ -9,8 +9,6 @@ import { getLoanDetail, LoanDetail, disburseLoans } from '@/lib/staff-api'
 import DisbursementDetailContent from './_components/DisbursementDetailContent'
 import toast from 'react-hot-toast'
 import { Loader, ChevronLeft } from 'lucide-react'
-import { getUserName, getUserID } from '@/lib/auth'
-
 export default function DisbursementDetailPage() {
   const router = useRouter()
   const params = useParams()
@@ -19,13 +17,6 @@ export default function DisbursementDetailPage() {
   const [loanDetail, setLoanDetail] = useState<LoanDetail | null>(null)
   const [loading, setLoading] = useState(true)
   const [disbursing, setDisbursing] = useState(false)
-  const [userName, setUserName] = useState<string | undefined>()
-  const [userID, setUserID] = useState<string | undefined>()
-
-  useEffect(() => {
-    setUserName(getUserName() || 'Petugas')
-    setUserID(getUserID() || 'STAFF-001')
-  }, [])
 
   useEffect(() => {
     if (!loanId) return
@@ -61,7 +52,7 @@ export default function DisbursementDetailPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName={userName} userID={userID}>
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title="Manajemen Pencairan"

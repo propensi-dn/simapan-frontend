@@ -100,7 +100,6 @@ export default function ManagerDashboardPage() {
     fetchDashboard()
   }, [])
 
-  const userName = 'Budi Santoso'
   const loanSummary = data?.loan_summary
   const loanPending = loanSummary?.total_pending ?? 0
   const loanApproved = loanSummary?.total_approved ?? 0
@@ -120,7 +119,7 @@ export default function ManagerDashboardPage() {
   const liquidityProgress = Math.min(liquidityRatio / 0.2, 1)
 
   return (
-    <DashboardLayout role="MANAGER" userName={userName} userID="1092834">
+    <DashboardLayout role="MANAGER">
       <DashboardHeader
         variant="default"
         title="Dasbor"

@@ -4,7 +4,6 @@ import { ChangeEvent, useEffect, useMemo, useState } from 'react'
 import toast from 'react-hot-toast'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
-import { getUserName, getUserID } from '@/lib/auth'
 
 import {
   exportStaffWithdrawals,
@@ -74,9 +73,6 @@ export default function StaffWithdrawalsPage() {
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
 
-  const [userName, setUserName] = useState<string | undefined>()
-  const [userID, setUserID] = useState<string | undefined>()
-
   const [pendingPage, setPendingPage] = useState(1)
   const [historyPage, setHistoryPage] = useState(1)
   const pageSize = 5
@@ -100,10 +96,6 @@ export default function StaffWithdrawalsPage() {
   const [transferProof, setTransferProof] = useState<File | null>(null)
   const [isSubmittingTransfer, setIsSubmittingTransfer] = useState(false)
 
-  useEffect(() => {
-    setUserName(getUserName() || 'Petugas')
-    setUserID(getUserID() || 'STAFF-0001')
-  }, [])
 
   const loadData = async () => {
     setIsLoading(true)
@@ -216,7 +208,7 @@ export default function StaffWithdrawalsPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName={userName} userID={userID}>
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title="Permintaan Penarikan"
