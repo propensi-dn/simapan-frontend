@@ -1,168 +1,260 @@
 'use client'
 
-import { useState, useEffect, useCallback } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
+import toast from 'react-hot-toast'
+import { Calendar, ChevronLeft, ChevronRight, Loader, Search, SlidersHorizontal, X } from 'lucide-react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
-import { getApprovedLoans, getDisbursedLoans, ApprovedLoan, DisbursedLoan } from '@/lib/staff-api'
-import toast from 'react-hot-toast'
-import { Search, SlidersHorizontal, ChevronLeft, ChevronRight, Loader, X, Calendar } from 'lucide-react'
+import { getApprovedLoans, getDisbursedLoans, type ApprovedLoan, type DisbursedLoan } from '@/lib/staff-api'
 
-// ── Types ────────────────────────────────────────────────────────────────────
-type Tab = 'approved' | 'history'
+type PageInfo = {
+  count: number
+  total_pages: number
+  page_size: number
+  current_page: number
+}
 
-// ── Helpers ──────────────────────────────────────────────────────────────────
+const PAGE_SIZE = 10
+
 const fmt = (value: string | number) => {
   try {
     const num = typeof value === 'string' ? parseFloat(value) : value
     return new Intl.NumberFormat('id-ID', {
-      style: 'currency', currency: 'IDR',
-      minimumFractionDigits: 0, maximumFractionDigits: 0,
+      style: 'currency',
+      currency: 'IDR',
+      minimumFractionDigits: 0,
+      maximumFractionDigits: 0,
     }).format(num)
-  } catch { return String(value) }
+  } catch {
+    return String(value)
+  }
 }
 
-const fmtDate = (d: string) =>
-  new Date(d).toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' })
+const fmtDate = (dateString: string) =>
+  new Date(dateString).toLocaleDateString('id-ID', {
+    day: 'numeric',
+    month: 'short',
+    year: 'numeric',
+  })
 
-// ── Status badge ─────────────────────────────────────────────────────────────
+const getErrorMessage = (error: unknown, fallback: string) => {
+  if (typeof error === 'object' && error !== null && 'response' in error) {
+    const maybeError = (error as { response?: { data?: { error?: unknown } } }).response?.data?.error
+    if (typeof maybeError === 'string' && maybeError.trim()) return maybeError
+  }
+  return fallback
+}
+
 const StatusBadge = ({ status }: { status: string }) => {
   const map: Record<string, { bg: string; color: string; label: string }> = {
-    APPROVED:            { bg: '#DBEAFE', color: '#1E40AF', label: 'Disetujui' },
-    ACTIVE:              { bg: '#D1FAE5', color: '#065F46', label: 'Aktif' },
-    LUNAS:               { bg: '#D1FAE5', color: '#065F46', label: 'Lunas' },
+    APPROVED: { bg: '#DBEAFE', color: '#1D4ED8', label: 'Disetujui' },
+    ACTIVE: { bg: '#DCFCE7', color: '#166534', label: 'Aktif' },
+    LUNAS: { bg: '#DCFCE7', color: '#166534', label: 'Lunas' },
     LUNAS_AFTER_OVERDUE: { bg: '#FEF3C7', color: '#92400E', label: 'Lunas (Telat)' },
-    OVERDUE:             { bg: '#FEE2E2', color: '#991B1B', label: 'Overdue' },
+    OVERDUE: { bg: '#FEE2E2', color: '#991B1B', label: 'Overdue' },
   }
-  const s = map[status] || { bg: '#F3F4F6', color: '#374151', label: status }
+
+  const style = map[status] || { bg: '#F1F5F9', color: '#525E71', label: status }
+
   return (
-    <span style={{
-      background: s.bg, color: s.color,
-      fontSize: 11, fontWeight: 700, padding: '3px 10px',
-      borderRadius: 20, whiteSpace: 'nowrap', letterSpacing: 0.3,
-    }}>
-      {s.label}
+    <span
+      className="inline-flex items-center rounded-full px-2.5 py-1 text-[11px] font-bold"
+      style={{ backgroundColor: style.bg, color: style.color, fontFamily: 'Inter, sans-serif' }}
+    >
+      {style.label}
     </span>
   )
 }
 
-// ── Pagination ────────────────────────────────────────────────────────────────
-const Pagination = ({
-  page, total, onChange,
-}: { page: number; total: number; onChange: (p: number) => void }) => {
-  if (total <= 1) return null
-
-  // build page list: 1 2 3 … 9
-  const pages: (number | '…')[] = []
-  if (total <= 7) {
-    for (let i = 1; i <= total; i++) pages.push(i)
-  } else {
-    pages.push(1)
-    if (page > 3) pages.push('…')
-    for (let i = Math.max(2, page - 1); i <= Math.min(total - 1, page + 1); i++) pages.push(i)
-    if (page < total - 2) pages.push('…')
-    pages.push(total)
+const formatPageNumbers = (page: number, totalPages: number) => {
+  const pages: Array<number | '…'> = []
+  if (totalPages <= 7) {
+    for (let index = 1; index <= totalPages; index += 1) pages.push(index)
+    return pages
   }
 
-  const btn = (content: React.ReactNode, active: boolean, disabled: boolean, onClick: () => void, key: string | number) => (
-    <button
-      key={key}
-      onClick={onClick}
-      disabled={disabled}
-      style={{
-        minWidth: 36, height: 36, borderRadius: 8,
-        border: active ? 'none' : '1px solid #E5E7EB',
-        background: active ? '#111827' : disabled ? '#F9FAFB' : '#fff',
-        color: active ? '#fff' : disabled ? '#D1D5DB' : '#374151',
-        fontSize: 13, fontWeight: active ? 700 : 500,
-        cursor: disabled ? 'not-allowed' : 'pointer',
-        display: 'flex', alignItems: 'center', justifyContent: 'center',
-        padding: '0 8px',
-      }}
-    >
-      {content}
-    </button>
-  )
+  pages.push(1)
+  if (page > 3) pages.push('…')
+  for (let index = Math.max(2, page - 1); index <= Math.min(totalPages - 1, page + 1); index += 1) {
+    pages.push(index)
+  }
+  if (page < totalPages - 2) pages.push('…')
+  pages.push(totalPages)
+  return pages
+}
+
+const SectionFooterPagination = ({
+  page,
+  totalPages,
+  count,
+  pageSize,
+  onChange,
+}: {
+  page: number
+  totalPages: number
+  count: number
+  pageSize: number
+  onChange: (nextPage: number) => void
+}) => {
+  if (totalPages <= 1) return null
+
+  const pages = formatPageNumbers(page, totalPages)
 
   return (
-    <div style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-      {btn(<ChevronLeft size={15} />, false, page === 1, () => onChange(page - 1), 'prev')}
-      {pages.map((p, i) =>
-        p === '…'
-          ? <span key={`ellipsis-${i}`} style={{ padding: '0 4px', color: '#94A3B8', fontSize: 14 }}>…</span>
-          : btn(p, p === page, false, () => onChange(p as number), p)
-      )}
-      {btn(<ChevronRight size={15} />, false, page === total, () => onChange(page + 1), 'next')}
+    <div
+      className="px-6 py-3 flex items-center justify-between text-sm"
+      style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+    >
+      <span>
+        Menampilkan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, count)} dari {count} data
+      </span>
+      <div className="flex items-center gap-1">
+        <button
+          type="button"
+          onClick={() => onChange(Math.max(1, page - 1))}
+          disabled={page === 1}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+        >
+          <ChevronLeft size={14} />
+        </button>
+        {pages.map((item, index) =>
+          item === '…' ? (
+            <span key={`ellipsis-${index}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+              …
+            </span>
+          ) : (
+            <button
+              key={item}
+              type="button"
+              onClick={() => onChange(item)}
+              className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium"
+              style={{
+                backgroundColor: item === page ? '#242F43' : 'transparent',
+                color: item === page ? '#FFFFFF' : '#525E71',
+                border: item === page ? 'none' : '1px solid #E5E7EB',
+              }}
+            >
+              {item}
+            </button>
+          ),
+        )}
+        <button
+          type="button"
+          onClick={() => onChange(Math.min(totalPages, page + 1))}
+          disabled={page === totalPages}
+          className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium disabled:opacity-30 disabled:cursor-not-allowed"
+          style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+        >
+          <ChevronRight size={14} />
+        </button>
+      </div>
     </div>
   )
 }
 
-// ── Filter Panel ──────────────────────────────────────────────────────────────
-const FilterPanel = ({
-  startDate, endDate, onStartDate, onEndDate, onApply, onClear,
+const TableEmpty = ({ text }: { text: string }) => (
+  <div className="px-6 py-12 text-center text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+    {text}
+  </div>
+)
+
+const SectionHeader = ({
+  title,
+  subtitle,
+  count,
 }: {
-  startDate: string; endDate: string
-  onStartDate: (v: string) => void; onEndDate: (v: string) => void
-  onApply: () => void; onClear: () => void
+  title: string
+  subtitle: string
+  count: number
 }) => (
-  <div style={{
-    position: 'absolute', top: 'calc(100% + 8px)', right: 0, zIndex: 50,
-    background: '#fff', borderRadius: 14, border: '1px solid #E5E7EB',
-    boxShadow: '0 8px 24px rgba(0,0,0,0.10)', padding: 20, minWidth: 300,
-  }}>
-    <p style={{ fontSize: 13, fontWeight: 700, color: '#111827', margin: '0 0 14px' }}>
+  <div className="px-6 py-4 flex items-start justify-between gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
+    <div>
+      <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+        {title}
+      </h3>
+      <p className="text-xs mt-1" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+        {subtitle}
+      </p>
+    </div>
+    <span
+      className="text-[10px] font-bold px-2 py-1 rounded-full"
+      style={{ color: '#8E99A8', backgroundColor: '#F1F5F9', fontFamily: 'Inter, sans-serif' }}
+    >
+      {count} HASIL
+    </span>
+  </div>
+)
+
+const FilterPanel = ({
+  startDate,
+  endDate,
+  onStartDate,
+  onEndDate,
+  onApply,
+  onClear,
+}: {
+  startDate: string
+  endDate: string
+  onStartDate: (value: string) => void
+  onEndDate: (value: string) => void
+  onApply: () => void
+  onClear: () => void
+}) => (
+  <div
+    className="absolute top-[calc(100%+8px)] right-0 z-50 rounded-2xl border bg-white p-5 shadow-lg"
+    style={{ borderColor: '#E5E7EB', minWidth: 300 }}
+  >
+    <p className="mb-4 text-sm font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
       Filter Rentang Tanggal
     </p>
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+    <div className="space-y-3">
       <div>
-        <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>
-          DARI TANGGAL
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E99A8' }}>
+          Dari tanggal
         </label>
-        <div style={{ position: 'relative' }}>
-          <Calendar size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+        <div className="relative">
+          <Calendar size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#8E99A8' }} />
           <input
-            type="date" value={startDate} onChange={(e) => onStartDate(e.target.value)}
-            style={{
-              width: '100%', padding: '8px 10px 8px 30px', borderRadius: 8,
-              border: '1px solid #E5E7EB', fontSize: 13, color: '#111827',
-              outline: 'none', boxSizing: 'border-box',
-            }}
+            type="date"
+            value={startDate}
+            onChange={(event) => onStartDate(event.target.value)}
+            className="w-full rounded-xl border bg-[#FAFAFA] py-2.5 pl-9 pr-3 text-sm outline-none"
+            style={{ borderColor: '#E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif' }}
           />
         </div>
       </div>
       <div>
-        <label style={{ fontSize: 11, fontWeight: 600, color: '#6B7280', display: 'block', marginBottom: 4 }}>
-          SAMPAI TANGGAL
+        <label className="mb-1 block text-[11px] font-semibold uppercase tracking-wider" style={{ color: '#8E99A8' }}>
+          Sampai tanggal
         </label>
-        <div style={{ position: 'relative' }}>
-          <Calendar size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#94A3B8' }} />
+        <div className="relative">
+          <Calendar size={14} style={{ position: 'absolute', left: 10, top: '50%', transform: 'translateY(-50%)', color: '#8E99A8' }} />
           <input
-            type="date" value={endDate} onChange={(e) => onEndDate(e.target.value)}
-            style={{
-              width: '100%', padding: '8px 10px 8px 30px', borderRadius: 8,
-              border: '1px solid #E5E7EB', fontSize: 13, color: '#111827',
-              outline: 'none', boxSizing: 'border-box',
-            }}
+            type="date"
+            value={endDate}
+            onChange={(event) => onEndDate(event.target.value)}
+            className="w-full rounded-xl border bg-[#FAFAFA] py-2.5 pl-9 pr-3 text-sm outline-none"
+            style={{ borderColor: '#E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif' }}
           />
         </div>
       </div>
     </div>
-    <div style={{ display: 'flex', gap: 8, marginTop: 16 }}>
+    <div className="mt-4 flex gap-2">
       <button
+        type="button"
         onClick={onClear}
-        style={{
-          flex: 1, padding: '8px', borderRadius: 8, border: '1px solid #E5E7EB',
-          background: '#fff', color: '#374151', fontSize: 13, fontWeight: 600, cursor: 'pointer',
-        }}
+        className="flex-1 rounded-xl px-3 py-2 text-sm font-semibold"
+        style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
       >
         Reset
       </button>
       <button
+        type="button"
         onClick={onApply}
-        style={{
-          flex: 1, padding: '8px', borderRadius: 8, border: 'none',
-          background: '#111827', color: '#fff', fontSize: 13, fontWeight: 700, cursor: 'pointer',
-        }}
+        className="flex-1 rounded-xl px-3 py-2 text-sm font-semibold text-white"
+        style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
       >
         Terapkan
       </button>
@@ -170,344 +262,378 @@ const FilterPanel = ({
   </div>
 )
 
-// ── Main Page ─────────────────────────────────────────────────────────────────
 export default function StaffDisbursementPage() {
   const router = useRouter()
-  const [tab, setTab] = useState<Tab>('approved')
+  const filterRef = useRef<HTMLDivElement | null>(null)
+
+  const [searchInput, setSearchInput] = useState('')
   const [search, setSearch] = useState('')
   const [startDate, setStartDate] = useState('')
   const [endDate, setEndDate] = useState('')
-  const [page, setPage] = useState(1)
   const [showFilter, setShowFilter] = useState(false)
 
   const [approvedLoans, setApprovedLoans] = useState<ApprovedLoan[]>([])
   const [disbursedLoans, setDisbursedLoans] = useState<DisbursedLoan[]>([])
-  const [loading, setLoading] = useState(false)
-  const [approvedPageInfo, setApprovedPageInfo] = useState({ count: 0, total_pages: 0, page_size: 10 })
-  const [disbursedPageInfo, setDisbursedPageInfo] = useState({ count: 0, total_pages: 0, page_size: 10 })
 
-  const fetchApproved = useCallback(async (s = search, sd = startDate, ed = endDate, p = page) => {
-    try {
-      setLoading(true)
-      const data = await getApprovedLoans({ page: p, page_size: 10, search: s, start_date: sd, end_date: ed })
-      setApprovedLoans(data.results)
-      setApprovedPageInfo({ count: data.count, total_pages: data.total_pages, page_size: data.page_size })
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Gagal memuat pinjaman')
-    } finally { setLoading(false) }
-  }, [])
+  const [approvedLoading, setApprovedLoading] = useState(true)
+  const [historyLoading, setHistoryLoading] = useState(true)
 
-  const fetchDisbursed = useCallback(async (s = search, sd = startDate, ed = endDate, p = page) => {
+  const [approvedPage, setApprovedPage] = useState(1)
+  const [approvedPageInfo, setApprovedPageInfo] = useState<PageInfo>({
+    count: 0,
+    total_pages: 1,
+    page_size: PAGE_SIZE,
+    current_page: 1,
+  })
+
+  const [historyPage, setHistoryPage] = useState(1)
+  const [historyPageInfo, setHistoryPageInfo] = useState<PageInfo>({
+    count: 0,
+    total_pages: 1,
+    page_size: PAGE_SIZE,
+    current_page: 1,
+  })
+
+  const loadApproved = useCallback(
+    async (pageNumber: number, query: string, fromDate: string, toDate: string) => {
+      try {
+        setApprovedLoading(true)
+        const data = await getApprovedLoans({
+          page: pageNumber,
+          page_size: PAGE_SIZE,
+          search: query || undefined,
+          start_date: fromDate || undefined,
+          end_date: toDate || undefined,
+        })
+        setApprovedLoans(data.results)
+        setApprovedPageInfo({
+          count: data.count,
+          total_pages: data.total_pages,
+          page_size: data.page_size,
+          current_page: data.current_page,
+        })
+        setApprovedPage(data.current_page)
+      } catch (error) {
+        toast.error(getErrorMessage(error, 'Gagal memuat daftar pinjaman disetujui.'))
+      } finally {
+        setApprovedLoading(false)
+      }
+    },
+    [],
+  )
+
+  const loadHistory = useCallback(async (pageNumber: number) => {
     try {
-      setLoading(true)
-      const data = await getDisbursedLoans({ page: p, page_size: 10, search: s, start_date: sd, end_date: ed })
+      setHistoryLoading(true)
+      const data = await getDisbursedLoans({ page: pageNumber, page_size: PAGE_SIZE })
       setDisbursedLoans(data.results)
-      setDisbursedPageInfo({ count: data.count, total_pages: data.total_pages, page_size: data.page_size })
-    } catch (err: any) {
-      toast.error(err?.response?.data?.error || 'Gagal memuat riwayat')
-    } finally { setLoading(false) }
+      setHistoryPageInfo({
+        count: data.count,
+        total_pages: data.total_pages,
+        page_size: data.page_size,
+        current_page: data.current_page,
+      })
+      setHistoryPage(data.current_page)
+    } catch (error) {
+      toast.error(getErrorMessage(error, 'Gagal memuat riwayat pencairan.'))
+    } finally {
+      setHistoryLoading(false)
+    }
   }, [])
 
   useEffect(() => {
-    if (tab === 'approved') fetchApproved(search, startDate, endDate, page)
-    else fetchDisbursed(search, startDate, endDate, page)
-  }, [tab, page])
+    void loadApproved(1, '', '', '')
+    void loadHistory(1)
+  }, [loadApproved, loadHistory])
 
-  const handleSearch = () => {
-    setPage(1)
-    if (tab === 'approved') fetchApproved(search, startDate, endDate, 1)
-    else fetchDisbursed(search, startDate, endDate, 1)
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (filterRef.current && !filterRef.current.contains(event.target as Node)) {
+        setShowFilter(false)
+      }
+    }
+
+    document.addEventListener('mousedown', handleClickOutside)
+    return () => document.removeEventListener('mousedown', handleClickOutside)
+  }, [])
+
+  const hasFilter = Boolean(startDate || endDate)
+
+  const applySearch = () => {
+    setApprovedPage(1)
+    void loadApproved(1, searchInput.trim(), startDate, endDate)
+    setSearch(searchInput.trim())
   }
 
-  const handleClear = () => {
-    setSearch(''); setStartDate(''); setEndDate(''); setPage(1); setShowFilter(false)
-    if (tab === 'approved') fetchApproved('', '', '', 1)
-    else fetchDisbursed('', '', '', 1)
+  const clearFilters = () => {
+    setSearchInput('')
+    setSearch('')
+    setStartDate('')
+    setEndDate('')
+    setApprovedPage(1)
+    void loadApproved(1, '', '', '')
+    setShowFilter(false)
   }
 
-  const handleApplyFilter = () => {
-    setShowFilter(false); setPage(1)
-    if (tab === 'approved') fetchApproved(search, startDate, endDate, 1)
-    else fetchDisbursed(search, startDate, endDate, 1)
-  }
+  const approvedRangeText = useMemo(() => {
+    if (approvedPageInfo.count === 0) return 'Belum ada pinjaman yang disetujui.'
+    const from = (approvedPageInfo.current_page - 1) * approvedPageInfo.page_size + 1
+    const to = Math.min(approvedPageInfo.current_page * approvedPageInfo.page_size, approvedPageInfo.count)
+    return `Menampilkan ${from}–${to} dari ${approvedPageInfo.count} data`
+  }, [approvedPageInfo])
 
-  const pageInfo = tab === 'approved' ? approvedPageInfo : disbursedPageInfo
-  const hasFilter = startDate || endDate
+  const historyRangeText = useMemo(() => {
+    if (historyPageInfo.count === 0) return 'Belum ada riwayat pencairan.'
+    const from = (historyPageInfo.current_page - 1) * historyPageInfo.page_size + 1
+    const to = Math.min(historyPageInfo.current_page * historyPageInfo.page_size, historyPageInfo.count)
+    return `Menampilkan ${from}–${to} dari ${historyPageInfo.count} data`
+  }, [historyPageInfo])
 
   return (
     <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-001">
-      <DashboardHeader
-        variant="default"
-        title="Manajemen Pencairan"
-        notifCount={0}
-        notifHref="/dashboard/staff/notifications"
-      />
+      <DashboardHeader variant="default" title="Manajemen Pencairan" notifCount={0} notifHref="/dashboard/staff/notifications" />
 
-      <main style={{
-        flex: 1,
-        padding: '28px 32px',
-        background: '#F7F8FA',
-        minHeight: '100vh',
-        fontFamily: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
-      }}>
+      <main className="flex-1 px-8 py-7 space-y-6" style={{ background: '#F7F8FA', minHeight: '100vh', fontFamily: 'Inter, sans-serif' }}>
+        <div>
+          <h2 className="text-2xl font-bold mb-1" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+            Manajemen Pencairan
+          </h2>
+          <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+            Kelola daftar pinjaman yang siap dicairkan dan pantau riwayat pencairan sebelumnya.
+          </p>
+        </div>
 
-        {/* ── Top bar: Tabs left, Search+Filter right ── */}
-        <div style={{
-          display: 'flex', justifyContent: 'space-between',
-          alignItems: 'center', marginBottom: 24,
-        }}>
-
-          {/* Tabs */}
-          <div style={{
-            display: 'flex', gap: 4, background: '#fff',
-            border: '1px solid #E5E7EB', borderRadius: 12, padding: 4,
-          }}>
-            {([
-              { key: 'approved', label: 'Pinjaman Disetujui' },
-              { key: 'history',  label: 'Riwayat Peminjaman' },
-            ] as { key: Tab; label: string }[]).map(({ key, label }) => (
-              <button
-                key={key}
-                onClick={() => { setTab(key); setPage(1) }}
-                style={{
-                  padding: '8px 20px', borderRadius: 8, border: 'none',
-                  background: tab === key ? '#111827' : 'transparent',
-                  color: tab === key ? '#fff' : '#6B7280',
-                  fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                  transition: 'all 0.15s',
-                  whiteSpace: 'nowrap',
-                }}
-              >
-                {label}
-              </button>
-            ))}
+        <section className="grid grid-cols-1 md:grid-cols-2 gap-5">
+          <div className="rounded-2xl bg-white px-6 py-5" style={{ border: '1px solid #F1F5F9' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8E99A8' }}>
+              Pinjaman Disetujui
+            </p>
+            <p className="mt-1 text-3xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              {approvedPageInfo.count}
+            </p>
+            <p className="mt-2 text-xs" style={{ color: '#8E99A8' }}>
+              Menunggu proses pencairan dana.
+            </p>
           </div>
+          <div className="rounded-2xl bg-white px-6 py-5" style={{ border: '1px solid #F1F5F9' }}>
+            <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: '#8E99A8' }}>
+              Riwayat Pencairan
+            </p>
+            <p className="mt-1 text-3xl font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              {historyPageInfo.count}
+            </p>
+            <p className="mt-2 text-xs" style={{ color: '#8E99A8' }}>
+              Pencairan yang sudah diproses.
+            </p>
+          </div>
+        </section>
 
-          {/* Search + Filter */}
-          <div style={{ display: 'flex', gap: 10, alignItems: 'center' }}>
-            {/* Search input */}
-            <div style={{ position: 'relative' }}>
-              <Search size={15} style={{
-                position: 'absolute', left: 12, top: '50%',
-                transform: 'translateY(-50%)', color: '#94A3B8',
-              }} />
-              <input
-                type="text"
-                placeholder="Cari nama, ID atau tanggal..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                onKeyDown={(e) => e.key === 'Enter' && handleSearch()}
-                style={{
-                  padding: '9px 12px 9px 34px', borderRadius: 10,
-                  border: '1px solid #E5E7EB', fontSize: 13,
-                  color: '#111827', background: '#fff',
-                  outline: 'none', width: 280,
-                }}
-              />
-              {search && (
+        <section className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
+          <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <div className="mr-auto">
+              <h3 className="text-base font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                Pinjaman Disetujui
+              </h3>
+              <p className="mt-1 text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                Daftar pinjaman yang siap dicairkan kepada anggota.
+              </p>
+            </div>
+
+            <form
+              onSubmit={(event) => {
+                event.preventDefault()
+                applySearch()
+              }}
+              className="flex items-center gap-2"
+            >
+              <div className="relative">
+                <Search size={15} style={{ position: 'absolute', left: 12, top: '50%', transform: 'translateY(-50%)', color: '#8E99A8' }} />
+                <input
+                  type="text"
+                  placeholder="Cari nama, ID atau tanggal..."
+                  value={searchInput}
+                  onChange={(event) => setSearchInput(event.target.value)}
+                  className="w-72 rounded-xl border bg-[#FAFAFA] py-2.5 pl-9 pr-9 text-sm outline-none"
+                  style={{ borderColor: '#E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif' }}
+                />
+                {searchInput && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchInput('')
+                      setSearch('')
+                      void loadApproved(1, '', startDate, endDate)
+                    }}
+                    className="absolute right-3 top-1/2 -translate-y-1/2 text-[#8E99A8]"
+                  >
+                    <X size={14} />
+                  </button>
+                )}
+              </div>
+
+              <div className="relative" ref={filterRef}>
                 <button
-                  onClick={() => { setSearch(''); handleSearch() }}
+                  type="button"
+                  onClick={() => setShowFilter((current) => !current)}
+                  className="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold"
                   style={{
-                    position: 'absolute', right: 10, top: '50%',
-                    transform: 'translateY(-50%)', background: 'none',
-                    border: 'none', cursor: 'pointer', color: '#94A3B8', padding: 0,
+                    border: `1px solid ${hasFilter ? '#242F43' : '#E5E7EB'}`,
+                    backgroundColor: hasFilter ? '#242F43' : '#FFFFFF',
+                    color: hasFilter ? '#FFFFFF' : '#525E71',
+                    fontFamily: 'Inter, sans-serif',
                   }}
                 >
-                  <X size={14} />
+                  <SlidersHorizontal size={15} />
+                  Filter
+                  {hasFilter && (
+                    <span className="flex h-[18px] w-[18px] items-center justify-center rounded-full bg-white text-[10px] font-bold text-[#242F43]">
+                      {[startDate, endDate].filter(Boolean).length}
+                    </span>
+                  )}
+                </button>
+                {showFilter && (
+                  <FilterPanel
+                    startDate={startDate}
+                    endDate={endDate}
+                    onStartDate={setStartDate}
+                    onEndDate={setEndDate}
+                    onApply={() => {
+                      setApprovedPage(1)
+                      setShowFilter(false)
+                      void loadApproved(1, searchInput.trim(), startDate, endDate)
+                    }}
+                    onClear={clearFilters}
+                  />
+                )}
+              </div>
+
+              {(search || startDate || endDate) && (
+                <button
+                  type="button"
+                  onClick={clearFilters}
+                  className="rounded-xl px-4 py-2.5 text-sm font-semibold"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+                >
+                  Atur Ulang
                 </button>
               )}
-            </div>
-
-            {/* Filter button */}
-            <div style={{ position: 'relative' }}>
-              <button
-                onClick={() => setShowFilter(!showFilter)}
-                style={{
-                  display: 'flex', alignItems: 'center', gap: 8,
-                  padding: '9px 16px', borderRadius: 10,
-                  border: `1px solid ${hasFilter ? '#111827' : '#E5E7EB'}`,
-                  background: hasFilter ? '#111827' : '#fff',
-                  color: hasFilter ? '#fff' : '#374151',
-                  fontSize: 13, fontWeight: 600, cursor: 'pointer',
-                }}
-              >
-                <SlidersHorizontal size={15} />
-                Filter
-                {hasFilter && (
-                  <span style={{
-                    background: '#fff', color: '#111827',
-                    borderRadius: '50%', width: 18, height: 18,
-                    fontSize: 10, fontWeight: 800,
-                    display: 'flex', alignItems: 'center', justifyContent: 'center',
-                  }}>
-                    {[startDate, endDate].filter(Boolean).length}
-                  </span>
-                )}
-              </button>
-              {showFilter && (
-                <FilterPanel
-                  startDate={startDate} endDate={endDate}
-                  onStartDate={setStartDate} onEndDate={setEndDate}
-                  onApply={handleApplyFilter} onClear={handleClear}
-                />
-              )}
-            </div>
+            </form>
           </div>
-        </div>
 
-        {/* ── Table Card ── */}
-        <div style={{
-          background: '#fff', borderRadius: 16,
-          border: '1px solid #E8ECF0',
-          overflow: 'hidden',
-        }}>
-          {loading ? (
-            <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: 280 }}>
-              <Loader size={24} style={{ color: '#94A3B8', animation: 'spin 1s linear infinite' }} />
-              <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
+          {approvedLoading && approvedLoans.length === 0 ? (
+            <div className="flex h-[260px] items-center justify-center">
+              <Loader size={24} className="animate-spin" style={{ color: '#8E99A8' }} />
             </div>
+          ) : approvedLoans.length === 0 ? (
+            <TableEmpty text={search || startDate || endDate ? 'Tidak ada hasil untuk filter yang dipilih.' : 'Tidak ada pinjaman yang disetujui saat ini.'} />
           ) : (
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid #F1F5F9', background: '#FAFBFC' }}>
-                  {tab === 'approved' ? (
-                    <>
-                      <Th>LOAN ID</Th>
-                      <Th>NAMA MEMBER</Th>
-                      <Th>KATEGORI</Th>
-                      <Th align="right">NOMINAL</Th>
-                      <Th>TGL PERSETUJUAN</Th>
-                      <Th align="center">AKSI</Th>
-                    </>
-                  ) : (
-                    <>
-                      <Th>LOAN ID</Th>
-                      <Th>NAMA MEMBER</Th>
-                      <Th align="right">TOTAL DICAIRKAN</Th>
-                      <Th>TGL PENCAIRAN</Th>
-                      <Th align="center">STATUS</Th>
-                    </>
-                  )}
-                </tr>
-              </thead>
-              <tbody>
-                {tab === 'approved' && approvedLoans.length === 0 && (
-                  <tr><td colSpan={6}><Empty text="Tidak ada pinjaman yang disetujui" /></td></tr>
-                )}
-                {tab === 'history' && disbursedLoans.length === 0 && (
-                  <tr><td colSpan={5}><Empty text="Tidak ada riwayat pencairan" /></td></tr>
-                )}
-
-                {tab === 'approved' && approvedLoans.map((loan, i) => (
-                  <tr
-                    key={loan.id}
-                    style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.1s' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFBFD')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.2px' }}>
-                        {loan.loan_id}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>{loan.member_name}</td>
-                    <td style={tdStyle}>
-                      <span style={{ color: '#6B7280' }}>{loan.category_display}</span>
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#111827' }}>
-                      {fmt(loan.amount)}
-                    </td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>
-                      {fmtDate((loan as ApprovedLoan).approved_at)}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <button
-                        onClick={() => router.push(`/dashboard/staff/disbursement/${loan.id}`)}
-                        style={{
-                          padding: '8px 20px', borderRadius: 8, border: 'none',
-                          background: '#111827', color: '#fff',
-                          fontSize: 13, fontWeight: 700, cursor: 'pointer',
-                          transition: 'background 0.15s',
-                          whiteSpace: 'nowrap',
-                        }}
-                        onMouseEnter={(e) => (e.currentTarget.style.background = '#1F2937')}
-                        onMouseLeave={(e) => (e.currentTarget.style.background = '#111827')}
-                      >
-                        Cairkan Dana
-                      </button>
-                    </td>
+            <div className="overflow-x-auto">
+              <table className="w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <thead style={{ backgroundColor: '#F8FAFC' }}>
+                  <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>LOAN ID</th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>NAMA MEMBER</th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>KATEGORI</th>
+                    <th className="px-6 py-3 text-right text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>NOMINAL</th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>TGL PERSETUJUAN</th>
+                    <th className="px-6 py-3 text-center text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>AKSI</th>
                   </tr>
-                ))}
-
-                {tab === 'history' && disbursedLoans.map((loan, i) => (
-                  <tr
-                    key={loan.id}
-                    style={{ borderBottom: '1px solid #F8FAFC', transition: 'background 0.1s' }}
-                    onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFBFD')}
-                    onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
-                  >
-                    <td style={tdStyle}>
-                      <span style={{ fontWeight: 800, color: '#111827', letterSpacing: '-0.2px' }}>
-                        {loan.loan_id}
-                      </span>
-                    </td>
-                    <td style={tdStyle}>{loan.member_name}</td>
-                    <td style={{ ...tdStyle, textAlign: 'right', fontWeight: 700, color: '#111827' }}>
-                      {fmt(loan.amount)}
-                    </td>
-                    <td style={{ ...tdStyle, color: '#6B7280' }}>
-                      {fmtDate((loan as DisbursedLoan).disbursed_at)}
-                    </td>
-                    <td style={{ ...tdStyle, textAlign: 'center' }}>
-                      <StatusBadge status={loan.status} />
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {approvedLoans.map((loan, index) => (
+                    <tr key={loan.id} style={{ borderBottom: index < approvedLoans.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                      <td className="px-6 py-4 text-sm font-semibold" style={{ color: '#11447D' }}>{loan.loan_id}</td>
+                      <td className="px-6 py-4 text-sm" style={{ color: '#242F43' }}>{loan.member_name}</td>
+                      <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>{loan.category_display}</td>
+                      <td className="px-6 py-4 text-right text-sm font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>{fmt(loan.amount)}</td>
+                      <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>{fmtDate((loan as ApprovedLoan).approved_at)}</td>
+                      <td className="px-6 py-4 text-center">
+                        <button
+                          type="button"
+                          onClick={() => router.push(`/dashboard/staff/disbursement/${loan.id}`)}
+                          className="rounded-xl px-4 py-2 text-xs font-bold text-white transition-colors"
+                          style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
+                        >
+                          Cairkan Dana
+                        </button>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           )}
-        </div>
 
-        {/* ── Pagination ── */}
-        {pageInfo.total_pages > 1 && (
-          <div style={{
-            display: 'flex', justifyContent: 'space-between',
-            alignItems: 'center', marginTop: 20,
-          }}>
-            <span style={{ fontSize: 13, color: '#94A3B8' }}>
-              Menampilkan {(page - 1) * pageInfo.page_size + 1}–
-              {Math.min(page * pageInfo.page_size, pageInfo.count)} dari {pageInfo.count} data
-            </span>
-            <Pagination page={page} total={pageInfo.total_pages} onChange={setPage} />
-          </div>
-        )}
+          {!approvedLoading && approvedLoans.length > 0 && (
+            <SectionFooterPagination
+              page={approvedPage}
+              totalPages={approvedPageInfo.total_pages}
+              count={approvedPageInfo.count}
+              pageSize={approvedPageInfo.page_size}
+              onChange={(nextPage) => {
+                void loadApproved(nextPage, searchInput.trim(), startDate, endDate)
+              }}
+            />
+          )}
+        </section>
+
+        <section className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
+          <SectionHeader
+            title="Riwayat Pencairan Dana"
+            subtitle="Dana yang sudah berhasil dicairkan kepada anggota."
+            count={historyPageInfo.count}
+          />
+
+          {historyLoading && disbursedLoans.length === 0 ? (
+            <div className="flex h-[220px] items-center justify-center">
+              <Loader size={24} className="animate-spin" style={{ color: '#8E99A8' }} />
+            </div>
+          ) : disbursedLoans.length === 0 ? (
+            <TableEmpty text="Belum ada riwayat pencairan." />
+          ) : (
+            <div className="overflow-x-auto">
+              <table className="w-full" style={{ fontFamily: 'Inter, sans-serif' }}>
+                <thead style={{ backgroundColor: '#F8FAFC' }}>
+                  <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>LOAN ID</th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>NAMA MEMBER</th>
+                    <th className="px-6 py-3 text-right text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>TOTAL DICAIRKAN</th>
+                    <th className="px-6 py-3 text-left text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>TGL PENCAIRAN</th>
+                    <th className="px-6 py-3 text-center text-[11px] font-semibold tracking-wider" style={{ color: '#8E99A8' }}>STATUS</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {disbursedLoans.map((loan, index) => (
+                    <tr key={loan.id} style={{ borderBottom: index < disbursedLoans.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                      <td className="px-6 py-4 text-sm font-semibold" style={{ color: '#11447D' }}>{loan.loan_id}</td>
+                      <td className="px-6 py-4 text-sm" style={{ color: '#242F43' }}>{loan.member_name}</td>
+                      <td className="px-6 py-4 text-right text-sm font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>{fmt(loan.amount)}</td>
+                      <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>{fmtDate((loan as DisbursedLoan).disbursed_at)}</td>
+                      <td className="px-6 py-4 text-center"><StatusBadge status={loan.status} /></td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          )}
+
+          {!historyLoading && disbursedLoans.length > 0 && (
+            <SectionFooterPagination
+              page={historyPage}
+              totalPages={historyPageInfo.total_pages}
+              count={historyPageInfo.count}
+              pageSize={historyPageInfo.page_size}
+              onChange={(nextPage) => {
+                void loadHistory(nextPage)
+              }}
+            />
+          )}
+        </section>
+
+        <div className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+          {approvedRangeText} • {historyRangeText}
+        </div>
       </main>
     </DashboardLayout>
   )
 }
-
-// ── Small helpers ─────────────────────────────────────────────────────────────
-const tdStyle: React.CSSProperties = {
-  padding: '16px 20px', color: '#374151', verticalAlign: 'middle',
-}
-
-const Th = ({ children, align }: { children: React.ReactNode; align?: 'left' | 'right' | 'center' }) => (
-  <th style={{
-    padding: '12px 20px',
-    textAlign: align || 'left',
-    fontSize: 11, fontWeight: 700,
-    color: '#94A3B8', letterSpacing: 0.8,
-    whiteSpace: 'nowrap',
-  }}>
-    {children}
-  </th>
-)
-
-const Empty = ({ text }: { text: string }) => (
-  <div style={{
-    padding: '60px 20px', textAlign: 'center',
-    color: '#94A3B8', fontSize: 14,
-  }}>
-    {text}
-  </div>
-)

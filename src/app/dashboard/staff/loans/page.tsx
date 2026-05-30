@@ -54,12 +54,13 @@ const StatusBadge = ({ status }: { status: string }) => {
       style={{
         background: s.bg,
         color: s.color,
-        fontSize: 10,
+        fontSize: 11,
         fontWeight: 800,
         padding: '3px 10px',
-        borderRadius: 20,
+        borderRadius: 999,
         letterSpacing: 0.5,
         whiteSpace: 'nowrap',
+        fontFamily: 'Inter, sans-serif',
       }}
     >
       {s.label}
@@ -139,7 +140,7 @@ const BarChart = ({ data }: { data: ActivityBar[] }) => {
 
   // Grayscale palette matching Figma — lighter bars, one dark highlight
   const getBarColor = (i: number, isPeak: boolean) => {
-    if (isPeak) return '#1A1A1A'
+    if (isPeak) return '#242F43'
     const grays = ['#D4D8DC', '#C0C5CB', '#B0B6BE', '#9CA3AF', '#C8CDD3', '#D0D4D8']
     return grays[i % grays.length]
   }
@@ -238,7 +239,7 @@ const BarChart = ({ data }: { data: ActivityBar[] }) => {
               <div style={{
                 fontSize: 11,
                 fontWeight: isPeak ? 800 : 500,
-                color: isPeak ? '#1A1A1A' : '#94A3B8',
+                color: isPeak ? '#242F43' : '#8E99A8',
                 letterSpacing: 0.3,
               }}>
                 {bar.label}
@@ -280,15 +281,15 @@ const StatCard = ({ label, value, subtitle, icon, iconBg, subtitleColor, subtitl
     }}
   >
     <div>
-      <p style={{ fontSize: 13, color: '#8A9BB0', fontWeight: 500, margin: '0 0 6px' }}>
+      <p style={{ fontSize: 12, color: '#8E99A8', fontWeight: 600, margin: '0 0 6px', fontFamily: 'Inter, sans-serif' }}>
         {label}
       </p>
-      <p style={{ fontSize: 36, fontWeight: 900, color: '#111827', margin: '0 0 6px', lineHeight: 1 }}>
+      <p style={{ fontSize: 34, fontWeight: 900, color: '#242F43', margin: '0 0 6px', lineHeight: 1, fontFamily: 'Montserrat, sans-serif' }}>
         {value}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {subtitleIcon}
-        <p style={{ fontSize: 12, color: subtitleColor || '#8A9BB0', margin: 0, fontWeight: subtitleColor ? 700 : 400 }}>
+        <p style={{ fontSize: 12, color: subtitleColor || '#8E99A8', margin: 0, fontWeight: subtitleColor ? 700 : 500, fontFamily: 'Inter, sans-serif' }}>
           {subtitle}
         </p>
       </div>
@@ -302,7 +303,7 @@ const StatCard = ({ label, value, subtitle, icon, iconBg, subtitleColor, subtitl
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        color: '#6B7280',
+        color: '#525E71',
         flexShrink: 0,
       }}
     >
@@ -346,7 +347,7 @@ export default function StaffLoanDashboardPage() {
       <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
         <DashboardHeader variant="default" title="Dashboard Pinjaman" />
         <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
-          <Loader style={{ width: 32, height: 32, color: '#94A3B8', animation: 'spin 1s linear infinite' }} />
+          <Loader style={{ width: 32, height: 32, color: '#8E99A8', animation: 'spin 1s linear infinite' }} />
           <style>{`@keyframes spin { to { transform: rotate(360deg); } }`}</style>
         </main>
       </DashboardLayout>
@@ -371,9 +372,19 @@ export default function StaffLoanDashboardPage() {
           padding: '28px 32px',
           background: '#F7F8FA',
           minHeight: '100vh',
-          fontFamily: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
+          fontFamily: 'Inter, sans-serif',
+          color: '#242F43',
         }}
       >
+        <div style={{ marginBottom: 28 }}>
+          <h2 style={{ fontSize: 24, fontWeight: 800, margin: '0 0 4px', fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
+            Dashboard Pinjaman
+          </h2>
+          <p style={{ fontSize: 14, margin: 0, color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+            Pantau status pencairan, cicilan yang belum terverifikasi, dan pinjaman yang mendekati jatuh tempo.
+          </p>
+        </div>
+
         {/* ── Stat Cards ── */}
         <div
           style={{
@@ -422,14 +433,14 @@ export default function StaffLoanDashboardPage() {
         >
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#242F43', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>
               Aktivitas Pinjaman Terkini
             </h2>
             {/* Weekly / Monthly toggle */}
             <div
               style={{
                 display: 'flex',
-                background: '#F3F4F6',
+                background: '#F1F5F9',
                 borderRadius: 8,
                 padding: 3,
                 gap: 2,
@@ -446,9 +457,10 @@ export default function StaffLoanDashboardPage() {
                     fontSize: 12,
                     fontWeight: 700,
                     cursor: 'pointer',
-                    background: chartMode === mode ? '#111827' : 'transparent',
-                    color: chartMode === mode ? '#fff' : '#6B7280',
+                    background: chartMode === mode ? '#242F43' : 'transparent',
+                    color: chartMode === mode ? '#fff' : '#8E99A8',
                     transition: 'all 0.15s',
+                    fontFamily: 'Inter, sans-serif',
                   }}
                 >
                   {mode === 'weekly' ? 'Mingguan' : 'Bulanan'}
@@ -471,7 +483,7 @@ export default function StaffLoanDashboardPage() {
                 background: '#FAFBFC',
               }}
             >
-              <p style={{ color: '#94A3B8', fontSize: 14 }}>
+              <p style={{ color: '#8E99A8', fontSize: 14, fontFamily: 'Inter, sans-serif' }}>
                 Belum ada data aktivitas pinjaman
               </p>
             </div>
@@ -488,30 +500,39 @@ export default function StaffLoanDashboardPage() {
           }}
         >
           {/* Header */}
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>
-              Pinjaman Mendekati Jatuh Tempo
-            </h2>
-            <Link
-              href="/dashboard/staff/loans"
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 20, gap: 16 }}>
+            <div>
+              <h2 style={{ fontSize: 16, fontWeight: 800, color: '#242F43', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>
+                Pinjaman Mendekati Jatuh Tempo
+              </h2>
+              <p style={{ margin: '4px 0 0', fontSize: 12, color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                Daftar pinjaman yang perlu dipantau dalam 14 hari ke depan.
+              </p>
+            </div>
+            <span
               style={{
-                fontSize: 12,
-                fontWeight: 700,
-                color: '#6B7280',
-                textDecoration: 'none',
-                letterSpacing: 0.5,
+                alignSelf: 'flex-start',
+                fontSize: 10,
+                fontWeight: 800,
+                letterSpacing: 0.6,
+                color: '#8E99A8',
+                background: '#F1F5F9',
+                borderRadius: 999,
+                padding: '6px 10px',
+                fontFamily: 'Inter, sans-serif',
+                whiteSpace: 'nowrap',
               }}
             >
-              LIHAT SEMUA
-            </Link>
+              {pageInfo.count} HASIL
+            </span>
           </div>
 
           {dashboard?.upcoming_due_loans.results?.length ? (
             <>
               {/* Table */}
               <div style={{ overflowX: 'auto' }}>
-                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
-                  <thead>
+                <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13, fontFamily: 'Inter, sans-serif' }}>
+                  <thead style={{ background: '#F8FAFC' }}>
                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
                       {['NAMA MEMBER', 'LOAN ID', 'SISA SALDO', 'JATUH TEMPO', 'STATUS', 'AKSI'].map((h) => (
                         <th
@@ -521,9 +542,10 @@ export default function StaffLoanDashboardPage() {
                             textAlign: 'left',
                             fontSize: 11,
                             fontWeight: 700,
-                            color: '#94A3B8',
+                            color: '#8E99A8',
                             letterSpacing: 0.8,
                             whiteSpace: 'nowrap',
+                            fontFamily: 'Inter, sans-serif',
                           }}
                         >
                           {h}
@@ -536,7 +558,7 @@ export default function StaffLoanDashboardPage() {
                       <tr
                         key={i}
                         style={{
-                          borderBottom: '1px solid #F8FAFC',
+                          borderBottom: i < dashboard.upcoming_due_loans.results.length - 1 ? '1px solid #F8FAFC' : 'none',
                           transition: 'background 0.1s',
                         }}
                         onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFBFC')}
@@ -546,21 +568,21 @@ export default function StaffLoanDashboardPage() {
                         <td style={{ padding: '12px 12px' }}>
                           <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
                             <Avatar name={loan.member_name} index={i} />
-                            <span style={{ fontWeight: 600, color: '#111827' }}>
+                            <span style={{ fontWeight: 600, color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                               {loan.member_name}
                             </span>
                           </div>
                         </td>
                         {/* Loan ID */}
-                        <td style={{ padding: '12px', color: '#6B7280', fontWeight: 500 }}>
+                        <td style={{ padding: '12px', color: '#525E71', fontWeight: 500, fontFamily: 'Inter, sans-serif' }}>
                           {loan.loan_id}
                         </td>
                         {/* Remaining balance */}
-                        <td style={{ padding: '12px', color: '#111827', fontWeight: 700 }}>
+                        <td style={{ padding: '12px', color: '#242F43', fontWeight: 700, fontFamily: 'Montserrat, sans-serif' }}>
                           {formatCurrency(loan.remaining_balance)}
                         </td>
                         {/* Due date */}
-                        <td style={{ padding: '12px', color: '#6B7280' }}>
+                        <td style={{ padding: '12px', color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                           {new Date(loan.next_due_date).toLocaleDateString('id-ID', {
                             day: 'numeric',
                             month: 'short',
@@ -578,12 +600,13 @@ export default function StaffLoanDashboardPage() {
                             style={{
                               fontSize: 13,
                               fontWeight: 700,
-                              color: '#111827',
+                              color: '#11447D',
                               textDecoration: 'none',
                               padding: '0',
+                              fontFamily: 'Inter, sans-serif',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = '#3B7DFF')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = '#111827')}
+                            onMouseEnter={(e) => (e.currentTarget.style.color = '#0F3A6B')}
+                            onMouseLeave={(e) => (e.currentTarget.style.color = '#11447D')}
                           >
                             Tinjau
                           </Link>
@@ -606,7 +629,7 @@ export default function StaffLoanDashboardPage() {
                     borderTop: '1px solid #F1F5F9',
                   }}
                 >
-                  <span style={{ fontSize: 13, color: '#94A3B8' }}>
+                  <span style={{ fontSize: 13, color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                     {(pageInfo.current_page - 1) * pageInfo.page_size + 1}–
                     {Math.min(pageInfo.current_page * pageInfo.page_size, pageInfo.count)} dari {pageInfo.count}
                   </span>
@@ -617,8 +640,9 @@ export default function StaffLoanDashboardPage() {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 4,
                         padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151',
+                        background: '#fff', color: page === 1 ? '#CBD5E1' : '#525E71',
                         fontSize: 13, fontWeight: 600, cursor: page === 1 ? 'not-allowed' : 'pointer',
+                        fontFamily: 'Inter, sans-serif',
                       }}
                     >
                       <ChevronLeft size={14} /> Sebelumnya
@@ -629,8 +653,9 @@ export default function StaffLoanDashboardPage() {
                       style={{
                         display: 'flex', alignItems: 'center', gap: 4,
                         padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === pageInfo.total_pages ? '#D1D5DB' : '#374151',
+                        background: '#fff', color: page === pageInfo.total_pages ? '#CBD5E1' : '#525E71',
                         fontSize: 13, fontWeight: 600, cursor: page === pageInfo.total_pages ? 'not-allowed' : 'pointer',
+                        fontFamily: 'Inter, sans-serif',
                       }}
                     >
                       Selanjutnya <ChevronRight size={14} />
@@ -649,7 +674,7 @@ export default function StaffLoanDashboardPage() {
                 border: '1px dashed #E2E8F0',
               }}
             >
-              <p style={{ color: '#94A3B8', fontSize: 14 }}>
+              <p style={{ color: '#8E99A8', fontSize: 14, fontFamily: 'Inter, sans-serif' }}>
                 Tidak ada pinjaman yang mendekati jatuh tempo dalam 2 minggu ke depan
               </p>
             </div>
