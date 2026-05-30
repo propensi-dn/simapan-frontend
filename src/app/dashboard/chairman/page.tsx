@@ -10,6 +10,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
 import api from '@/lib/axios'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,11 +32,6 @@ interface ChairmanDashboardData {
   liquidity_ratio: number
   liquidity_components: LiquidityComponents
   membership_trends: MembershipTrend[]
-}
-
-interface ChairmanProfile {
-  full_name: string
-  member_id: string | null
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -172,32 +168,23 @@ function TrendTooltip({ active, payload, label }: {
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function ChairmanDashboardPage() {
-  const [data, setData]       = useState<ChairmanDashboardData | null>(null)
-  const [profile, setProfile] = useState<ChairmanProfile | null>(null)
+  const [data, setData]   = useState<ChairmanDashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError]     = useState<string | null>(null)
+
+  const { userName } = useUserProfile()
+  const firstName = userName.split(' ')[0]
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAll() {
       try {
-        const [dashRes, profileRes] = await Promise.allSettled([
-          api.get<ChairmanDashboardData>('/dashboards/chairman/'),
-          api.get<ChairmanProfile>('/members/profile/'),
-        ])
+        const dashRes = await api.get<ChairmanDashboardData>('/dashboards/chairman/')
         if (cancelled) return
-
-        if (dashRes.status === 'fulfilled') {
-          setData(dashRes.value.data)
-        } else {
-          setError('Gagal memuat data dashboard.')
-        }
-        if (profileRes.status === 'fulfilled') {
-          setProfile(profileRes.value.data)
-        }
+        setData(dashRes.data)
       } catch {
-        if (!cancelled) setError('Terjadi kesalahan jaringan.')
+        if (!cancelled) setError('Gagal memuat data dashboard.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -206,10 +193,6 @@ export default function ChairmanDashboardPage() {
     fetchAll()
     return () => { cancelled = true }
   }, [])
-
-  const userName  = profile?.full_name ?? 'Ketua'
-  const userID    = profile?.member_id ?? undefined
-  const firstName = userName.split(' ')[0]
 
   // ── Donut data ──────────────────────────────────────────────────────────
   const cashVal  = parseFloat(data?.liquidity_components.cash_in_bank  ?? '0')
@@ -229,7 +212,7 @@ export default function ChairmanDashboardPage() {
   ]
 
   return (
-    <DashboardLayout role="CHAIRMAN" userName={userName} userID={userID}>
+    <DashboardLayout role="CHAIRMAN">
 
       <DashboardHeader
         variant="default"

@@ -7,12 +7,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import api from '@/lib/axios'
 
-type Profile = {
-  full_name: string
-  member_id: string | null
-  profile_picture: string | null
-}
-
 type WithdrawalDetail = {
   id: number
   saving_id: string
@@ -53,14 +47,9 @@ export default function MemberWithdrawalDetailPage() {
   const params = useParams<{ withdrawalId: string }>()
   const withdrawalId = decodeURIComponent(params.withdrawalId || '')
 
-  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [item, setItem] = useState<WithdrawalDetail | null>(null)
-
-  useEffect(() => {
-    api.get('/members/profile/').then(res => setProfile(res.data)).catch(() => {})
-  }, [])
 
   const loadDetail = useCallback(async () => {
     setLoading(true)
@@ -110,12 +99,7 @@ export default function MemberWithdrawalDetailPage() {
   }, [item])
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : ''}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader
         variant="detail"
         parentLabel="Riwayat Penarikan"

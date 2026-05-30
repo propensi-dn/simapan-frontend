@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
 import api from '@/lib/axios'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 // ── Types ─────────────────────────────────────────────────────────────────
 
@@ -86,35 +87,24 @@ function SkeletonCard() {
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function MemberDashboardPage() {
-  const [profile, setProfile] = useState<{
-    full_name: string
-    member_id: string | null
-    profile_picture: string | null
-    status: string
-  } | null>(null)
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+
+  const { userName, userStatus } = useUserProfile()
+  const memberStatus = userStatus || '—'
+  const firstName    = userName.split(' ')[0]
 
   useEffect(() => {
     let cancelled = false
 
     const fetchAll = async () => {
       try {
-        const [profileRes, dashboardRes] = await Promise.allSettled([
-          api.get('/members/profile/'),
-          api.get('/dashboards/member/'),
-        ])
+        const dashboardRes = await api.get('/dashboards/member/')
         if (cancelled) return
-
-        if (profileRes.status === 'fulfilled') setProfile(profileRes.value.data)
-        if (dashboardRes.status === 'fulfilled') {
-          setDashboard(dashboardRes.value.data)
-        } else {
-          setError('Gagal memuat data dashboard.')
-        }
+        setDashboard(dashboardRes.data)
       } catch {
-        if (!cancelled) setError('Terjadi kesalahan jaringan.')
+        if (!cancelled) setError('Gagal memuat data dashboard.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -124,18 +114,8 @@ export default function MemberDashboardPage() {
     return () => { cancelled = true }
   }, [])
 
-  const userName     = profile?.full_name || 'Anggota'
-  const memberId     = profile?.member_id ? `#${profile.member_id}` : undefined
-  const memberStatus = profile?.status || '—'
-  const firstName    = userName.split(' ')[0]
-
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={userName}
-      userID={memberId}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader variant="default" title="Dashboard" notifCount={0} />
 
       <main className="flex-1 p-4 sm:p-6 lg:p-8">

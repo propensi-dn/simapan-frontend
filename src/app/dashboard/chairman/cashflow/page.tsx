@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect } from 'react'
 import DashboardLayout from '@/components/layout/DashboardLayout'
@@ -179,7 +179,7 @@ export default function ChairmanCashflowPage() {
 
   if (error) {
     return (
-      <DashboardLayout role="CHAIRMAN" userName="Ketua" userID="">
+      <DashboardLayout role="CHAIRMAN">
         <DashboardHeader
           variant="default"
           title="Laporan Kas Periodik dan Estimasi SHU"
@@ -194,7 +194,7 @@ export default function ChairmanCashflowPage() {
   }
 
   return (
-    <DashboardLayout role="CHAIRMAN" userName="Ketua" userID="">
+    <DashboardLayout role="CHAIRMAN">
       <DashboardHeader
         variant="default"
         title="Laporan Keuangan & SHU"
