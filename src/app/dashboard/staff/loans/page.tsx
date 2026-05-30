@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
@@ -343,7 +343,7 @@ export default function StaffLoanDashboardPage() {
 
   if (loading && !dashboard) {
     return (
-      <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
+      <DashboardLayout role="STAFF">
         <DashboardHeader variant="default" title="Dashboard Pinjaman" />
         <main style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', minHeight: '60vh' }}>
           <Loader style={{ width: 32, height: 32, color: '#94A3B8', animation: 'spin 1s linear infinite' }} />
@@ -362,7 +362,7 @@ export default function StaffLoanDashboardPage() {
     : []
 
   return (
-    <DashboardLayout role="STAFF" userName="Staff" userID="STAFF-0001">
+    <DashboardLayout role="STAFF">
       <DashboardHeader variant="default" title="Dashboard Pinjaman" />
 
       <main

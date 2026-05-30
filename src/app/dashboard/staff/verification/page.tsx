@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -89,7 +89,7 @@ export default function PendingMembersPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName="Petugas">
+    <DashboardLayout role="STAFF">
 
       <DashboardHeader
         variant="default"

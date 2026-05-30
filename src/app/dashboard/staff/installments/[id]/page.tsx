@@ -151,7 +151,7 @@ export default function StaffInstallmentReviewPage() {
   }, [detail])
 
   return (
-    <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-0001">
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title={headerTitle}

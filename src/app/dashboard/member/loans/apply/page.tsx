@@ -4,7 +4,6 @@ import { useCallback, useEffect, useRef, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
-import api from '@/lib/axios'
 import {
   getLoanFormData,
   createLoan,
@@ -125,13 +124,6 @@ export default function ApplyLoanPage() {
   // errors
   const [errors, setErrors] = useState<Record<string, string>>({})
 
-  // profile for sidebar
-  const [profile, setProfile] = useState<{ full_name: string; member_id: string | null; profile_picture: string | null } | null>(null)
-
-  useEffect(() => {
-    api.get('/members/profile/').then(r => setProfile(r.data)).catch(() => {})
-  }, [])
-
   useEffect(() => {
     getLoanFormData()
       .then(data => {
@@ -191,12 +183,7 @@ export default function ApplyLoanPage() {
 
   if (success) {
     return (
-      <DashboardLayout
-        role="MEMBER"
-        userName={profile?.full_name || 'Member'}
-        userID={profile?.member_id ? `#${profile.member_id}` : ''}
-        avatarUrl={profile?.profile_picture || undefined}
-      >
+      <DashboardLayout role="MEMBER">
         <DashboardHeader
           variant="detail"
           parentLabel="Pinjaman"
@@ -233,12 +220,7 @@ export default function ApplyLoanPage() {
   }
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : ''}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader
         variant="detail"
         parentLabel="Pinjaman"
