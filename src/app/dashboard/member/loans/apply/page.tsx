@@ -139,10 +139,13 @@ export default function ApplyLoanPage() {
   const amountNum = Number(amount.replace(/\D/g, ''))
   const sim = amountNum >= 1_000_000 ? simulate(amountNum, tenor) : null
 
+  // max loan untuk tenor yang sedang dipilih (reactive)
+  const currentMax = formData?.max_amount_by_tenor?.[tenor] ?? formData?.max_amount ?? 50_000_000
+
   function validate() {
     const errs: Record<string, string> = {}
     if (!amountNum || amountNum < 1_000_000) errs.amount = 'Minimal pinjaman Rp 1.000.000'
-    if (amountNum > 50_000_000) errs.amount = 'Maksimal pinjaman Rp 50.000.000'
+    if (amountNum > currentMax) errs.amount = `Maksimal pinjaman ${fmtRp(currentMax)} untuk tenor ${tenor} bulan`
     if (!category) errs.category = 'Kategori pinjaman wajib dipilih'
     if (!bankAccountId) errs.bank_account = 'Rekening bank wajib dipilih'
     return errs
@@ -297,7 +300,7 @@ export default function ApplyLoanPage() {
                         />
                       </div>
                       <p className="text-xs" style={{ color: '#B0BAC5' }}>
-                        MIN: Rp 1.000.000 | MAX: Rp 50.000.000
+                        MIN: Rp 1.000.000 | MAX: {fmtRp(currentMax)}
                       </p>
                       {errors.amount && (
                         <p className="text-xs font-medium" style={{ color: '#EF4444' }}>{errors.amount}</p>
@@ -508,6 +511,63 @@ export default function ApplyLoanPage() {
                     </p>
                   )}
                 </div>
+
+                {/* Batas Pinjaman Berdasarkan Simpanan */}
+                {formData && (
+                  <div className="bg-white rounded-2xl p-6 space-y-3"
+                    style={{ border: '1px solid #F1F5F9' }}>
+                    <div className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full flex items-center justify-center flex-shrink-0"
+                        style={{ backgroundColor: '#DBEAFE' }}>
+                        <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="#3B82F6" strokeWidth={2.5}>
+                          <path strokeLinecap="round" strokeLinejoin="round"
+                            d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                        </svg>
+                      </div>
+                      <p className="text-sm font-bold"
+                        style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                        Kapasitas Pinjaman
+                      </p>
+                    </div>
+                    <div className="space-y-2 pt-1" style={{ borderTop: '1px solid #F1F5F9' }}>
+                      <div className="flex justify-between items-center">
+                        <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                          Simpanan Stabil (Pokok+Wajib)
+                        </span>
+                        <span className="text-xs font-bold"
+                          style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+                          {fmtRp(formData.stable_savings)}
+                        </span>
+                      </div>
+                      {formData.current_monthly_obligations > 0 && (
+                        <div className="flex justify-between items-center">
+                          <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                            Cicilan Aktif Berjalan
+                          </span>
+                          <span className="text-xs font-bold"
+                            style={{ color: '#EF4444', fontFamily: 'Montserrat, sans-serif' }}>
+                            − {fmtRp(formData.current_monthly_obligations)}/bln
+                          </span>
+                        </div>
+                      )}
+                      <div className="flex justify-between items-center pt-1" style={{ borderTop: '1px dashed #E5E7EB' }}>
+                        <span className="text-xs font-semibold" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
+                          Maks. Pinjaman ({tenor} bln)
+                        </span>
+                        <span className="text-xs font-bold"
+                          style={{ color: currentMax >= 1_000_000 ? '#1D4ED8' : '#DC2626', fontFamily: 'Montserrat, sans-serif' }}>
+                          {fmtRp(currentMax)}
+                        </span>
+                      </div>
+                    </div>
+                    {currentMax < 1_000_000 && (
+                      <p className="text-xs leading-relaxed pt-1"
+                        style={{ color: '#DC2626', fontFamily: 'Inter, sans-serif' }}>
+                        Simpanan stabil Anda belum mencukupi untuk tenor ini.
+                      </p>
+                    )}
+                  </div>
+                )}
 
                 {/* Catatan Penting */}
                 <div className="bg-white rounded-2xl p-6 space-y-3"
