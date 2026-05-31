@@ -532,11 +532,11 @@ export default function ApplyLoanPage() {
                     <div className="space-y-2 pt-1" style={{ borderTop: '1px solid #F1F5F9' }}>
                       <div className="flex justify-between items-center">
                         <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                          Simpanan Stabil (Pokok+Wajib)
+                          Simpanan Matang (&gt;30 hari)
                         </span>
                         <span className="text-xs font-bold"
                           style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
-                          {fmtRp(formData.stable_savings)}
+                          {fmtRp(formData.seasoned_savings)}
                         </span>
                       </div>
                       {formData.current_monthly_obligations > 0 && (
@@ -563,7 +563,7 @@ export default function ApplyLoanPage() {
                     {currentMax < 1_000_000 && (
                       <p className="text-xs leading-relaxed pt-1"
                         style={{ color: '#DC2626', fontFamily: 'Inter, sans-serif' }}>
-                        Simpanan stabil Anda belum mencukupi untuk tenor ini.
+                        Simpanan matang Anda belum mencukupi untuk tenor ini.
                       </p>
                     )}
                   </div>

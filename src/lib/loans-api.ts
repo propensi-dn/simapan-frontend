@@ -109,7 +109,7 @@ export interface LoanFormData {
   min_amount:                   number
   max_amount:                   number
   max_amount_by_tenor:          Record<number, number>
-  stable_savings:               number
+  seasoned_savings:             number
   total_savings:                number
   current_monthly_obligations:  number
 }
