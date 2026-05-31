@@ -12,7 +12,6 @@ import {
 import Button from '@/components/ui/Button'
 import toast from 'react-hot-toast'
 import { CalendarDays, Search } from 'lucide-react'
-import { getUserName, getUserID } from '@/lib/auth'
 
 type InstallmentStatusTab = 'PENDING' | 'PAID' | 'REJECTED' | 'ALL'
 
@@ -82,9 +81,6 @@ export default function StaffInstallmentsPage() {
   const [loading, setLoading] = useState(true)
   const [statusTab, setStatusTab] = useState<InstallmentStatusTab>('PENDING')
 
-  const [userName, setUserName] = useState<string | undefined>()
-  const [userID, setUserID] = useState<string | undefined>()
-
   const [searchInput, setSearchInput] = useState('')
   const [searchQ, setSearchQ] = useState('')
   const [startDateInput, setStartDateInput] = useState('')
@@ -97,11 +93,6 @@ export default function StaffInstallmentsPage() {
   const [count, setCount] = useState(0)
   const [totalPages, setTotalPages] = useState(1)
   const pageSize = 10
-
-  useEffect(() => {
-    setUserName(getUserName() || 'Petugas')
-    setUserID(getUserID() || 'STAFF-001')
-  }, [])
 
   const load = useCallback(async (targetPage: number) => {
     const scope = statusTab === 'PENDING' ? 'pending' : statusTab === 'ALL' ? 'all' : 'history'
@@ -171,7 +162,7 @@ export default function StaffInstallmentsPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName={userName} userID={userID}>
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title="Pembayaran Cicilan"

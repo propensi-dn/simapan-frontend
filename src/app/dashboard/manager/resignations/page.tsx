@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -121,7 +121,7 @@ export default function ManagerResignationsPage() {
   }
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manajer">
+    <DashboardLayout role="MANAGER">
       <DashboardHeader variant="default" title="Persetujuan Resign" />
 
       <main className="flex-1 p-8 space-y-6">
