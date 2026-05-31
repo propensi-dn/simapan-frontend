@@ -140,9 +140,9 @@ export default function AboutPage() {
             
             <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
               {[
-                { label: 'Kemenkop UKM', sub: 'No. Reg: XXX/XXXX/2023' },
-                { label: 'Izin Operasional', sub: 'AHU-XXXXX.AH.01.2023' },
-                { label: 'Sertifikasi NIK', sub: 'Valid Terverifikasi' }
+                { label: 'Badan Hukum Koperasi', sub: 'No. 16/BH/XXVII.I/DISKOP/III/2008' },
+                { label: 'Instansi Penerbit', sub: 'Dinas Koperasi (sesuai SK)' },
+                { label: 'Status Legalitas', sub: 'Terdaftar sebagai koperasi berbadan hukum' }
               ].map((item, i) => (
                 <div key={i} className="p-8 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full bg-bg-sections flex items-center justify-center text-text-secondary mb-4">

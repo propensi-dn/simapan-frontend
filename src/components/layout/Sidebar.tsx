@@ -121,10 +121,10 @@ const NAV_CONFIG: Record<string, NavItem[]> = {
 }
 
 const ROLE_LABELS: Record<string, string> = {
-  MEMBER:   'Sistem Credit Union',
-  STAFF:    'Portal Staf',
-  MANAGER:  'Portal Eksekutif',
-  CHAIRMAN: 'Portal Ketua',
+  MEMBER:   'Anggota',
+  STAFF:    'Petugas',
+  MANAGER:  'Manajer',
+  CHAIRMAN: 'Ketua',
 }
 
 // ── Skeleton ───────────────────────────────────────
@@ -144,8 +144,8 @@ function SidebarSkeleton() {
       <div className="flex items-center gap-2.5 px-5 py-5" style={{ borderBottom: '1px solid #F1F5F9' }}>
         <div className="w-8 h-8 rounded-lg flex-shrink-0 animate-pulse" style={{ backgroundColor: '#E5E7EB' }} />
         <div className="flex-1 space-y-1.5">
-          <div className="h-3.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '55%' }} />
-          <div className="h-2.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '75%' }} />
+          <div className="h-3.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '60%' }} />
+          <div className="h-2.5 rounded animate-pulse" style={{ backgroundColor: '#E5E7EB', width: '40%' }} />
         </div>
       </div>
 
@@ -255,21 +255,23 @@ export default function Sidebar({ role, userName = 'User', avatarUrl, isLoading,
           style={{ borderBottom: '1px solid #F1F5F9' }}
         >
           <div className="flex items-center gap-2.5">
-            <div
-              className="w-8 h-8 rounded-lg flex items-center justify-center flex-shrink-0"
-              style={{ backgroundColor: '#242F43' }}
-            >
-              <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={2}>
-                <path strokeLinecap="round" strokeLinejoin="round" d="M12 21v-8.25M15.75 21v-8.25M8.25 21v-8.25M3 9l9-6 9 6m-1.5 12V10.332A48.36 48.36 0 0012 9.75c-2.551 0-5.056.2-7.5.582V21M3 21h18M12 6.75h.008v.008H12V6.75z" />
-              </svg>
-            </div>
+            <Image
+              src="/images/logo.png"
+              alt="SI-MAPAN Logo"
+              width={32}
+              height={32}
+              className="rounded-lg flex-shrink-0"
+              style={{ width: '32px', height: '32px' }}
+            />
             <div>
               <p className="font-bold text-sm leading-tight" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                 SI-MAPAN
               </p>
-              <p className="text-xs leading-tight" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                {ROLE_LABELS[role]}
-              </p>
+              {ROLE_LABELS[role] && (
+                <p className="text-xs leading-tight" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                  {ROLE_LABELS[role]}
+                </p>
+              )}
             </div>
           </div>
           <button

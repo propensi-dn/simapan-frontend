@@ -8,6 +8,7 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import Button from '@/components/ui/Button'
 import api from '@/lib/axios'
 import toast from 'react-hot-toast'
+import Cookies from 'js-cookie'
 import { User, Smartphone, MapPin, CreditCard, Lock, Camera, AlertTriangle } from 'lucide-react'
 
 type BankAccount = {
@@ -93,6 +94,9 @@ export default function ProfilePage() {
       setSelectedProfilePicture(null)
       setProfilePreviewUrl(null)
       setProfileImageVersion((prev) => prev + 1)
+      // Invalidate profile cache so sidebar reflects updated name/avatar
+      Cookies.remove('user_name')
+      Cookies.remove('user_avatar')
       toast.success('Profil berhasil diperbarui')
     } catch (err) {
       console.error('Gagal menyimpan profil', err)
@@ -282,12 +286,7 @@ export default function ProfilePage() {
   }
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={memberIdLabel}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader
         variant="default"
         title="Profil Anggota"

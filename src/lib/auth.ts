@@ -16,6 +16,8 @@ export async function logout() {
     Cookies.remove('user_email')
     Cookies.remove('user_name')
     Cookies.remove('user_id')
+    Cookies.remove('user_avatar')
+    Cookies.remove('user_status')
   }
 }
 
@@ -33,6 +35,14 @@ export function getUserName(): string | undefined {
 
 export function getUserID(): string | undefined {
   return Cookies.get('user_id')
+}
+
+export function getUserAvatar(): string | undefined {
+  return Cookies.get('user_avatar')
+}
+
+export function getUserStatus(): string | undefined {
+  return Cookies.get('user_status')
 }
 
 export function isAuthenticated(): boolean {

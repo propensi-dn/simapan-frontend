@@ -27,6 +27,7 @@ export default function Navbar() {
             width={40}
             height={40}
             className="rounded-lg"
+            style={{ width: '40px', height: '40px' }}
           />
           <span className="font-bold text-h5 tracking-tight text-text-primary">
             SI-MAPAN
