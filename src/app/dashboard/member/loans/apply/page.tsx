@@ -532,7 +532,7 @@ export default function ApplyLoanPage() {
                     <div className="space-y-2 pt-1" style={{ borderTop: '1px solid #F1F5F9' }}>
                       <div className="flex justify-between items-center">
                         <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                          Simpanan Matang (&gt;30 hari)
+                          Saldo Efektif (&gt;30 hari)
                         </span>
                         <span className="text-xs font-bold"
                           style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
@@ -563,7 +563,7 @@ export default function ApplyLoanPage() {
                     {currentMax < 1_000_000 && (
                       <p className="text-xs leading-relaxed pt-1"
                         style={{ color: '#DC2626', fontFamily: 'Inter, sans-serif' }}>
-                        Simpanan matang Anda belum mencukupi untuk tenor ini.
+                        Saldo efektif Anda belum mencukupi untuk tenor ini.
                       </p>
                     )}
                   </div>
