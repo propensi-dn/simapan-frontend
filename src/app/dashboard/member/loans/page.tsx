@@ -5,6 +5,7 @@ import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import api from '@/lib/axios'
+import { useUserProfile } from '@/hooks/useUserProfile'
 import {
   getLoanOverview,
   type Loan,
@@ -109,20 +110,12 @@ export default function LoanOverviewPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [searchText,   setSearchText]   = useState('')
   const [searchQ,      setSearchQ]      = useState('')
-  const [memberStatus, setMemberStatus] = useState<string | null>(null)
   const [hasBadDebt,   setHasBadDebt]   = useState(false)
   const [blockModal,   setBlockModal]   = useState<'inactive' | 'bad_debt' | null>(null)
 
-
-  // profile for sidebar
-  const [profile, setProfile] = useState<{ full_name: string; member_id: string | null; profile_picture: string | null } | null>(null)
+  const { userStatus } = useUserProfile()
 
   useEffect(() => {
-    api.get('/members/profile/').then(r => {
-      setProfile(r.data)
-      setMemberStatus(r.data.status)
-    }).catch(() => {})
-
     api.get('/loans/create/').then(r => {
       setHasBadDebt(r.data.has_bad_debt)
     }).catch(() => {})
@@ -130,9 +123,9 @@ export default function LoanOverviewPage() {
 
   function handleAjukanPinjaman() {
     if (hasBadDebt) { setBlockModal('bad_debt'); return }
-    if (memberStatus !== 'ACTIVE') { setBlockModal('inactive'); return }
+    if (userStatus !== 'ACTIVE') { setBlockModal('inactive'); return }
     router.push('/dashboard/member/loans/apply')
-}
+  }
 
   const load = useCallback(async (status: string, q: string) => {
     setLoading(true); setError('')
@@ -153,12 +146,7 @@ export default function LoanOverviewPage() {
   useEffect(() => { load(statusFilter, searchQ) }, [statusFilter, searchQ]) // eslint-disable-line
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : ''}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader variant="default" title="Pinjaman" notifCount={0} />
 
       <main className="flex-1 p-8 space-y-6">

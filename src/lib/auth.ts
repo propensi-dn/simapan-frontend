@@ -14,6 +14,10 @@ export async function logout() {
     Cookies.remove('refresh_token')
     Cookies.remove('user_role')
     Cookies.remove('user_email')
+    Cookies.remove('user_name')
+    Cookies.remove('user_id')
+    Cookies.remove('user_avatar')
+    Cookies.remove('user_status')
   }
 }
 
@@ -23,6 +27,22 @@ export function getRole(): string | undefined {
 
 export function getEmail(): string | undefined {
   return Cookies.get('user_email')
+}
+
+export function getUserName(): string | undefined {
+  return Cookies.get('user_name')
+}
+
+export function getUserID(): string | undefined {
+  return Cookies.get('user_id')
+}
+
+export function getUserAvatar(): string | undefined {
+  return Cookies.get('user_avatar')
+}
+
+export function getUserStatus(): string | undefined {
+  return Cookies.get('user_status')
 }
 
 export function isAuthenticated(): boolean {

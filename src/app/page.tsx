@@ -103,7 +103,7 @@ export default function LandingPage() {
           
           <div className="relative aspect-[4/3] w-full overflow-hidden rounded-2xl shadow-xl bg-gray-100">
             <Image
-              src={hero.hero_image || "/images/stockfamily.png"}
+              src={hero.hero_image || "/images/online-banking-everybody.png"}
               alt="SI-MAPAN Hero"
               fill
               className="object-cover"

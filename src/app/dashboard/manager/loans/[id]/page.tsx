@@ -10,6 +10,7 @@ import {
   type ManagerLoanDetailResponse,
   type LoanStatus,
 } from '@/lib/loans-api'
+import PreviewModal from '@/components/PreviewModal'
 
 const fmtRp = (v: string | number) =>
   new Intl.NumberFormat('id-ID', {
@@ -98,8 +99,18 @@ function InstallmentStatusBadge({ status }: { status: string }) {
   )
 }
 
+function isImageFileUrl(url: string): boolean {
+  try {
+    const parsed = new URL(url, 'http://localhost')
+    return /\.(png|jpg|jpeg|webp|gif)$/i.test(parsed.pathname)
+  } catch {
+    const normalized = url.split('?')[0].split('#')[0]
+    return /\.(png|jpg|jpeg|webp|gif)$/i.test(normalized)
+  }
+}
+
 function DocumentCard({ title, url }: { title: string; url: string | null }) {
-  const isImage = !!url && /\.(png|jpg|jpeg|webp|gif)$/i.test(url)
+  const isImage = !!url && isImageFileUrl(url)
 
   return (
     <div className="rounded-2xl p-4" style={{ border: '1px dashed #D1D5DB', backgroundColor: '#FAFAFA' }}>
@@ -270,7 +281,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
+    <DashboardLayout role="MANAGER">
       <DashboardHeader
         variant="detail"
         parentLabel="Persetujuan Pinjaman"
@@ -694,40 +705,11 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
       )}
 
       {proofModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/50" onClick={() => setProofModalOpen(false)} />
-          <div className="relative bg-white rounded-2xl w-full max-w-3xl max-h-[90vh] overflow-hidden" style={{ border: '1px solid #E5E7EB' }}>
-            <div className="px-4 py-3 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
-              <h3 className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                Bukti Transfer Cicilan
-              </h3>
-              <button type="button" onClick={() => setProofModalOpen(false)} style={{ color: '#8E99A8' }}>
-                x
-              </button>
-            </div>
-            <div className="p-4">
-              {proofUrl?.toLowerCase().endsWith('.pdf') ? (
-                <div className="space-y-3">
-                  <div className="text-sm" style={{ color: '#374151' }}>
-                    Dokumen PDF
-                  </div>
-                  <a
-                    href={proofUrl || '#'}
-                    target="_blank"
-                    rel="noreferrer"
-                    className="inline-flex items-center text-sm font-semibold"
-                    style={{ color: '#11447D' }}
-                  >
-                    Buka PDF di tab baru
-                  </a>
-                </div>
-              ) : (
-                // eslint-disable-next-line @next/next/no-img-element
-                <img src={proofUrl || ''} alt="Bukti Transfer" className="max-h-[70vh] mx-auto rounded-lg" />
-              )}
-            </div>
-          </div>
-        </div>
+        // use centralized PreviewModal for inline image/pdf preview
+        <>
+          {/* lazy-load component to avoid importing heavy viewers in SSR paths */}
+          <PreviewModal url={proofUrl} onClose={() => setProofModalOpen(false)} />
+        </>
       )}
     </DashboardLayout>
   )

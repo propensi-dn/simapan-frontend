@@ -397,3 +397,77 @@ export async function exportStaffLoanInstallmentsCsv(loanId: number): Promise<Bl
   })
   return data
 }
+
+// ── Staff Withdrawal Types/API ───────────────────────────────
+
+export type StaffWithdrawalStatus = 'PENDING' | 'COMPLETED'
+
+export interface StaffWithdrawalItem {
+  id: number
+  withdrawal_id: string
+  amount: string
+  bank_name: string
+  account_number: string
+  account_holder: string
+  notes: string
+  status: StaffWithdrawalStatus
+  created_at: string
+  processed_at: string | null
+  transfer_proof_url: string | null
+  member_name: string
+  member_id: string | null
+}
+
+export interface StaffWithdrawalDashboardResponse {
+  summary: {
+    total_pending_requests: number
+    total_pending_amount: string
+  }
+  pending_requests: PaginatedResponse<StaffWithdrawalItem>
+  completed_history: PaginatedResponse<StaffWithdrawalItem>
+}
+
+export async function getStaffWithdrawals(params?: {
+  pending_page?: number
+  history_page?: number
+  page_size?: number
+  search?: string
+  bank_name?: string
+  account_holder?: string
+  start_date?: string
+  end_date?: string
+}): Promise<StaffWithdrawalDashboardResponse> {
+  const { data } = await api.get('/staff/withdrawals/', { params })
+  return data
+}
+
+export async function exportStaffWithdrawals(params?: {
+  scope?: 'pending' | 'history' | 'all'
+}): Promise<Blob> {
+  const { data } = await api.get('/staff/withdrawals/export/', {
+    params,
+    responseType: 'blob',
+  })
+  return data
+}
+
+export async function processStaffWithdrawal(
+  withdrawalId: number,
+  transferProof: File,
+): Promise<{
+  message: string
+  withdrawal: StaffWithdrawalItem
+  updated_sukarela_balance: string
+  cash_out_recorded: boolean
+}> {
+  const formData = new FormData()
+  formData.append('transfer_proof', transferProof)
+
+  const { data } = await api.post(`/staff/withdrawals/${withdrawalId}/status/`, formData, {
+    headers: {
+      'Content-Type': 'multipart/form-data',
+    },
+  })
+
+  return data
+}

@@ -1,9 +1,11 @@
 'use client'
 
+import { useEffect, useState } from 'react'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
+import api from '@/lib/axios'
 
 // ── Icons ──────────────────────────────────────────────────────────────────
 const LiquidityIcon = () => (
@@ -22,252 +24,430 @@ const ShuIcon = () => (
   </svg>
 )
 
-// ── Loan type badge styles ─────────────────────────────────────────────────
-const LOAN_TYPE_STYLE: Record<string, { bg: string; text: string }> = {
-  Emergency:  { bg: '#FEE2E2', text: '#991B1B' },
-  Investment: { bg: '#D1FAE5', text: '#065F46' },
-  Consumer:   { bg: '#DBEAFE', text: '#1E40AF' },
-  Education:  { bg: '#FEF3C7', text: '#92400E' },
+// ── Types ─────────────────────────────────────────────────────────────────
+interface DashboardData {
+  total_liquidity: number
+  total_outstanding_loans: number
+  interest_income_total: number
+  estimated_shu: number
+  npl_count: number
+  npl_amount: number
+  pending_loans_count: number
+  loan_summary?: {
+    total_pending: number
+    total_approved: number
+    total_overdue: number
+  }
+  resignation_summary?: {
+    total_pending: number
+    total_approved: number
+    total_inactive: number
+  }
+  resignation_requests?: Array<{
+    id: number
+    member_name: string
+    member_id: string
+    request_date: string | null
+    status: string
+    status_display: string
+    estimated_payout: number
+  }>
+  overdue_summary?: {
+    total_overdue: number
+    total_amount_overdue: number
+    total_critical: number
+  }
 }
 
-// ── Mock data ──────────────────────────────────────────────────────────────
-const PENDING_LOANS = [
-  { member: 'Budi Santoso', amount: 'Rp 50.000.000',  type: 'Emergency',  date: '2023-10-24' },
-  { member: 'Siti Aminah',  amount: 'Rp 150.000.000', type: 'Investment', date: '2023-10-23' },
-  { member: 'Ahmad Fauzi',  amount: 'Rp 25.000.000',  type: 'Consumer',   date: '2023-10-23' },
-  { member: 'Dewi Lestari', amount: 'Rp 75.000.000',  type: 'Education',  date: '2023-10-22' },
-]
+// ── Helper functions ──────────────────────────────────────────────────────
+function formatCurrency(value: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'currency',
+    currency: 'IDR',
+    minimumFractionDigits: 0,
+    maximumFractionDigits: 0,
+  }).format(value)
+}
 
-const RISK_PROFILE = [
-  { label: 'Current (No arrears)',     pct: 92, color: '#10B981' },
-  { label: 'Substandard (30-90 days)', pct: 5,  color: '#F59E0B' },
-  { label: 'Doubtful (90-180 days)',   pct: 2,  color: '#F97316' },
-  { label: 'Loss (>180 days)',         pct: 1,  color: '#EF4444' },
-]
-
-const RECENT_ACTIVITIES = [
-  { icon: '+',  title: 'New Loan Disbursed',        detail: 'Rp 120.000.000 - Siti Aminah', time: '10 minutes ago' },
-  { icon: '↓',  title: 'Payment Received',          detail: 'Rp 1.250.000 - John Doe',      time: '2 hours ago' },
-  { icon: '⊘',  title: 'Membership Resign Request', detail: 'Anton Sugiono - ID: CU-9283',   time: 'Yesterday' },
-]
-
-const BAR_DATA = [
-  { month: 'JAN', value: 30 }, { month: 'FEB', value: 45 }, { month: 'MAR', value: 38 },
-  { month: 'APR', value: 55 }, { month: 'MAY', value: 70 }, { month: 'JUN', value: 82 },
-  { month: 'JUL', value: 50 }, { month: 'AUG', value: 40 }, { month: 'SEP', value: 60 },
-  { month: 'OCT', value: 75 }, { month: 'NOV', value: 65 }, { month: 'DEC', value: 80 },
-]
-const MAX_BAR = Math.max(...BAR_DATA.map(d => d.value))
+function formatPercent(value: number): string {
+  return new Intl.NumberFormat('id-ID', {
+    style: 'percent',
+    maximumFractionDigits: 1,
+  }).format(value)
+}
 
 // ── Page ──────────────────────────────────────────────────────────────────
 export default function ManagerDashboardPage() {
-  // TODO: fetch dari /api/dashboards/manager/ dan user session
-  const userName = 'Budi Santoso'
+  const [data, setData] = useState<DashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError] = useState<string | null>(null)
+  const resignationPreviewLimit = 6
+
+  useEffect(() => {
+    const fetchDashboard = async () => {
+      try {
+        const response = await api.get('/manager/loans/dashboard/')
+        setData(response.data)
+        setError(null)
+      } catch (err: any) {
+        console.error('Failed to fetch dashboard:', err)
+        setError(err.response?.data?.detail || 'Failed to load dashboard')
+      } finally {
+        setLoading(false)
+      }
+    }
+
+    fetchDashboard()
+  }, [])
+
+  const loanSummary = data?.loan_summary
+  const loanPending = loanSummary?.total_pending ?? 0
+  const loanApproved = loanSummary?.total_approved ?? 0
+  const loanOverdue = loanSummary?.total_overdue ?? 0
+  const loanTotal = loanPending + loanApproved + loanOverdue
+  const pendingRatio = loanTotal > 0 ? loanPending / loanTotal : 0
+  const approvedRatio = loanTotal > 0 ? loanApproved / loanTotal : 0
+  const overdueRatio = loanTotal > 0 ? loanOverdue / loanTotal : 0
+  const liquidityRatio = data && data.total_outstanding_loans > 0
+    ? data.total_liquidity / data.total_outstanding_loans
+    : 0
+  const liquidityStatus = liquidityRatio >= 0.2
+    ? 'Aman'
+    : liquidityRatio >= 0.1
+      ? 'Waspada'
+      : 'Perlu perhatian'
+  const liquidityProgress = Math.min(liquidityRatio / 0.2, 1)
 
   return (
-    <DashboardLayout role="MANAGER" userName={userName} userID="1092834">
-
+    <DashboardLayout role="MANAGER">
       <DashboardHeader
         variant="default"
-        title="Executive Overview"
+        title="Dasbor"
         notifCount={3}
         notifHref="/dashboard/manager/notifications"
       />
 
       <main className="flex-1 p-8">
-
-        {/* Stat Cards */}
-        <div className="grid grid-cols-3 gap-5 mb-8">
-          <StatCard
-            label="Total Liquidity"
-            value="Rp 4.250.000.000"
-            badge="+2.4%"
-            badgePositive={true}
-            icon={<LiquidityIcon />}
-            accent="#11447D"
-          />
-          <StatCard
-            label="Total Outstanding Loans"
-            value="Rp 12.800.000.000"
-            badge="-1.2%"
-            badgePositive={false}
-            icon={<LoanIcon />}
-            accent="#EF4444"
-          />
-          <StatCard
-            label="Current SHU Estimate"
-            value="Rp 850.400.000"
-            badge="+5.7%"
-            badgePositive={true}
-            icon={<ShuIcon />}
-            accent="#10B981"
-          />
-        </div>
-
-        {/* 2-col layout */}
-        <div className="grid grid-cols-3 gap-5">
-
-          {/* Left — Pending Loans + Bar Chart */}
-          <div className="col-span-2 flex flex-col gap-5">
-
-            {/* Pending Loan Approvals */}
-            <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
-              <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
-                <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                  Pending Loan Approvals
-                </h3>
-                <Link
-                  href="/dashboard/manager/loans"
-                  className="text-sm font-semibold px-4 py-2 rounded-xl transition-colors"
-                  style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-                >
-                  View All
-                </Link>
-              </div>
-              <table className="w-full">
-                <thead>
-                  <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['MEMBER NAME', 'AMOUNT REQUESTED', 'LOAN TYPE', 'DATE', 'ACTION'].map(col => (
-                      <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
-                        style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                        {col}
-                      </th>
-                    ))}
-                  </tr>
-                </thead>
-                <tbody>
-                  {PENDING_LOANS.map((loan, i) => {
-                    const typeStyle = LOAN_TYPE_STYLE[loan.type] || { bg: '#F3F4F6', text: '#525E71' }
-                    return (
-                      <tr key={i} style={{ borderBottom: i < PENDING_LOANS.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
-                        <td className="px-6 py-3 text-sm font-medium" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.member}
-                        </td>
-                        <td className="px-6 py-3 text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.amount}
-                        </td>
-                        <td className="px-6 py-3">
-                          <span
-                            className="text-xs font-semibold px-2.5 py-1 rounded-full"
-                            style={{ backgroundColor: typeStyle.bg, color: typeStyle.text, fontFamily: 'Inter, sans-serif' }}
-                          >
-                            {loan.type}
-                          </span>
-                        </td>
-                        <td className="px-6 py-3 text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.date}
-                        </td>
-                        <td className="px-6 py-3">
-                          <Link
-                            href="/dashboard/manager/loans/1"
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all"
-                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
-                          >
-                            Review
-                          </Link>
-                        </td>
-                      </tr>
-                    )
-                  })}
-                </tbody>
-              </table>
+        {loading ? (
+          <div className="flex items-center justify-center h-96">
+            <div className="text-center">
+              <div className="inline-block animate-spin rounded-full h-12 w-12 border-b-2" style={{ borderColor: '#242F43' }}></div>
+              <p className="mt-4" style={{ color: '#8E99A8' }}>Memuat dasbor...</p>
             </div>
-
-            {/* Portfolio Performance Bar Chart */}
-            <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
-              <div className="flex items-center justify-between mb-6">
-                <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                  Portfolio Performance Trend
-                </h3>
-                <div className="flex items-center gap-1">
-                  {['6M', '1Y'].map((v, i) => (
-                    <button key={v}
-                      className="px-3 py-1 rounded-lg text-xs font-semibold transition-all"
-                      style={{
-                        backgroundColor: i === 0 ? '#242F43' : 'transparent',
-                        color: i === 0 ? '#fff' : '#8E99A8',
-                        fontFamily: 'Inter, sans-serif',
-                      }}
+          </div>
+        ) : error ? (
+          <div className="bg-red-50 border border-red-200 rounded-2xl p-6">
+            <p style={{ color: '#991B1B' }}>Error: {error}</p>
+          </div>
+        ) : data ? (
+          <>
+            {/* Hero overview */}
+            <section
+              className="rounded-3xl p-6 mb-8"
+              style={{
+                background: 'linear-gradient(135deg, #F8FAFC 0%, #EEF2FF 45%, #F1F5F9 100%)',
+                border: '1px solid #E2E8F0',
+              }}
+            >
+              <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
+                <div className="xl:col-span-2">
+                  <p className="text-xs font-semibold tracking-[0.2em] uppercase" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                    Ringkasan Tugas Hari Ini
+                  </p>
+                  <h2 className="text-2xl md:text-3xl font-bold mt-2" style={{ color: '#0F172A', fontFamily: 'Montserrat, sans-serif' }}>
+                    Fokus hari ini: pengajuan pinjaman, pengunduran anggota, dan risiko portofolio.
+                  </h2>
+                  <p className="text-sm mt-2" style={{ color: '#64748B', fontFamily: 'Inter, sans-serif' }}>
+                    Ringkas, jelas, dan langsung mengarah ke tindakan.
+                  </p>
+                  <div className="mt-4 flex flex-wrap gap-3">
+                    <Link
+                      href="/dashboard/manager/loans"
+                      className="text-sm font-semibold px-4 py-2 rounded-xl"
+                      style={{ backgroundColor: '#0F172A', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
                     >
-                      {v}
-                    </button>
-                  ))}
+                      Tinjau Pinjaman
+                    </Link>
+                    <Link
+                      href="/dashboard/manager/resignations"
+                      className="text-sm font-semibold px-4 py-2 rounded-xl"
+                      style={{ backgroundColor: '#0F172A', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
+                    >
+                      Tinjau Pengunduran
+                    </Link>
+                    <Link
+                      href="/dashboard/manager/credit"
+                      className="text-sm font-semibold px-4 py-2 rounded-xl"
+                      style={{ backgroundColor: '#FFFFFF', color: '#0F172A', border: '1px solid #CBD5F5', fontFamily: 'Inter, sans-serif' }}
+                    >
+                      Pantau Kredit
+                    </Link>
+                  </div>
+                </div>
+                <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #E2E8F0' }}>
+                  <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                    Prioritas Cepat
+                  </p>
+                  <div className="mt-4 space-y-4">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Pengajuan Pinjaman</p>
+                        <p className="text-xs" style={{ color: '#64748B' }}>Butuh review segera</p>
+                      </div>
+                      <div className="text-xl font-bold" style={{ color: '#0F172A' }}>{data.pending_loans_count}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Pengunduran Anggota</p>
+                        <p className="text-xs" style={{ color: '#64748B' }}>Perlu persetujuan</p>
+                      </div>
+                      <div className="text-xl font-bold" style={{ color: '#0F172A' }}>{data.resignation_summary?.total_pending ?? 0}</div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>Pinjaman Macet</p>
+                        <p className="text-xs" style={{ color: '#64748B' }}>Perlu tindak lanjut</p>
+                      </div>
+                      <div className="text-xl font-bold" style={{ color: '#DC2626' }}>{data.npl_count ?? 0}</div>
+                    </div>
+                  </div>
                 </div>
               </div>
-              <div className="flex items-end gap-1.5 h-36">
-                {BAR_DATA.map((d) => (
-                  <div key={d.month} className="flex-1 flex flex-col items-center gap-1">
-                    <div
-                      className="w-full rounded-t-md"
+            </section>
+
+            {/* Snapshot cards */}
+            <div className="grid grid-cols-1 xl:grid-cols-3 gap-5 mb-8">
+              <StatCard
+                label="Total Likuiditas"
+                value={formatCurrency(data.total_liquidity)}
+                badge="+2.4%"
+                badgePositive={true}
+                icon={<LiquidityIcon />}
+                accent="#11447D"
+              />
+              <StatCard
+                label="Total Pinjaman Aktif"
+                value={formatCurrency(data.total_outstanding_loans)}
+                badge="-1.2%"
+                badgePositive={false}
+                icon={<LoanIcon />}
+                accent="#EF4444"
+              />
+              <StatCard
+                label="Estimasi SHU Saat Ini (Murni)"
+                value={formatCurrency(data.estimated_shu)}
+                badge="+5.7%"
+                badgePositive={true}
+                icon={<ShuIcon />}
+                accent="#10B981"
+              />
+            </div>
+
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-8">
+              <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                      Risiko Portofolio
+                    </p>
+                    <h3 className="text-lg font-bold" style={{ color: '#0F172A', fontFamily: 'Montserrat, sans-serif' }}>
+                      Pinjaman Macet
+                    </h3>
+                  </div>
+                  <Link
+                    href="/dashboard/manager/credit"
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ border: '1px solid #E2E8F0', color: '#475569', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Lihat Monitoring
+                  </Link>
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#FFF1F2' }}>
+                    <p className="text-xs" style={{ color: '#9F1239' }}>Jumlah</p>
+                    <p className="text-2xl font-bold" style={{ color: '#9F1239' }}>{data.npl_count ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#FEF2F2' }}>
+                    <p className="text-xs" style={{ color: '#991B1B' }}>Nilai</p>
+                    <p className="text-lg font-bold" style={{ color: '#991B1B' }}>{formatCurrency(data.npl_amount ?? 0)}</p>
+                  </div>
+                </div>
+                <p className="text-xs mt-4" style={{ color: '#64748B' }}>
+                  Prioritaskan follow-up pada pinjaman dengan tunggakan tertinggi.
+                </p>
+              </div>
+              <div className="bg-white rounded-2xl p-5" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="flex items-center justify-between mb-4">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                      Kesehatan Kas
+                    </p>
+                    <h3 className="text-lg font-bold" style={{ color: '#0F172A', fontFamily: 'Montserrat, sans-serif' }}>
+                      Buffer Likuiditas
+                    </h3>
+                  </div>
+                  <Link
+                    href="/dashboard/manager/credit"
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ border: '1px solid #E2E8F0', color: '#475569', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Lihat Monitoring
+                  </Link>
+                </div>
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-xs" style={{ color: '#64748B' }}>Rasio Likuiditas</p>
+                    <p className="text-3xl font-bold" style={{ color: '#0F172A' }}>
+                      {formatPercent(liquidityRatio)}
+                    </p>
+                  </div>
+                  <div className="text-right">
+                    <p className="text-xs" style={{ color: '#64748B' }}>Status</p>
+                    <span
+                      className="inline-flex items-center px-3 py-1 rounded-full text-xs font-semibold"
                       style={{
-                        height: `${(d.value / MAX_BAR) * 100}%`,
-                        backgroundColor: d.month === 'JUN' ? '#242F43' : '#E5E7EB',
+                        backgroundColor: liquidityStatus === 'Aman' ? '#DCFCE7' : liquidityStatus === 'Waspada' ? '#FEF9C3' : '#FEE2E2',
+                        color: liquidityStatus === 'Aman' ? '#166534' : liquidityStatus === 'Waspada' ? '#92400E' : '#991B1B',
                       }}
-                    />
-                    <span className="text-xs" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif', fontSize: '9px' }}>
-                      {d.month}
+                    >
+                      {liquidityStatus}
                     </span>
                   </div>
-                ))}
-              </div>
-            </div>
-          </div>
-
-          {/* Right — Risk Profile + Recent Activities */}
-          <div className="flex flex-col gap-5">
-
-            {/* Risk Profile */}
-            <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
-              <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                Risk Profile Overview
-              </h3>
-              <div className="space-y-4">
-                {RISK_PROFILE.map((r) => (
-                  <div key={r.label}>
-                    <div className="flex justify-between mb-1">
-                      <span className="text-xs" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>{r.label}</span>
-                      <span className="text-xs font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>{r.pct}%</span>
-                    </div>
-                    <div className="h-1.5 rounded-full" style={{ backgroundColor: '#F1F5F9' }}>
-                      <div className="h-full rounded-full" style={{ width: `${r.pct}%`, backgroundColor: r.color }} />
-                    </div>
+                </div>
+                <div className="mt-4">
+                  <div className="flex items-center justify-between text-xs" style={{ color: '#94A3B8' }}>
+                    <span>0%</span>
+                    <span>Target 20%</span>
                   </div>
-                ))}
-              </div>
-            </div>
-
-            {/* Recent Activities */}
-            <div className="bg-white rounded-2xl p-6 flex-1" style={{ border: '1px solid #F1F5F9' }}>
-              <h3 className="font-bold text-base mb-5" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                Recent Credit Activities
-              </h3>
-              <div className="space-y-4">
-                {RECENT_ACTIVITIES.map((a, i) => (
-                  <div key={i} className="flex items-start gap-3">
+                  <div className="mt-2 h-2 rounded-full" style={{ backgroundColor: '#E2E8F0' }}>
                     <div
-                      className="w-8 h-8 rounded-full flex items-center justify-center flex-shrink-0 text-sm"
-                      style={{ backgroundColor: '#F1F5F9', color: '#525E71' }}
-                    >
-                      {a.icon}
-                    </div>
-                    <div>
-                      <p className="text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>{a.title}</p>
-                      <p className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>{a.detail}</p>
-                      <p className="text-xs mt-0.5" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif' }}>{a.time}</p>
-                    </div>
+                      className="h-2 rounded-full"
+                      style={{
+                        width: `${liquidityProgress * 100}%`,
+                        background: 'linear-gradient(90deg, #38BDF8 0%, #22C55E 100%)',
+                      }}
+                    />
                   </div>
-                ))}
+                </div>
+                <p className="text-xs mt-4" style={{ color: '#64748B' }}>
+                  Semakin tinggi buffer, semakin aman untuk menyetujui pinjaman baru.
+                </p>
               </div>
-              <button
-                className="w-full mt-5 py-2 rounded-xl text-xs font-semibold tracking-wider transition-colors"
-                style={{ border: '1px solid #E5E7EB', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-              >
-                VIEW ACTIVITY LOG
-              </button>
             </div>
 
-          </div>
-        </div>
+            <div className="grid grid-cols-1 xl:grid-cols-2 gap-5 mb-8">
+              <div className="bg-white rounded-2xl p-6 flex flex-col" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                      Status Pengajuan Pinjaman
+                    </p>
+                    <h3 className="text-lg font-bold" style={{ color: '#0F172A', fontFamily: 'Montserrat, sans-serif' }}>
+                      Komposisi Pengajuan
+                    </h3>
+                  </div>
+                  <Link
+                    href="/dashboard/manager/loans"
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ border: '1px solid #E2E8F0', color: '#475569', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Lihat Detail
+                  </Link>
+                </div>
+                <div className="flex flex-col md:flex-row items-center gap-6">
+                  <div
+                    className="w-44 h-44 rounded-full"
+                    style={{
+                      background: `conic-gradient(#1D4ED8 0 ${pendingRatio * 360}deg, #10B981 ${pendingRatio * 360}deg ${(pendingRatio + approvedRatio) * 360}deg, #F59E0B ${(pendingRatio + approvedRatio) * 360}deg 360deg)`
+                    }}
+                  />
+                  <div className="space-y-3 flex-1">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#1D4ED8' }} />
+                        <p className="text-sm" style={{ color: '#0F172A' }}>Pending</p>
+                      </div>
+                      <div className="text-sm font-semibold" style={{ color: '#0F172A' }}>
+                        {loanPending} • {formatPercent(pendingRatio)}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#10B981' }} />
+                        <p className="text-sm" style={{ color: '#0F172A' }}>Disetujui</p>
+                      </div>
+                      <div className="text-sm font-semibold" style={{ color: '#0F172A' }}>
+                        {loanApproved} • {formatPercent(approvedRatio)}
+                      </div>
+                    </div>
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="w-2 h-2 rounded-full" style={{ backgroundColor: '#F59E0B' }} />
+                        <p className="text-sm" style={{ color: '#0F172A' }}>Terlambat</p>
+                      </div>
+                      <div className="text-sm font-semibold" style={{ color: '#0F172A' }}>
+                        {loanOverdue} • {formatPercent(overdueRatio)}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+                <div className="flex items-center justify-between mb-6">
+                  <div>
+                    <p className="text-xs font-semibold uppercase tracking-[0.2em]" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
+                      Ringkasan Pengunduran
+                    </p>
+                    <h3 className="text-lg font-bold" style={{ color: '#0F172A', fontFamily: 'Montserrat, sans-serif' }}>
+                      Status Penutupan Akun
+                    </h3>
+                  </div>
+                  <Link
+                    href="/dashboard/manager/resignations"
+                    className="text-xs font-semibold px-3 py-2 rounded-lg"
+                    style={{ border: '1px solid #E2E8F0', color: '#475569', fontFamily: 'Inter, sans-serif' }}
+                  >
+                    Lihat Detail
+                  </Link>
+                </div>
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#F8FAFC' }}>
+                    <p className="text-xs" style={{ color: '#64748B' }}>Pending</p>
+                    <p className="text-xl font-bold" style={{ color: '#0F172A' }}>{data.resignation_summary?.total_pending ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#F1F5F9' }}>
+                    <p className="text-xs" style={{ color: '#64748B' }}>Disetujui</p>
+                    <p className="text-xl font-bold" style={{ color: '#0F172A' }}>{data.resignation_summary?.total_approved ?? 0}</p>
+                  </div>
+                  <div className="rounded-xl p-4" style={{ backgroundColor: '#EEF2FF' }}>
+                    <p className="text-xs" style={{ color: '#64748B' }}>Inaktif</p>
+                    <p className="text-xl font-bold" style={{ color: '#0F172A' }}>{data.resignation_summary?.total_inactive ?? 0}</p>
+                  </div>
+                </div>
+                <div className="mt-4 flex-1">
+                  {data.resignation_requests && data.resignation_requests.length > 0 ? (
+                    data.resignation_requests.slice(0, resignationPreviewLimit).map((req) => (
+                      <div key={req.id} className="flex items-center justify-between">
+                        <div>
+                          <p className="text-sm font-semibold" style={{ color: '#0F172A' }}>{req.member_name}</p>
+                          <p className="text-xs" style={{ color: '#64748B' }}>{req.member_id} • {req.status_display}</p>
+                        </div>
+                        <div className="text-xs" style={{ color: '#64748B' }}>
+                          {req.request_date ? new Date(req.request_date).toLocaleDateString() : '-'}
+                        </div>
+                      </div>
+                    ))
+                  ) : (
+                    <div className="mt-4 rounded-xl px-4 py-3" style={{ backgroundColor: '#F8FAFC', color: '#94A3B8' }}>
+                      <p className="text-xs">Belum ada pengajuan pengunduran baru.</p>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+          </>
+        ) : null}
       </main>
     </DashboardLayout>
   )

@@ -162,7 +162,7 @@ export default function StaffInstallmentsPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-001">
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title="Pembayaran Cicilan"

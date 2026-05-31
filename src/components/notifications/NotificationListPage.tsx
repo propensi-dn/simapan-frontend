@@ -48,6 +48,10 @@ const TYPE_CONFIG: Record<
     bg: '#FEF3C7', text: '#92400E', dot: '#F59E0B',
     label: 'Pinjaman', icon: '💰',
   },
+  WITHDRAWAL: {
+    bg: '#FFF7ED', text: '#92400E', dot: '#FB923C',
+    label: 'Penarikan', icon: '💸',
+  },
   RESIGNATION: {
     bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444',
     label: 'Pengunduran Diri', icon: '🚪',
@@ -63,6 +67,7 @@ const TYPE_FILTER_OPTIONS: { key: string; label: string }[] = [
   { key: 'REGISTRATION', label: 'Registrasi' },
   { key: 'SAVING', label: 'Simpanan' },
   { key: 'LOAN', label: 'Pinjaman' },
+  { key: 'WITHDRAWAL', label: 'Penarikan' },
   { key: 'RESIGNATION', label: 'Pengunduran Diri' },
   { key: 'GENERAL', label: 'Umum' },
 ]
@@ -215,8 +220,6 @@ const CheckAllIcon = () => (
 
 export interface NotificationListPageProps {
   role: 'MEMBER' | 'STAFF' | 'MANAGER' | 'CHAIRMAN'
-  userName?: string
-  userID?: string
   detailBasePath: string // e.g. '/dashboard/member/notifications'
 }
 
@@ -224,8 +227,6 @@ export interface NotificationListPageProps {
 
 export default function NotificationListPage({
   role,
-  userName,
-  userID,
   detailBasePath,
 }: NotificationListPageProps) {
   const router = useRouter()
@@ -282,7 +283,7 @@ export default function NotificationListPage({
   const dashboardHref = `/dashboard/${role.toLowerCase()}`
 
   return (
-    <DashboardLayout role={role} userName={userName} userID={userID}>
+    <DashboardLayout role={role}>
       <DashboardHeader
         variant="detail"
         parentLabel="Dashboard"
