@@ -102,12 +102,16 @@ export interface BankAccount {
 }
 
 export interface LoanFormData {
-  bank_accounts:  BankAccount[]
-  categories:     { value: LoanCategory; label: string }[]
-  tenor_choices:  number[]
-  interest_rate:  number
-  min_amount:     number
-  max_amount:     number
+  bank_accounts:                BankAccount[]
+  categories:                   { value: LoanCategory; label: string }[]
+  tenor_choices:                number[]
+  interest_rate:                number
+  min_amount:                   number
+  max_amount:                   number
+  max_amount_by_tenor:          Record<number, number>
+  stable_savings:               number
+  total_savings:                number
+  current_monthly_obligations:  number
 }
 
 export interface LoanCreatePayload {
