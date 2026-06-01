@@ -281,7 +281,7 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
   }
 
   return (
-    <DashboardLayout role="MANAGER">
+    <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
       <DashboardHeader
         variant="detail"
         parentLabel="Persetujuan Pinjaman"

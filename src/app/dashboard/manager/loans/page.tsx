@@ -1,6 +1,6 @@
-﻿'use client'
+'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -38,6 +38,8 @@ export default function ManagerLoansPage() {
   const [allRows, setAllRows] = useState<ManagerAllLoanItem[]>([])
   const [activityRows, setActivityRows] = useState<ManagerLoanActivityItem[]>([])
   const [nearDueRows, setNearDueRows] = useState<ManagerNearDueLoanItem[]>([])
+  const [chartCardMinHeight, setChartCardMinHeight] = useState<number | undefined>(undefined)
+  const nearDueCardRef = useRef<HTMLDivElement | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -102,6 +104,30 @@ export default function ManagerLoansPage() {
     load(1, search, sort, allSearch, allStatus, 1)
   }, [load, search, sort, allSearch, allStatus])
 
+  useEffect(() => {
+    const target = nearDueCardRef.current
+    if (!target) return
+
+    const syncHeight = () => {
+      const nextHeight = target.getBoundingClientRect().height
+      setChartCardMinHeight(nextHeight > 0 ? nextHeight : undefined)
+    }
+
+    syncHeight()
+
+    const observer = new ResizeObserver(() => {
+      syncHeight()
+    })
+
+    observer.observe(target)
+    window.addEventListener('resize', syncHeight)
+
+    return () => {
+      observer.disconnect()
+      window.removeEventListener('resize', syncHeight)
+    }
+  }, [nearDueRows.length, loading, error])
+
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
     setSearch(searchInput)
@@ -122,14 +148,15 @@ export default function ManagerLoansPage() {
     load(page, search, sort, allSearch, allStatus, next)
   }
 
-  const paginationRange = () => {
+  const getPaginationRange = (current: number, total: number) => {
     const delta = 2
     const range: (number | '...')[] = []
-    for (let i = Math.max(1, page - delta); i <= Math.min(totalPages, page + delta); i++) {
+    for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
       range.push(i)
     }
+    if (range.length === 0) return range
     if (range[0] !== 1) { range.unshift('...'); range.unshift(1) }
-    if (range[range.length - 1] !== totalPages) { range.push('...'); range.push(totalPages) }
+    if (range[range.length - 1] !== total) { range.push('...'); range.push(total) }
     return range
   }
 
@@ -182,20 +209,23 @@ export default function ManagerLoansPage() {
           </div>
         </div>
 
-        <div className="grid grid-cols-2 gap-5">
-          <div className="bg-white rounded-2xl p-6" style={{ border: '1px solid #F1F5F9' }}>
+        <div className="grid grid-cols-2 gap-5 items-stretch">
+          <div
+            className="bg-white rounded-2xl p-6 h-full flex flex-col"
+            style={{ border: '1px solid #F1F5F9', minHeight: chartCardMinHeight }}
+          >
             <div className="flex items-center justify-between mb-5">
               <h3 className="font-bold text-base" style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                 Aktivitas Pinjaman (6 Bulan)
               </h3>
             </div>
-            <div className="flex items-end gap-2 h-40">
+            <div className="flex-1 min-h-[260px] flex items-end gap-2">
               {activityRows.map((item) => {
                 const max = Math.max(...activityRows.map(x => x.total), 1)
                 const h = Math.max(0, Math.round((item.total / max) * 100))
                 return (
                   <div key={item.month} className="flex-1 h-full flex flex-col items-center gap-1.5">
-                    <div className="w-full h-28 flex items-end">
+                    <div className="w-full flex-1 min-h-[180px] flex items-end">
                       <div
                         className="w-full rounded-t-md transition-all"
                         style={{
@@ -212,18 +242,22 @@ export default function ManagerLoansPage() {
             </div>
           </div>
 
-          <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
+          <div
+            ref={nearDueCardRef}
+            className="bg-white rounded-2xl overflow-hidden h-full flex flex-col"
+            style={{ border: '1px solid #F1F5F9' }}
+          >
             <div className="px-5 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
               <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                 Jatuh Tempo Dalam 14 Hari
               </h3>
             </div>
             {nearDueRows.length === 0 ? (
-              <div className="px-5 py-10 text-sm text-center" style={{ color: '#8E99A8' }}>
+              <div className="px-5 py-10 text-sm text-center flex-1 flex items-center justify-center" style={{ color: '#8E99A8' }}>
                 Tidak ada pinjaman yang mendekati jatuh tempo.
               </div>
             ) : (
-              <div className="overflow-x-auto">
+              <div className="overflow-x-auto flex-1">
                 <table className="w-full">
                   <thead>
                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
@@ -400,7 +434,7 @@ export default function ManagerLoansPage() {
                   {'<'}
                 </button>
 
-                {paginationRange().map((p, idx) =>
+                {getPaginationRange(page, totalPages).map((p, idx) =>
                   p === '...' ? (
                     <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
                       ...
@@ -546,7 +580,7 @@ export default function ManagerLoansPage() {
             <div className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               <span>
-                Menampilkan {(allPage - 1) * allPageSize + 1}–{Math.min(allPage * allPageSize, allCount)} dari {allCount} data
+                Halaman {allPage} dari {allTotalPages} • {allCount} total data
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -556,7 +590,27 @@ export default function ManagerLoansPage() {
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
                   {'<'}
                 </button>
-                <span className="px-3 text-xs" style={{ color: '#525E71' }}>{allPage}</span>
+
+                {getPaginationRange(allPage, allTotalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => handleAllPage(p as number)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === allPage ? '#242F43' : 'transparent',
+                        color: p === allPage ? '#FFFFFF' : '#525E71',
+                        border: p === allPage ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handleAllPage(allPage + 1)}
                   disabled={allPage === allTotalPages}
