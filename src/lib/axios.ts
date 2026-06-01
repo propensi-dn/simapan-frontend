@@ -35,14 +35,19 @@ api.interceptors.request.use((config) => {
   return config
 })
 
-// Handle 401 → redirect ke login
+// Handle 401 → redirect ke login (kecuali request login itu sendiri)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
-    if (error.response?.status === 401) {
+    const isLoginEndpoint = error.config?.url?.includes('/auth/login/')
+    if (error.response?.status === 401 && !isLoginEndpoint) {
       Cookies.remove('access_token')
       Cookies.remove('refresh_token')
       Cookies.remove('user_role')
+      Cookies.remove('user_name')
+      Cookies.remove('user_id')
+      Cookies.remove('user_avatar')
+      Cookies.remove('user_status')
       if (typeof window !== 'undefined') {
         window.location.href = '/login'
       }

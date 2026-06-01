@@ -12,8 +12,7 @@ import {
   type ResignationSettlement,
   type ResignationRequestDetail,
 } from '@/lib/resignations-api'
-import { logout } from '@/lib/auth'
-import api from '@/lib/axios'
+import { logout, getUserName } from '@/lib/auth'
 
 const fmtRp = (v: string | number) =>
   new Intl.NumberFormat('id-ID', {
@@ -136,7 +135,6 @@ function ResignedNotice({ memberName }: { memberName: string }) {
 export default function MemberResignationsPage() {
   const [settlement, setSettlement] = useState<ResignationSettlement | null>(null)
   const [existing, setExisting] = useState<ResignationRequestDetail | null>(null)
-  const [profile, setProfile] = useState<{ full_name: string } | null>(null)
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
@@ -162,12 +160,6 @@ export default function MemberResignationsPage() {
         setError('Gagal memuat data. Silakan coba lagi.')
       } finally {
         setLoading(false)
-      }
-      try {
-        const profileData = await api.get('/members/profile/').then((r) => r.data)
-        setProfile(profileData)
-      } catch {
-        // profile failure is non-fatal
       }
     }
     load()
@@ -203,7 +195,7 @@ export default function MemberResignationsPage() {
     }
   }
 
-  const userName = profile?.full_name || settlement?.member_name || 'Anggota'
+  const userName = settlement?.member_name || getUserName() || 'Anggota'
 
   // ── Full-screen states ────────────────────────────────────────────────────
   // RESIGNED = account fully closed. Force a logout flow.
@@ -257,7 +249,7 @@ export default function MemberResignationsPage() {
   })()
 
   return (
-    <DashboardLayout role="MEMBER" userName={userName}>
+    <DashboardLayout role="MEMBER">
       <DashboardHeader variant="default" title="Penutupan Akun" />
 
       <main className="flex-1 p-8">

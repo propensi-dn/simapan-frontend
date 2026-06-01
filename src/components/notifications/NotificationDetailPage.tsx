@@ -50,16 +50,12 @@ const TYPE_CONFIG: Record<
 export interface NotificationDetailPageProps {
   id: number
   role: 'MEMBER' | 'STAFF' | 'MANAGER' | 'CHAIRMAN'
-  userName?: string
-  userID?: string
-  listBasePath: string 
+  listBasePath: string
 }
 
 export default function NotificationDetailPage({
   id,
   role,
-  userName,
-  userID,
   listBasePath,
 }: NotificationDetailPageProps) {
   const router = useRouter()
@@ -95,7 +91,7 @@ export default function NotificationDetailPage({
     : TYPE_CONFIG.GENERAL
 
   return (
-    <DashboardLayout role={role} userName={userName} userID={userID}>
+    <DashboardLayout role={role}>
       <DashboardHeader
         variant="detail"
         parentLabel="Notifikasi"

@@ -138,7 +138,7 @@ export default function VerifyMemberPage({ params }: { params: Promise<{ id: str
   const isPending = member?.status === 'PENDING'
 
   return (
-    <DashboardLayout role="STAFF" userName="Petugas">
+    <DashboardLayout role="STAFF">
 
       <DashboardHeader
         variant="detail"

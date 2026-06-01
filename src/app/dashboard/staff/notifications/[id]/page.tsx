@@ -14,7 +14,6 @@ export default function StaffNotificationDetailPage({
     <NotificationDetailPage
       id={Number(id)}
       role="STAFF"
-      userName="Petugas"
       listBasePath="/dashboard/staff/notifications"
     />
   )

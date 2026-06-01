@@ -156,7 +156,7 @@ export default function StaffLoanDetailMonitoringPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF" userName="Petugas" userID="STAFF-001">
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title={

@@ -220,8 +220,6 @@ const CheckAllIcon = () => (
 
 export interface NotificationListPageProps {
   role: 'MEMBER' | 'STAFF' | 'MANAGER' | 'CHAIRMAN'
-  userName?: string
-  userID?: string
   detailBasePath: string // e.g. '/dashboard/member/notifications'
 }
 
@@ -229,8 +227,6 @@ export interface NotificationListPageProps {
 
 export default function NotificationListPage({
   role,
-  userName,
-  userID,
   detailBasePath,
 }: NotificationListPageProps) {
   const router = useRouter()
@@ -287,7 +283,7 @@ export default function NotificationListPage({
   const dashboardHref = `/dashboard/${role.toLowerCase()}`
 
   return (
-    <DashboardLayout role={role} userName={userName} userID={userID}>
+    <DashboardLayout role={role}>
       <DashboardHeader
         variant="detail"
         parentLabel="Dashboard"

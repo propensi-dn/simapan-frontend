@@ -1,11 +1,13 @@
 'use client'
 
 import Link from 'next/link'
+import Image from 'next/image'
 import { useRouter } from 'next/navigation'
 import { useEffect, useState } from 'react'
 import type { ReactNode } from 'react'
 import Cookies from 'js-cookie'
 import api from '@/lib/axios'
+import { useSidebar } from '@/components/layout/sidebar-context'
 
 // ── Icons ──────────────────────────────────────────────────────
 const BellIcon = () => (
@@ -113,6 +115,18 @@ type DashboardHeaderProps = HeaderDefaultProps | HeaderDetailProps | HeaderFormP
 // ── Main component ─────────────────────────────────────────────
 export default function DashboardHeader(props: DashboardHeaderProps) {
   const router = useRouter()
+  const { onMenuOpen } = useSidebar()
+
+  const mobileLogoBtn = (
+    <button
+      className="lg:hidden flex-shrink-0 w-9 h-9 rounded-lg flex items-center justify-center"
+      style={{ backgroundColor: 'transparent' }}
+      onClick={onMenuOpen}
+      aria-label="Buka menu"
+    >
+      <Image src="/images/logo.png" alt="SI-MAPAN" width={28} height={28} className="rounded-lg" />
+    </button>
+  )
 
   const baseStyle: React.CSSProperties = {
     backgroundColor: '#FFFFFF',
@@ -130,6 +144,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
   if (props.variant === 'default') {
     return (
       <header style={baseStyle}>
+        {mobileLogoBtn}
         <h1
           className="font-bold text-base flex-1"
           style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
@@ -144,6 +159,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
   if (props.variant === 'detail') {
     return (
       <header style={baseStyle}>
+        {mobileLogoBtn}
         <div className="flex items-center gap-2 flex-1">
           <Link
             href={props.parentHref}
@@ -175,6 +191,7 @@ export default function DashboardHeader(props: DashboardHeaderProps) {
 
     return (
       <header style={baseStyle}>
+        {mobileLogoBtn}
         <div className="flex items-center gap-3 flex-1">
           <button
             onClick={handleBack}

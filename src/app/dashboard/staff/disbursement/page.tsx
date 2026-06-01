@@ -7,7 +7,6 @@ import DashboardHeader from '@/components/layout/DashboardHeader'
 import { getApprovedLoans, getDisbursedLoans, ApprovedLoan, DisbursedLoan } from '@/lib/staff-api'
 import toast from 'react-hot-toast'
 import { Search, ChevronLeft, ChevronRight, Loader, CalendarDays, Banknote, History } from 'lucide-react'
-import { getUserName, getUserID } from '@/lib/auth'
 
 // ── Types ────────────────────────────────────────────────────────────────────
 type Tab = 'approved' | 'history'
@@ -125,19 +124,11 @@ export default function StaffDisbursementPage() {
   const [endDate, setEndDate] = useState('')
   const [page, setPage] = useState(1)
 
-  const [userName, setUserName] = useState<string | undefined>()
-  const [userID, setUserID] = useState<string | undefined>()
-
   const [approvedLoans, setApprovedLoans] = useState<ApprovedLoan[]>([])
   const [disbursedLoans, setDisbursedLoans] = useState<DisbursedLoan[]>([])
   const [loading, setLoading] = useState(false)
   const [approvedPageInfo, setApprovedPageInfo] = useState({ count: 0, total_pages: 1, page_size: 10 })
   const [disbursedPageInfo, setDisbursedPageInfo] = useState({ count: 0, total_pages: 1, page_size: 10 })
-
-  useEffect(() => {
-    setUserName(getUserName() || 'Petugas')
-    setUserID(getUserID() || 'STAFF-001')
-  }, [])
 
   const fetchApproved = useCallback(async (s: string, sd: string, ed: string, p: number) => {
     try {
@@ -197,7 +188,7 @@ export default function StaffDisbursementPage() {
   ]
 
   return (
-    <DashboardLayout role="STAFF" userName={userName} userID={userID}>
+    <DashboardLayout role="STAFF">
       <DashboardHeader
         variant="default"
         title="Manajemen Pencairan"

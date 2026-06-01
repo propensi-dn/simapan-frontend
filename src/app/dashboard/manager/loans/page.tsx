@@ -1,4 +1,4 @@
-'use client'
+﻿'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -134,7 +134,7 @@ export default function ManagerLoansPage() {
   }
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manajer" userID="MGR-0001">
+    <DashboardLayout role="MANAGER">
       <DashboardHeader variant="default" title="Persetujuan Pinjaman" notifCount={0} />
 
       <main className="flex-1 p-8 space-y-6">

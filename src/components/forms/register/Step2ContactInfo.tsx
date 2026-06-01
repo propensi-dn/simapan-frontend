@@ -8,10 +8,11 @@ import { RegisterData } from '@/app/(auth)/register/page'
 const schema = z.object({
   phone_number: z.string()
     .min(1, 'Nomor telepon wajib diisi')
-    .regex(/^\d+$/, 'Nomor telepon hanya boleh angka'),
+    .regex(/^08\d{8,11}$/, 'Nomor telepon harus diawali 08 dan terdiri dari 10–13 digit'),
   home_address: z.string().min(1, 'Alamat wajib diisi'),
-  city: z.string().min(1, 'Kota wajib diisi'),
-  postal_code: z.string().min(1, 'Kode pos wajib diisi'),
+  city: z.string().min(1, 'Kota wajib diisi').max(100, 'Kota maksimal 100 karakter'),
+  postal_code: z.string()
+    .regex(/^\d{5}$/, 'Kode pos harus berupa 5 digit angka'),
 })
 
 type FormData = z.infer<typeof schema>

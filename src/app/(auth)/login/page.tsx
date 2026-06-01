@@ -13,6 +13,13 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 import api from '@/lib/axios'
 
+type LoginAlert = {
+  type: 'warning' | 'error'
+  message: string
+  detail?: string
+  statusHref?: string
+}
+
 // Icons
 const EmailIcon = () => (
   <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
@@ -52,6 +59,7 @@ const ROLE_REDIRECT: Record<string, string> = {
 export default function LoginPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
+  const [loginAlert, setLoginAlert] = useState<LoginAlert | null>(null)
 
   const {
     register,
@@ -64,6 +72,7 @@ export default function LoginPage() {
 
   const onSubmit = async (data: LoginFormData) => {
     setLoading(true)
+    setLoginAlert(null)
     try {
       const res = await api.post('/auth/login/', {
         email: data.email,
@@ -79,22 +88,37 @@ export default function LoginPage() {
       router.push(ROLE_REDIRECT[res.data.role] || '/dashboard')
 
     } catch (err: any) {
-      const message = err.response?.data?.message || 'Login gagal'
+      const message: string = err.response?.data?.message || ''
 
-      // Kalau pending/rejected, arahkan ke halaman status
       if (message.includes('belum diverifikasi')) {
-        toast.error(message)
-        setTimeout(() => router.push(`/status?email=${data.email}`), 1500)
-        return
+        setLoginAlert({
+          type: 'warning',
+          message: 'Akun Anda sedang menunggu verifikasi.',
+          detail: 'Pendaftaran Anda sedang ditinjau oleh petugas. Silakan cek halaman status untuk informasi terkini.',
+          statusHref: `/status?email=${encodeURIComponent(data.email)}`,
+        })
+      } else if (message.includes('ditolak')) {
+        setLoginAlert({
+          type: 'error',
+          message: 'Pendaftaran Anda ditolak.',
+          detail: 'Akun Anda tidak dapat diaktifkan. Silakan hubungi petugas KSB untuk informasi lebih lanjut.',
+          statusHref: `/status?email=${encodeURIComponent(data.email)}`,
+        })
+      } else if (message.includes('tidak aktif')) {
+        setLoginAlert({
+          type: 'error',
+          message: 'Akun Anda sudah tidak aktif.',
+          detail: 'Silakan hubungi petugas KSB untuk mengaktifkan kembali akun Anda.',
+        })
+      } else if (message.includes('Email atau password salah') || !message) {
+        setLoginAlert({
+          type: 'error',
+          message: 'Email atau password salah.',
+          detail: 'Periksa kembali email dan password Anda, lalu coba lagi.',
+        })
+      } else {
+        setLoginAlert({ type: 'error', message })
       }
-
-      if (message.includes('ditolak')) {
-        toast.error(message)
-        setTimeout(() => router.push(`/status?email=${data.email}`), 1500)
-        return
-      }
-
-      toast.error(message)
     } finally {
       setLoading(false)
     }
@@ -129,6 +153,7 @@ export default function LoginPage() {
                 label="Alamat Email"
                 type="email"
                 placeholder="name@company.com"
+                autoComplete="email"
                 leftIcon={<EmailIcon />}
                 error={errors.email?.message}
                 required
@@ -140,6 +165,7 @@ export default function LoginPage() {
                 label="Password"
                 type="password"
                 placeholder="••••••••"
+                autoComplete="current-password"
                 leftIcon={<LockIcon />}
                 error={errors.password?.message}
                 required
@@ -163,6 +189,65 @@ export default function LoginPage() {
                   Lupa Password?
                 </Link>
               </div>
+
+              {/* Login alert */}
+              {loginAlert && (() => {
+                const isWarning = loginAlert.type === 'warning'
+                const colors = isWarning
+                  ? { bg: '#FFFBEB', border: '#FCD34D', icon: '#F59E0B', iconBg: '#FEF3C7', title: '#78350F', detail: '#92400E', link: '#B45309' }
+                  : { bg: '#FFF5F5', border: '#FCA5A5', icon: '#EF4444', iconBg: '#FEE2E2', title: '#7F1D1D', detail: '#991B1B', link: '#B91C1C' }
+                return (
+                  <div
+                    className="rounded-2xl overflow-hidden"
+                    style={{ border: `1.5px solid ${colors.border}`, backgroundColor: colors.bg }}
+                  >
+                    {/* Top accent bar */}
+                    <div style={{ height: 3, backgroundColor: colors.icon }} />
+
+                    <div className="flex items-start gap-3 px-4 py-3.5">
+                      {/* Icon */}
+                      <div
+                        className="flex-shrink-0 w-8 h-8 rounded-lg flex items-center justify-center mt-0.5"
+                        style={{ backgroundColor: colors.iconBg }}
+                      >
+                        {isWarning ? (
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={colors.icon} strokeWidth={2.2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
+                          </svg>
+                        ) : (
+                          <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke={colors.icon} strokeWidth={2.2}>
+                            <path strokeLinecap="round" strokeLinejoin="round" d="M12 9v3.75m9-.75a9 9 0 11-18 0 9 9 0 0118 0zm-9 3.75h.008v.008H12v-.008z" />
+                          </svg>
+                        )}
+                      </div>
+
+                      {/* Text */}
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-bold leading-snug" style={{ color: colors.title, fontFamily: 'Inter, sans-serif' }}>
+                          {loginAlert.message}
+                        </p>
+                        {loginAlert.detail && (
+                          <p className="text-xs mt-1 leading-relaxed" style={{ color: colors.detail, fontFamily: 'Inter, sans-serif' }}>
+                            {loginAlert.detail}
+                          </p>
+                        )}
+                        {loginAlert.statusHref && (
+                          <Link
+                            href={loginAlert.statusHref}
+                            className="inline-flex items-center gap-1 text-xs font-semibold mt-2 px-2.5 py-1 rounded-lg transition-opacity hover:opacity-80"
+                            style={{ backgroundColor: colors.iconBg, color: colors.link, fontFamily: 'Inter, sans-serif' }}
+                          >
+                            Cek status pendaftaran
+                            <svg width="12" height="12" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2.5}>
+                              <path strokeLinecap="round" strokeLinejoin="round" d="M13.5 4.5L21 12m0 0l-7.5 7.5M21 12H3" />
+                            </svg>
+                          </Link>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                )
+              })()}
 
               {/* Submit */}
               <Button

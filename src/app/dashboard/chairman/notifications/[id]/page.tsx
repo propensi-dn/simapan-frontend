@@ -14,7 +14,6 @@ export default function ChairmanNotificationDetailPage({
     <NotificationDetailPage
       id={Number(id)}
       role="CHAIRMAN"
-      userName="Ketua"
       listBasePath="/dashboard/chairman/notifications"
     />
   )

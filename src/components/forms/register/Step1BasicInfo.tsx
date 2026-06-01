@@ -8,11 +8,24 @@ import Input from '@/components/ui/Input'
 import Button from '@/components/ui/Button'
 
 const schema = z.object({
-  full_name: z.string().min(1, 'Nama lengkap wajib diisi'),
-  place_of_birth: z.string().min(1, 'Tempat lahir wajib diisi'),
-  date_of_birth: z.string().min(1, 'Tanggal lahir wajib diisi'),
+  full_name: z.string().min(1, 'Nama lengkap wajib diisi').max(255, 'Nama lengkap maksimal 255 karakter'),
+  place_of_birth: z.string().min(1, 'Tempat lahir wajib diisi').max(100, 'Tempat lahir maksimal 100 karakter'),
+  date_of_birth: z.string()
+    .min(1, 'Tanggal lahir wajib diisi')
+    .refine((val) => {
+      const dob = new Date(val)
+      return !isNaN(dob.getTime()) && dob < new Date()
+    }, 'Tanggal lahir tidak valid')
+    .refine((val) => {
+      const dob = new Date(val)
+      const today = new Date()
+      const age = today.getFullYear() - dob.getFullYear()
+      const m = today.getMonth() - dob.getMonth()
+      const adjustedAge = m < 0 || (m === 0 && today.getDate() < dob.getDate()) ? age - 1 : age
+      return adjustedAge >= 17
+    }, 'Pendaftar harus berusia minimal 17 tahun'),
   gender: z.enum(['M', 'F'], { error: 'Gender wajib dipilih' }),
-  occupation: z.string().min(1, 'Pekerjaan wajib diisi'),
+  occupation: z.string().min(1, 'Pekerjaan wajib diisi').max(100, 'Pekerjaan maksimal 100 karakter'),
 })
 
 type FormData = z.infer<typeof schema>

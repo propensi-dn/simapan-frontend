@@ -6,12 +6,6 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import api from '@/lib/axios'
 
-type Profile = {
-  full_name: string
-  member_id: string | null
-  profile_picture: string | null
-}
-
 type WithdrawalRow = {
   id: number
   saving_id: string
@@ -55,7 +49,6 @@ const fmtDate = (iso: string | null) => {
 }
 
 export default function MemberWithdrawalsPage() {
-  const [profile, setProfile] = useState<Profile | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
   const [page, setPage] = useState(1)
@@ -82,10 +75,6 @@ export default function MemberWithdrawalsPage() {
     }
     return range
   }, [currentPage, totalPages])
-
-  useEffect(() => {
-    api.get('/members/profile/').then(res => setProfile(res.data)).catch(() => {})
-  }, [])
 
   useEffect(() => {
     const load = async () => {
@@ -117,12 +106,7 @@ export default function MemberWithdrawalsPage() {
   }, [page])
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : ''}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader variant="default" title="Riwayat Penarikan" notifCount={0} />
 
       <main className="flex-1 p-8 space-y-6">

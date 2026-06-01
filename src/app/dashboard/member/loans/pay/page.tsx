@@ -157,17 +157,6 @@ function PayLoanPageContent() {
   const [formErrors, setFormErrors] = useState<Record<string, string>>({})
   const [successMsg, setSuccessMsg] = useState('')
 
-  // profile for sidebar
-  const [profile, setProfile] = useState<{
-    full_name: string
-    member_id: string | null
-    profile_picture: string | null
-  } | null>(null)
-
-  useEffect(() => {
-    api.get('/members/profile/').then(r => setProfile(r.data)).catch(() => {})
-  }, [])
-
   // ── Load pay info ──────────────────────────────────────────
   const load = useCallback(async (instId: number) => {
     setLoading(true); setError('')
@@ -328,12 +317,7 @@ function PayLoanPageContent() {
 
   if (loading) {
     return (
-      <DashboardLayout
-        role="MEMBER"
-        userName={profile?.full_name || 'Member'}
-        userID={profile?.member_id ? `#${profile.member_id}` : ''}
-        avatarUrl={profile?.profile_picture || undefined}
-      >
+      <DashboardLayout role="MEMBER">
         <DashboardHeader
           variant="detail"
           parentLabel="Pinjaman"
@@ -351,12 +335,7 @@ function PayLoanPageContent() {
 
   if (error || !info) {
     return (
-      <DashboardLayout
-        role="MEMBER"
-        userName={profile?.full_name || 'Member'}
-        userID={profile?.member_id ? `#${profile.member_id}` : ''}
-        avatarUrl={profile?.profile_picture || undefined}
-      >
+      <DashboardLayout role="MEMBER">
         <DashboardHeader
           variant="detail"
           parentLabel="Pinjaman"
@@ -398,12 +377,7 @@ function PayLoanPageContent() {
   const savingsInsufficient = sukarelaBalance < installmentAmount
 
   return (
-    <DashboardLayout
-      role="MEMBER"
-      userName={profile?.full_name || 'Member'}
-      userID={profile?.member_id ? `#${profile.member_id}` : ''}
-      avatarUrl={profile?.profile_picture || undefined}
-    >
+    <DashboardLayout role="MEMBER">
       <DashboardHeader
         variant="detail"
         parentLabel="Pinjaman"

@@ -14,7 +14,6 @@ export default function ManagerNotificationDetailPage({
     <NotificationDetailPage
       id={Number(id)}
       role="MANAGER"
-      userName="Manajer"
       listBasePath="/dashboard/manager/notifications"
     />
   )

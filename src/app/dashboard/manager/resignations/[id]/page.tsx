@@ -90,7 +90,7 @@ export default function ManagerResignationDetailPage({
 
   if (loading) {
     return (
-      <DashboardLayout role="MANAGER" userName="Manajer">
+      <DashboardLayout role="MANAGER">
         <DashboardHeader
           variant="detail"
           parentLabel="Persetujuan Resign"
@@ -106,7 +106,7 @@ export default function ManagerResignationDetailPage({
 
   if (error || !detail) {
     return (
-      <DashboardLayout role="MANAGER" userName="Manajer">
+      <DashboardLayout role="MANAGER">
         <DashboardHeader
           variant="detail"
           parentLabel="Persetujuan Resign"
@@ -124,7 +124,7 @@ export default function ManagerResignationDetailPage({
   const isPending = detail.status === 'PENDING'
 
   return (
-    <DashboardLayout role="MANAGER" userName="Manajer">
+    <DashboardLayout role="MANAGER">
       <DashboardHeader
         variant="detail"
         parentLabel="Persetujuan Resign"

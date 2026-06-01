@@ -4,6 +4,7 @@ import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import Button from '@/components/ui/Button'
 
+
 const navLinks = [
   { label: 'Beranda', href: '/' },
   { label: 'Tentang', href: '/about' },
@@ -26,6 +27,7 @@ export default function Navbar() {
             width={40}
             height={40}
             className="rounded-lg"
+            style={{ width: '40px', height: '40px' }}
           />
           <span className="font-bold text-h5 tracking-tight text-text-primary">
             SI-MAPAN

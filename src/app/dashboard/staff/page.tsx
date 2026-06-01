@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import StatCard from '@/components/ui/StatCard'
 import api from '@/lib/axios'
+import { useUserProfile } from '@/hooks/useUserProfile'
 
 // ── Types ──────────────────────────────────────────────────────────────────
 
@@ -31,12 +32,6 @@ interface StaffDashboardData {
   total_approved_refunds: number
   total_approved_resignations: number
   recent_tasks: Task[]
-}
-
-interface StaffProfile {
-  full_name: string
-  member_id: string | null
-  email?: string
 }
 
 // ── Icons ──────────────────────────────────────────────────────────────────
@@ -148,36 +143,25 @@ function SkeletonCard() {
 // ── Page ──────────────────────────────────────────────────────────────────
 
 export default function StaffDashboardPage() {
-  const [data, setData]         = useState<StaffDashboardData | null>(null)
-  const [profile, setProfile]   = useState<StaffProfile | null>(null)
-  const [loading, setLoading]   = useState(true)
-  const [error, setError]       = useState<string | null>(null)
+  const [data, setData]   = useState<StaffDashboardData | null>(null)
+  const [loading, setLoading] = useState(true)
+  const [error, setError]     = useState<string | null>(null)
   const [currentPage, setCurrentPage] = useState(1)
   const TASKS_PER_PAGE = 10
+
+  const { userName } = useUserProfile()
+  const firstName = userName.split(' ')[0]
 
   useEffect(() => {
     let cancelled = false
 
     async function fetchAll() {
       try {
-        const [dashRes, profileRes] = await Promise.allSettled([
-          api.get<StaffDashboardData>('/dashboards/staff/'),
-          api.get<StaffProfile>('/members/profile/'),
-        ])
-
+        const dashRes = await api.get<StaffDashboardData>('/dashboards/staff/')
         if (cancelled) return
-
-        if (dashRes.status === 'fulfilled') {
-          setData(dashRes.value.data)
-        } else {
-          setError('Gagal memuat data dashboard.')
-        }
-
-        if (profileRes.status === 'fulfilled') {
-          setProfile(profileRes.value.data)
-        }
+        setData(dashRes.data)
       } catch {
-        if (!cancelled) setError('Terjadi kesalahan jaringan.')
+        if (!cancelled) setError('Gagal memuat data dashboard.')
       } finally {
         if (!cancelled) setLoading(false)
       }
@@ -187,12 +171,8 @@ export default function StaffDashboardPage() {
     return () => { cancelled = true }
   }, [])
 
-  const userName = profile?.full_name ?? 'Staff'
-  const userID   = profile?.member_id ?? undefined
-  const firstName = userName.split(' ')[0]
-
   return (
-    <DashboardLayout role="STAFF" userName={userName} userID={userID}>
+    <DashboardLayout role="STAFF">
 
       <DashboardHeader
         variant="default"
@@ -200,18 +180,18 @@ export default function StaffDashboardPage() {
         notifHref="/dashboard/staff/notifications"
       />
 
-      <main className="flex-1 p-8">
+      <main className="flex-1 p-4 sm:p-6 lg:p-8">
 
         {/* Welcome */}
-        <div className="mb-8">
+        <div className="mb-6">
           <h2
-            className="font-bold text-2xl mb-1"
+            className="font-bold text-xl sm:text-2xl mb-1"
             style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
           >
-            Good morning, {firstName} 👋
+            Dashboard Staff
           </h2>
           <p className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-            Here&apos;s what needs your attention today.
+            Selamat datang, {firstName}. Berikut tugas yang perlu Anda tindaklanjuti hari ini.
           </p>
         </div>
 
@@ -226,7 +206,7 @@ export default function StaffDashboardPage() {
         )}
 
         {/* ── Row 1: 4 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-4 gap-4 mb-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
           {loading ? (
             Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
@@ -271,16 +251,16 @@ export default function StaffDashboardPage() {
         </div>
 
         {/* ── Row 2: 3 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-3 gap-4 mb-8">
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
           {loading ? (
             Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
           ) : (
             <>
-              {/* 5 — Completed Withdrawals */}
+              {/* 5 — Pending Withdrawals */}
               <StatCard
-                label="Penarikan Selesai"
-                value={String(data?.total_completed_withdrawals ?? 0)}
-                subtitle="Penarikan telah diproses"
+                label="Penarikan Menunggu"
+                value={String(data?.total_pending_withdrawals ?? 0)}
+                subtitle="Penarikan perlu diproses"
                 icon={<WithdrawalIcon />}
                 accent="#06B6D4"
               />
