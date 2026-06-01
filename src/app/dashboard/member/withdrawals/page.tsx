@@ -82,7 +82,10 @@ export default function MemberWithdrawalsPage() {
       setError('')
       try {
         const { data } = await api.get<SavingsOverviewResponse>('/savings/overview/', {
-          params: { page },
+          params: {
+            page,
+            source: 'SAVINGS_WITHDRAWAL',
+          },
         })
 
         const withdrawalRows = (data.results || []).filter(
