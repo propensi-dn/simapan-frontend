@@ -3,6 +3,7 @@
 import { FormEvent, useEffect, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
+import toast from "react-hot-toast";
 
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
@@ -109,6 +110,11 @@ export default function DepositPage() {
     }
   }, [savingType]);
 
+  const handleAmountChange = (raw: string) => {
+    const digits = raw.replace(/\D/g, "");
+    setAmount(digits);
+  };
+
   const onCopyDetails = async () => {
     if (!primaryBankAccount) {
       setError("Rekening bank koperasi belum tersedia.");
@@ -149,15 +155,15 @@ export default function DepositPage() {
 
     if (copied) {
       setError("");
-      setMessage("Detail rekening koperasi berhasil disalin.");
       setCopyMessage("Tersalin");
+      toast.success("Detail rekening koperasi berhasil disalin", { id: "deposit-copy-success" });
       return;
     }
 
-    window.prompt("Salin manual detail rekening ini:", payload);
     setMessage("");
-    setError("Clipboard diblokir browser. Silakan salin dari popup yang muncul.");
+    setError("Clipboard diblokir browser. Silakan salin detail rekening secara manual.");
     setCopyMessage("Perlu salin manual");
+    toast.error("Clipboard diblokir browser. Perlu salin manual.", { id: "deposit-copy-error" });
   };
 
   const onSubmit = async (event: FormEvent<HTMLFormElement>) => {
@@ -166,27 +172,43 @@ export default function DepositPage() {
     setMessage("");
 
     if (!canDeposit) {
-      setError("Status anggota belum dapat melakukan setoran.");
+      const errorMessage = "Status anggota belum dapat melakukan setoran.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       return;
     }
 
     if (!proofFile) {
-      setError("Bukti transfer wajib diupload.");
+      const errorMessage = "Bukti transfer wajib diunggah.";
+      setError(errorMessage);
+      toast.error(errorMessage, { id: "deposit-proof-required" });
       return;
     }
 
     if (proofFile.size > 5 * 1024 * 1024) {
-      setError("Ukuran file maksimal 5MB.");
+      const errorMessage = "Ukuran file maksimal 5MB.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    const parsedAmount = Number(amount || "0");
+    if (savingType === "SUKARELA" && parsedAmount <= 0) {
+      const errorMessage = "Jumlah setoran wajib diisi.";
+      setError(errorMessage);
+      toast.error(errorMessage);
+      return;
+    }
+
+    const selectedAccount = memberBankAccounts.find((a) => a.id === selectedBankAccountId);
+    if (!selectedAccount) {
+      const errorMessage = "Pilih rekening bank anggota terlebih dahulu.";
+      setError(errorMessage);
+      toast.error(errorMessage);
       return;
     }
 
     setIsSubmitting(true);
-
-    const selectedAccount = memberBankAccounts.find((a) => a.id === selectedBankAccountId);
-    if (!selectedAccount) {
-      setError("Pilih rekening bank anggota terlebih dahulu.");
-      return;
-    }
 
     const formData = new FormData();
     formData.append("transfer_proof", proofFile);
@@ -198,11 +220,12 @@ export default function DepositPage() {
         await api.post("/savings/deposits/pokok/", formData);
       } else {
         formData.append("saving_type", savingType);
-        formData.append("amount", amount);
+        formData.append("amount", String(parsedAmount));
         await api.post("/savings/deposits/", formData);
       }
 
       setMessage("");
+      toast.success("Setoran berhasil dikirim dan menunggu verifikasi petugas.");
       setIsSuccessModalOpen(true);
       setProofFile(null);
       if (savingType === "SUKARELA") {
@@ -213,9 +236,13 @@ export default function DepositPage() {
         const backendMessage =
           (error.response?.data as { detail?: string; message?: string })?.detail ||
           (error.response?.data as { detail?: string; message?: string })?.message;
-        setError(backendMessage ?? "Gagal mengirim setoran. Periksa input kamu.");
+        const errorMessage = backendMessage ?? "Gagal mengirim setoran. Periksa input kamu.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       } else {
-        setError("Gagal mengirim setoran. Periksa input kamu.");
+        const errorMessage = "Gagal mengirim setoran. Periksa input kamu.";
+        setError(errorMessage);
+        toast.error(errorMessage);
       }
     } finally {
       setIsSubmitting(false);
@@ -261,8 +288,6 @@ export default function DepositPage() {
             </button>
             {copyMessage ? <p className="mt-2 text-xs text-zinc-500">{copyMessage}</p> : null}
           </div>
-
-          <div className="grid h-[110px] place-items-center rounded-lg border border-zinc-200 bg-zinc-50 text-zinc-300">▩</div>
         </div>
         </div>
 
@@ -293,15 +318,23 @@ export default function DepositPage() {
 
             <div>
               <label className="mb-1 block text-sm font-semibold text-zinc-700">Jumlah Setoran</label>
-              <input
-                type="number"
-                className="w-full rounded-lg border border-zinc-300 px-3 py-2 text-sm"
-                value={amount}
-                onChange={(event) => setAmount(event.target.value)}
-                disabled={savingType === "WAJIB" || savingType === "POKOK" || !canDeposit}
-                min={1}
-                required
-              />
+              <div className="relative">
+                <span className="absolute left-3 top-1/2 -translate-y-1/2 text-sm font-medium text-zinc-500 select-none">Rp</span>
+                <input
+                  type="text"
+                  inputMode="numeric"
+                  className="w-full rounded-lg border border-zinc-300 py-2 pl-10 pr-3 text-sm"
+                  value={amount ? new Intl.NumberFormat("id-ID").format(Number(amount)) : ""}
+                  onChange={(event) => handleAmountChange(event.target.value)}
+                  onWheel={(event) => {
+                    event.preventDefault();
+                    event.currentTarget.blur();
+                  }}
+                  disabled={savingType === "WAJIB" || savingType === "POKOK" || !canDeposit}
+                  placeholder="0"
+                  required
+                />
+              </div>
             </div>
 
             <div className="md:col-span-2">
@@ -355,13 +388,12 @@ export default function DepositPage() {
                 onChange={(event) => setProofFile(event.target.files?.[0] ?? null)}
                 className="hidden"
                 disabled={!canDeposit}
-                required
               />
             </label>
           </div>
 
           <div className="rounded-lg border border-yellow-300 bg-yellow-50 px-3 py-2 text-xs text-yellow-700">
-            ⓘ Catatan: Pastikan nominal transfer sesuai dengan nilai yang kamu masukkan di formulir. Data yang tidak sesuai dapat menyebabkan keterlambatan proses.
+            Catatan: Pastikan nominal transfer sesuai dengan nilai yang kamu masukkan di formulir. Data yang tidak sesuai dapat menyebabkan keterlambatan proses.
           </div>
 
           {message ? <p className="text-sm text-green-700">{message}</p> : null}
@@ -374,7 +406,7 @@ export default function DepositPage() {
               aria-disabled={!canDeposit || isSubmitting}
               className="rounded-lg bg-zinc-900 px-6 py-2 text-sm font-semibold text-white disabled:cursor-not-allowed disabled:bg-zinc-400"
             >
-              {isSubmitting ? "Mengirim..." : "Kirim Setoran ▷"}
+              {isSubmitting ? "Mengirim..." : "Kirim Setoran"}
             </button>
           </div>
         </div>
