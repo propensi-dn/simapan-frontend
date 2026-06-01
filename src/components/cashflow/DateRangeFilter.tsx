@@ -70,7 +70,7 @@ export default function DateRangeFilter({
             : 'border-primary text-primary bg-white hover:bg-primary-100'
         }`}
         >
-        Pilih Rentang
+        {isOpen ? 'Batal' : 'Pilih Rentang'}
       </button>
 
       {isOpen && (
