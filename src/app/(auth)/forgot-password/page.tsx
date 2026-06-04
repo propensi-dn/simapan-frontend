@@ -64,7 +64,7 @@ export default function ForgotPasswordPage() {
 
       <main className="flex-1 flex items-center justify-center px-4 py-12">
         <div className="w-full max-w-md">
-          <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-10 animate-slide-up">
+          <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-6 sm:p-10 animate-slide-up">
 
             {/* Logo area */}
             <div className="flex flex-col items-center mb-8">
