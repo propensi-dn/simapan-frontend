@@ -14,6 +14,7 @@ interface ModalProps {
   confirmLabel?: string
   cancelLabel?: string
   onConfirm?: () => void
+  cancelVariant?: 'primary' | 'secondary' | 'outline' | 'ghost' | 'danger'
   confirmVariant?: 'primary' | 'secondary' | 'danger'
   loading?: boolean
   size?: 'sm' | 'md' | 'lg'
@@ -35,6 +36,7 @@ export default function Modal({
   confirmLabel = 'Konfirmasi',
   cancelLabel = 'Batal',
   onConfirm,
+  cancelVariant = 'outline',
   confirmVariant = 'primary',
   loading = false,
   size = 'md',
@@ -102,7 +104,7 @@ export default function Modal({
           <div className="flex gap-3 mt-6">
             {cancelLabel && (
               <Button
-                variant="outline"
+                variant={cancelVariant}
                 fullWidth
                 onClick={onClose}
                 disabled={loading}

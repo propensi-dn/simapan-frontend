@@ -1,9 +1,10 @@
 "use client";
 
-import { FormEvent, useEffect, useState } from "react";
+import { FormEvent, useEffect, useMemo, useState } from "react";
 import Image from "next/image";
 import axios from "axios";
 import toast from "react-hot-toast";
+import { useRouter } from "next/navigation";
 
 import api from "@/lib/axios";
 import { isAuthenticated } from "@/lib/auth";
@@ -29,11 +30,26 @@ type MemberBankAccount = {
 type OverviewResponse = {
   member_status: MemberStatus;
   bank_account: CooperativeBankAccount | null;
+  mandatory_savings?: {
+    next_due_date?: string | null;
+    overdue_count: number;
+    overdue_amount: string;
+    due_soon_count: number;
+    available_sukarela: string;
+    auto_debit_required: boolean;
+    auto_debit_pending: boolean;
+    results?: Array<{
+      period_start: string;
+      status: "UNPAID" | "PENDING" | "PAID" | "OVERDUE";
+    }>;
+  };
 };
 
 export default function DepositPage() {
+  const router = useRouter();
   const [memberStatus, setMemberStatus] = useState<MemberStatus | null>(null);
   const [bankAccount, setBankAccount] = useState<CooperativeBankAccount | null>(null);
+  const [mandatorySavings, setMandatorySavings] = useState<OverviewResponse["mandatory_savings"] | null>(null);
   const [savingType, setSavingType] = useState<SavingType>("POKOK");
   const [amount, setAmount] = useState("150000");
   const [memberBankAccounts, setMemberBankAccounts] = useState<MemberBankAccount[]>([]);
@@ -45,9 +61,38 @@ export default function DepositPage() {
   const [copyMessage, setCopyMessage] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false);
+  const [isMandatoryNoticeOpen, setIsMandatoryNoticeOpen] = useState(false);
 
   const canDeposit = memberStatus === "VERIFIED" || memberStatus === "ACTIVE";
   const primaryBankAccount = bankAccount;
+  const mandatoryLock = mandatorySavings?.auto_debit_required ?? false;
+  const mandatorySoon = (mandatorySavings?.due_soon_count ?? 0) > 0 && !mandatoryLock;
+
+  const mandatoryCoverage = useMemo(() => {
+    const obligations = mandatorySavings?.results ?? [];
+    if (obligations.length === 0) return null;
+
+    const toDate = (value: string) => new Date(`${value}T00:00:00`);
+    const fmtMonthYear = (value: string | null) => {
+      if (!value) return null;
+      return new Intl.DateTimeFormat("id-ID", { month: "long", year: "numeric" }).format(toDate(value));
+    };
+
+    const paidItems = obligations
+      .filter((item) => item.status === "PAID")
+      .sort((a, b) => toDate(b.period_start).getTime() - toDate(a.period_start).getTime());
+    const nextActive = obligations
+      .filter((item) => item.status !== "PAID")
+      .sort((a, b) => toDate(a.period_start).getTime() - toDate(b.period_start).getTime())[0];
+
+    const paidUntil = paidItems[0]?.period_start ?? null;
+    const nextPeriod = nextActive?.period_start ?? null;
+
+    return {
+      paidUntilLabel: fmtMonthYear(paidUntil),
+      nextPeriodLabel: fmtMonthYear(nextPeriod),
+    };
+  }, [mandatorySavings]);
 
   useEffect(() => {
     if (!proofFile || !proofFile.type.startsWith("image/")) {
@@ -78,6 +123,7 @@ export default function DepositPage() {
 
         setMemberStatus(overviewResponse.data.member_status);
         setBankAccount(overviewResponse.data.bank_account ?? null);
+        setMandatorySavings(overviewResponse.data.mandatory_savings ?? null);
 
         const accounts = bankAccountsResponse.data ?? [];
         setMemberBankAccounts(accounts);
@@ -109,6 +155,19 @@ export default function DepositPage() {
       setAmount("100000");
     }
   }, [savingType]);
+
+  useEffect(() => {
+    if (mandatorySoon) {
+      setIsMandatoryNoticeOpen(true);
+    }
+  }, [mandatorySoon]);
+
+  useEffect(() => {
+    if (mandatoryLock && savingType === "SUKARELA") {
+      setSavingType("WAJIB");
+      setAmount("100000");
+    }
+  }, [mandatoryLock, savingType]);
 
   const handleAmountChange = (raw: string) => {
     const digits = raw.replace(/\D/g, "");
@@ -228,9 +287,6 @@ export default function DepositPage() {
       toast.success("Setoran berhasil dikirim dan menunggu verifikasi petugas.");
       setIsSuccessModalOpen(true);
       setProofFile(null);
-      if (savingType === "SUKARELA") {
-        setAmount("");
-      }
     } catch (error) {
       if (axios.isAxiosError(error)) {
         const backendMessage =
@@ -251,6 +307,19 @@ export default function DepositPage() {
 
   return (
     <>
+      <Modal
+        isOpen={isMandatoryNoticeOpen}
+        onClose={() => setIsMandatoryNoticeOpen(false)}
+        title={mandatoryLock ? "Simpanan wajib belum lunas" : "Pengingat simpanan wajib"}
+        description={
+          mandatoryLock
+            ? "Ada tagihan simpanan wajib yang sudah terlambat. Opsi simpanan sukarela dikunci sampai tunggakan diselesaikan."
+            : "Jika tagihan simpanan wajib masuk H-7, sistem akan otomatis mengambil dari saldo simpanan sukarela yang tersedia."
+        }
+        cancelLabel="Ok, saya mengerti"
+        size="sm"
+      />
+
       <div className="mx-auto max-w-[1100px]">
         <div className="mb-6">
         <h1 className="text-[44px] font-bold leading-tight text-zinc-900">Form Setoran Anggota</h1>
@@ -295,13 +364,53 @@ export default function DepositPage() {
         <div className="border-b border-zinc-200 bg-zinc-50 px-5 py-3 text-sm font-semibold text-zinc-800">Detail Transaksi</div>
 
         <div className="space-y-4 px-5 py-4">
+          {memberStatus === "ACTIVE" && mandatoryCoverage ? (
+            <div className="rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-900">
+              <p className="font-semibold">Status valid simpanan wajib</p>
+              <p className="mt-1">
+                Sudah dibayar sampai: <span className="font-semibold">{mandatoryCoverage.paidUntilLabel ?? "Belum ada pembayaran"}</span>
+              </p>
+              {mandatoryCoverage.nextPeriodLabel ? (
+                <p className="mt-1 text-xs text-blue-800">
+                  Tagihan aktif berikutnya: {mandatoryCoverage.nextPeriodLabel}
+                </p>
+              ) : null}
+            </div>
+          ) : null}
+
+          {mandatorySoon ? (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+              Tagihan simpanan wajib kamu sudah mendekati jatuh tempo. Jika belum dibayar hingga H-7, sistem akan otomatis menarik dari saldo simpanan sukarela yang tersedia.
+            </div>
+          ) : null}
+
+          {mandatoryLock ? (
+            <div className="rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+              Ada tunggakan simpanan wajib yang belum diselesaikan. Simpanan sukarela sementara dikunci sampai kewajiban tersebut dibayar.
+              <button
+                type="button"
+                className="ml-2 font-semibold underline"
+                onClick={() => router.push("/dashboard/member/savings")}
+              >
+                Buka halaman simpanan
+              </button>
+            </div>
+          ) : null}
+
           <div className="grid gap-4 md:grid-cols-2">
             <div>
               <label className="mb-1 block text-sm font-semibold text-zinc-700">Jenis Simpanan</label>
               <select
                 className="w-full rounded-lg border border-zinc-300 bg-white px-3 py-2 text-sm"
                 value={savingType}
-                onChange={(event) => setSavingType(event.target.value as SavingType)}
+                onChange={(event) => {
+                  const nextType = event.target.value as SavingType;
+                  if (mandatoryLock && nextType === "SUKARELA") {
+                    setIsMandatoryNoticeOpen(true);
+                    return;
+                  }
+                  setSavingType(nextType);
+                }}
                 disabled={memberStatus === "VERIFIED" || !canDeposit}
               >
                 {memberStatus === "VERIFIED" ? (
@@ -309,11 +418,14 @@ export default function DepositPage() {
                 ) : (
                   <>
                     <option value="WAJIB">Wajib</option>
-                    <option value="SUKARELA">Sukarela</option>
+                    <option value="SUKARELA" disabled={mandatoryLock}>
+                      Sukarela{mandatoryLock ? " (dikunci sementara)" : ""}
+                    </option>
                   </>
                 )}
               </select>
               <p className="mt-1 text-xs text-zinc-400">Pilih &apos;Wajib&apos; untuk setoran wajib bulanan.</p>
+              <p className="mt-1 text-xs text-zinc-400">Jika tagihan bulan ini sudah lunas, setoran wajib berikutnya akan dialokasikan ke periode bulan selanjutnya (advance).</p>
             </div>
 
             <div>
@@ -396,6 +508,10 @@ export default function DepositPage() {
             Catatan: Pastikan nominal transfer sesuai dengan nilai yang kamu masukkan di formulir. Data yang tidak sesuai dapat menyebabkan keterlambatan proses.
           </div>
 
+          <div className="rounded-lg border border-slate-200 bg-slate-50 px-3 py-2 text-xs text-slate-600">
+            Disclaimer: Jika tagihan simpanan wajib belum lunas, saldo simpanan sukarela bisa dipakai otomatis untuk menutup kewajiban yang jatuh tempo.
+          </div>
+
           {message ? <p className="text-sm text-green-700">{message}</p> : null}
           {error ? <p className="text-sm text-red-600">{error}</p> : null}
 
@@ -415,7 +531,10 @@ export default function DepositPage() {
 
       <Modal
         isOpen={isSuccessModalOpen}
-        onClose={() => setIsSuccessModalOpen(false)}
+        onClose={() => {
+          setIsSuccessModalOpen(false);
+          router.push("/dashboard/member/savings");
+        }}
         icon={
           <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
             <path strokeLinecap="round" strokeLinejoin="round" d="M9 12.75L11.25 15 15 9.75M21 12c0 4.97-4.03 9-9 9s-9-4.03-9-9 4.03-9 9-9 9 4.03 9 9z" />
@@ -424,6 +543,7 @@ export default function DepositPage() {
         title="Simpanan berhasil disimpan"
         description="Setoran berhasil dikirim dan menunggu verifikasi petugas."
         cancelLabel="Saya Mengerti"
+        cancelVariant="primary"
         size="sm"
       />
     </>

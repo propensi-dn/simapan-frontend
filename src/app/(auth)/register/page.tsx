@@ -41,7 +41,7 @@ const STEPS = [
 
 function StepIndicator({ currentStep }: { currentStep: number }) {
   return (
-    <div className="flex items-start justify-center gap-0 mb-10">
+    <div className="flex items-start justify-center mb-10 overflow-x-auto py-2">
       {STEPS.map((step, idx) => {
         const isDone = currentStep > step.number
         const isActive = currentStep === step.number
@@ -50,9 +50,9 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
         return (
           <div key={step.number} className="flex items-start">
             {/* Step circle + label */}
-            <div className="flex flex-col items-center" style={{ minWidth: 80 }}>
+            <div className="flex flex-col items-center w-16 sm:w-24">
               <div
-                className="w-10 h-10 rounded-full flex items-center justify-center font-bold text-sm transition-all"
+                className="w-8 h-8 sm:w-10 sm:h-10 rounded-full flex items-center justify-center font-bold text-xs sm:text-sm transition-all"
                 style={{
                   border: isDone || isActive ? '2px solid #242F43' : '2px solid #d1d5db',
                   backgroundColor: isDone ? '#242F43' : 'transparent',
@@ -61,23 +61,22 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
                 }}
               >
                 {isDone ? (
-                  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
+                  <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="white" strokeWidth={3}>
                     <path strokeLinecap="round" strokeLinejoin="round" d="M5 13l4 4L19 7" />
                   </svg>
                 ) : step.number}
               </div>
               <div className="mt-2 text-center">
-                <div className="text-xs font-semibold" style={{
+                <div className="text-[10px] sm:text-xs font-semibold" style={{
                   color: isActive ? '#242F43' : isDone ? '#525E71' : '#9ca3af',
                   fontFamily: 'Montserrat, sans-serif',
                 }}>
                   {step.label}
                 </div>
-                <div className="text-xs" style={{
+                <div className="text-[9px] sm:text-xs tracking-wider" style={{
                   color: isActive ? '#242F43' : '#9ca3af',
                   fontFamily: 'Inter, sans-serif',
                   fontWeight: isActive ? 700 : 400,
-                  letterSpacing: '0.05em',
                 }}>
                   {step.sub}
                 </div>
@@ -86,13 +85,12 @@ function StepIndicator({ currentStep }: { currentStep: number }) {
 
             {/* Connector line */}
             {!isLast && (
-              <div style={{
-                height: 2,
-                width: 120,
-                marginTop: 19,
-                backgroundColor: currentStep > step.number ? '#242F43' : '#e5e7eb',
-                transition: 'background-color 0.3s',
-              }} />
+              <div 
+                className="h-[2px] w-6 xs:w-12 sm:w-20 md:w-28 mt-[15px] sm:mt-[19px] transition-colors duration-300"
+                style={{
+                  backgroundColor: currentStep > step.number ? '#242F43' : '#e5e7eb',
+                }} 
+              />
             )}
           </div>
         )
