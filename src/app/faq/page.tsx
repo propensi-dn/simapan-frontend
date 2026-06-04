@@ -70,15 +70,15 @@ export default function FAQPage() {
 
       <main className="pb-24">
         {/* --- HEADER SECTION --- */}
-        <section className="max-w-4xl mx-auto px-12 pt-20 pb-16 text-center">
-          <h1 className="text-h2 text-text-primary mb-4">Pusat Bantuan</h1>
-          <p className="text-p2 text-text-secondary leading-relaxed">
+        <section className="max-w-4xl mx-auto px-6 md:px-12 pt-12 md:pt-20 pb-8 md:pb-16 text-center">
+          <h1 className="text-3xl md:text-h2 text-text-primary mb-4">Pusat Bantuan</h1>
+          <p className="text-sm md:text-p2 text-text-secondary leading-relaxed">
             Temukan jawaban untuk pertanyaan yang paling sering diajukan mengenai layanan SI-MAPAN.
           </p>
         </section>
 
         {/* --- FAQ ACCORDION (Dynamic from API) --- */}
-        <section className="max-w-3xl mx-auto px-12 mb-24">
+        <section className="max-w-3xl mx-auto px-6 md:px-12 mb-16 md:mb-24">
           <div className="space-y-4">
             {faqList.length > 0 ? (
               faqList.map((item, index) => (
@@ -88,9 +88,9 @@ export default function FAQPage() {
                 >
                   <button
                     onClick={() => setActiveIndex(activeIndex === index ? null : index)}
-                    className="w-full px-8 py-6 flex items-center justify-between text-left"
+                    className="w-full px-6 md:px-8 py-4 md:py-6 flex items-center justify-between text-left"
                   >
-                    <span className="font-bold text-text-primary text-p2">{item.question}</span>
+                    <span className="font-bold text-text-primary text-sm md:text-p2">{item.question}</span>
                     <svg 
                       className={`w-5 h-5 text-text-tertiary transition-transform duration-300 ${activeIndex === index ? 'rotate-180' : ''}`} 
                       fill="none" stroke="currentColor" viewBox="0 0 24 24"
@@ -99,9 +99,9 @@ export default function FAQPage() {
                     </svg>
                   </button>
                   <div 
-                    className={`px-8 overflow-hidden transition-all duration-300 ease-in-out ${activeIndex === index ? 'max-h-96 pb-8' : 'max-h-0'}`}
+                    className={`px-6 md:px-8 overflow-hidden transition-all duration-300 ease-in-out ${activeIndex === index ? 'max-h-96 pb-6 md:pb-8' : 'max-h-0'}`}
                   >
-                    <p className="text-text-secondary text-p2 leading-relaxed border-t border-gray-50 pt-6">
+                    <p className="text-text-secondary text-sm md:text-p2 leading-relaxed border-t border-gray-50 pt-4 md:pt-6">
                       {item.answer}
                     </p>
                   </div>
@@ -114,11 +114,11 @@ export default function FAQPage() {
         </section>
 
         {/* --- HUBUNGI KAMI SECTION --- */}
-        <section className="max-w-6xl mx-auto px-12 mb-24">
-          <div className="grid md:grid-cols-2 gap-12 items-center">
+        <section className="max-w-6xl mx-auto px-6 md:px-12 mb-16 md:mb-24">
+          <div className="grid md:grid-cols-2 gap-8 md:gap-12 items-center">
             <div>
-              <h2 className="text-h3 text-text-primary mb-4">Hubungi Kami</h2>
-              <p className="text-text-secondary mb-10 leading-relaxed">
+              <h2 className="text-2xl md:text-h3 text-text-primary mb-4">Hubungi Kami</h2>
+              <p className="text-text-secondary mb-6 md:mb-10 leading-relaxed text-sm md:text-base">
                 Tim dukungan kami siap membantu Anda setiap Senin - Jumat pukul 08:00 - 17:00 WITA.
               </p>
               
@@ -136,7 +136,7 @@ export default function FAQPage() {
             </div>
 
             {/* Google Maps Real Iframe */}
-            <div className="relative aspect-square md:aspect-video bg-white rounded-[32px] overflow-hidden border border-gray-100 shadow-sm">
+            <div className="relative aspect-square md:aspect-video bg-white rounded-3xl overflow-hidden border border-gray-100 shadow-sm">
               <iframe 
                 src="https://www.google.com/maps/embed?pb=!1m18!1m12!1m3!1d126214.40562046686!2d115.14187033708308!3d-8.672504757143264!2m3!1f0!2f0!3f0!3m2!1i1024!2i768!4f13.1!3m3!1m2!1s0x2dd2409b0e5e80db%3A0xe27334e8ccb9374a!2sDenpasar%2C%20Denpasar%20City%2C%20Bali!5e0!3m2!1sen!2sid!4v1772384249046!5m2!1sen!2sid" 
                 width="100%" 
@@ -156,47 +156,47 @@ export default function FAQPage() {
         </section>
       </main>
 
-      <footer className="bg-primary-950 text-white py-20 mt-10">
-        <div className="max-w-6xl mx-auto px-12">
-          <div className="text-center mb-24 animate-fade-in">
-            <h2 className="text-h3 font-bold mb-4">Masih punya pertanyaan? Hubungi kami</h2>
-            <p className="text-p2 text-primary-100 opacity-80 mb-5 mx-auto leading-relaxed font-semibold">
+      <footer className="bg-primary-950 text-white py-12 md:py-20 mt-10">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <div className="text-center mb-16 md:mb-24 animate-fade-in">
+            <h2 className="text-2xl md:text-h3 font-bold mb-4">Masih punya pertanyaan? Hubungi kami</h2>
+            <p className="text-sm md:text-p2 text-primary-100 opacity-80 mb-6 mx-auto leading-relaxed font-semibold max-w-2xl">
               Admin kami siap menjawab segala keraguan Anda mengenai pendaftaran dan produk koperasi SI-MAPAN.
             </p>
-            <Link href="https://wa.me/6281234567890" target="_blank">
+            <Link href="https://wa.me/6281234567890" target="_blank" className="block w-full sm:inline-block sm:w-auto">
               <Button 
                 size="lg" 
-                className="bg-secondary-500 text-primary-950 hover:bg-secondary-200 active:bg-secondary-300 rounded-2xl px-12 py-4 h-auto text-p2 font-bold shadow-xl transition-all"
+                className="w-full sm:w-auto bg-secondary-500 text-primary-950 hover:bg-secondary-200 active:bg-secondary-300 rounded-2xl px-8 py-3.5 sm:px-12 sm:py-4 h-auto text-sm sm:text-p2 font-bold shadow-xl transition-all"
               >
                 CHAT ADMIN
               </Button>
             </Link>
           </div>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div className="flex flex-col gap-6">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16 border-t border-primary-900 pt-10 md:pt-16">
+            <div className="flex flex-col gap-4 md:gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalisasi pengelolaan keuangan untuk masyarakat yang lebih sejahtera.
               </p>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigasi</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/" className="hover:text-white transition-all">Beranda</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-all">Tentang Kami</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Portal Anggota</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/status" className="hover:text-white transition-all">Cek Status</Link></li>
                 <li><Link href="/login" className="hover:text-white transition-all">Masuk Anggota</Link></li>
                 <li><Link href="/register" className="hover:text-white transition-all">Daftar</Link></li>
               </ul>
             </div>
           </div>
-          <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="w-full mt-10 md:mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 Sistem SI-MAPAN. Seluruh hak cipta dilindungi.
             </p>

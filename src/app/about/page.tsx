@@ -104,29 +104,29 @@ export default function AboutPage() {
 
       <main className="pb-20">
         {/* --- HERO SECTION: Minimalist Style --- */}
-        <section className="relative w-full h-[350px] flex items-center justify-center bg-primary-950 overflow-hidden">
+        <section className="relative w-full h-[250px] sm:h-[300px] md:h-[350px] flex items-center justify-center bg-primary-950 overflow-hidden">
           <div className="absolute top-0 right-0 w-64 h-64 bg-primary-500/10 rounded-full -mr-20 -mt-20 blur-3xl" />
           <div className="absolute bottom-0 left-0 w-64 h-64 bg-primary-500/10 rounded-full -ml-20 -mb-20 blur-3xl" />
           
           <div className="relative z-10 text-center px-6">
-            <h1 className="text-h2 md:text-h1 text-white font-bold mb-4 tracking-tight">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-h1 text-white font-bold mb-4 tracking-tight">
               Tentang <span className="text-secondary-300">SI-MAPAN</span>
             </h1>
             <div className="w-24 h-1.5 bg-secondary-500 mx-auto rounded-full" />
           </div>
         </section>
 
-        <div className="max-w-7xl mx-auto px-12 -mt-16 relative z-20">
+        <div className="max-w-7xl mx-auto px-6 md:px-12 -mt-16 relative z-20">
           {/* --- VISI & MISI: Raised Cards (Dynamic from API) --- */}
-          <div className="grid md:grid-cols-2 gap-8 mb-24">
-            <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
-              <h2 className="text-h3 text-text-primary mb-6 font-bold">Visi</h2>
+          <div className="grid md:grid-cols-2 gap-6 md:gap-8 mb-16 md:mb-24">
+            <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
+              <h2 className="text-2xl md:text-h3 text-text-primary mb-6 font-bold">Visi</h2>
               <p className="text-p2 text-text-secondary leading-relaxed">
                 {data.vision}
               </p>
             </div>
-            <div className="bg-white p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
-              <h2 className="text-h3 text-text-primary mb-6 font-bold">Misi</h2>
+            <div className="bg-white p-6 sm:p-10 rounded-3xl shadow-xl border border-gray-100 hover:translate-y-[-4px] transition-all duration-300">
+              <h2 className="text-2xl md:text-h3 text-text-primary mb-6 font-bold">Misi</h2>
               <p className="text-p2 text-text-secondary leading-relaxed">
                 {data.mission}
               </p>
@@ -134,17 +134,17 @@ export default function AboutPage() {
           </div>
 
           {/* --- LEGALITAS --- */}
-          <section className="bg-white rounded-[40px] p-12 md:p-16 shadow-sm border border-gray-100 mb-24 text-center">
-            <h2 className="text-h3 text-text-primary mb-2 font-bold">Legalitas & Perizinan</h2>
-            <p className="text-p3 text-text-tertiary uppercase tracking-widest mb-12">Terdaftar dan diawasi oleh otoritas terkait</p>
+          <section className="bg-white rounded-3xl sm:rounded-[40px] p-6 sm:p-12 md:p-16 shadow-sm border border-gray-100 mb-16 md:mb-24 text-center">
+            <h2 className="text-2xl md:text-h3 text-text-primary mb-2 font-bold">Legalitas & Perizinan</h2>
+            <p className="text-p3 text-text-tertiary uppercase tracking-widest mb-8 md:mb-12">Terdaftar dan diawasi oleh otoritas terkait</p>
             
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-6 md:gap-8">
               {[
                 { label: 'Badan Hukum Koperasi', sub: 'No. 16/BH/XXVII.I/DISKOP/III/2008' },
                 { label: 'Instansi Penerbit', sub: 'Dinas Koperasi (sesuai SK)' },
                 { label: 'Status Legalitas', sub: 'Terdaftar sebagai koperasi berbadan hukum' }
               ].map((item, i) => (
-                <div key={i} className="p-8 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center">
+                <div key={i} className="p-6 md:p-8 rounded-2xl border-2 border-dashed border-gray-100 flex flex-col items-center">
                   <div className="w-12 h-12 rounded-full bg-bg-sections flex items-center justify-center text-text-secondary mb-4">
                     <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" /></svg>
                   </div>
@@ -157,10 +157,10 @@ export default function AboutPage() {
 
           {/* --- NILAI UTAMA --- */}
           <section className="text-center">
-            <h2 className="text-h2 text-text-primary mb-4 font-bold">Nilai-Nilai Utama</h2>
-            <div className="w-16 h-1 bg-primary-950 mx-auto rounded-full mb-16" />
+            <h2 className="text-3xl md:text-h2 text-text-primary mb-4 font-bold">Nilai-Nilai Utama</h2>
+            <div className="w-16 h-1 bg-primary-950 mx-auto rounded-full mb-8 md:mb-16" />
             
-            <div className="grid grid-cols-2 md:grid-cols-4 gap-12">
+            <div className="grid grid-cols-2 md:grid-cols-4 gap-6 md:gap-12">
               {VALUES.map((val, i) => (
                 <div key={i} className="flex flex-col items-center group">
                   <div className="w-20 h-20 rounded-2xl border-2 border-dashed border-gray-200 flex items-center justify-center text-text-tertiary group-hover:border-primary-500 group-hover:text-primary-500 transition-all duration-300 mb-4">
@@ -174,33 +174,33 @@ export default function AboutPage() {
         </div>
       </main>
 
-      <footer className="bg-primary-950 text-white py-20 mt-10">
-        <div className="max-w-6xl mx-auto px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16">
-            <div className="flex flex-col gap-6">
+      <footer className="bg-primary-950 text-white py-12 md:py-20 mt-10">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16 border-t border-primary-900 pt-10 md:pt-16">
+            <div className="flex flex-col gap-4 md:gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalisasi pengelolaan keuangan untuk masyarakat yang lebih sejahtera.
               </p>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigasi</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/" className="hover:text-white transition-all">Beranda</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-all">Tentang Kami</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Portal Anggota</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70 font-medium">
                 <li><Link href="/status" className="hover:text-white transition-all">Cek Status</Link></li>
                 <li><Link href="/login" className="hover:text-white transition-all">Masuk Anggota</Link></li>
                 <li><Link href="/register" className="hover:text-white transition-all">Daftar</Link></li>
               </ul>
             </div>
           </div>
-          <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="w-full mt-10 md:mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 Sistem SI-MAPAN. Seluruh hak cipta dilindungi.
             </p>

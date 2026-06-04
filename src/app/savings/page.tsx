@@ -24,6 +24,13 @@ type SavingItem = {
 type OverviewResponse = {
   member_status: "VERIFIED" | "ACTIVE" | "PENDING" | "REJECTED";
   totals: { wajib: string; sukarela: string };
+  mandatory_savings?: {
+    count: number;
+    overdue_count: number;
+    overdue_amount: string;
+    next_due_date: string | null;
+    results: MandatoryObligation[];
+  };
   count: number;
   total_pages?: number;
   current_page?: number;
@@ -31,6 +38,21 @@ type OverviewResponse = {
   next: string | null;
   previous: string | null;
   results: SavingItem[];
+};
+
+type MandatoryObligation = {
+  id: number;
+  period_start: string;
+  period_label: string;
+  due_date: string;
+  amount: string;
+  status: "UNPAID" | "PENDING" | "PAID" | "OVERDUE";
+  payment_method: "MANUAL" | "AUTO_DEBIT";
+  payment_method_display: string;
+  payment_transaction_id: number | null;
+  paid_at: string | null;
+  reminder_sent_at: string | null;
+  overdue_notified_at: string | null;
 };
 
 const fmtRp = (value: string | number) =>
@@ -50,6 +72,13 @@ const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string;
   POKOK:    { bg: "#F1F5F9", text: "#525E71", label: "Pokok" },
   WAJIB:    { bg: "#DBEAFE", text: "#1E40AF", label: "Wajib" },
   SUKARELA: { bg: "#EDE9FE", text: "#5B21B6", label: "Sukarela" },
+};
+
+const OBLIGATION_STATUS_CONFIG: Record<MandatoryObligation["status"], { bg: string; text: string; label: string }> = {
+  PAID: { bg: "#D1FAE5", text: "#065F46", label: "Lunas" },
+  PENDING: { bg: "#FEF3C7", text: "#92400E", label: "Menunggu verifikasi" },
+  UNPAID: { bg: "#E0F2FE", text: "#075985", label: "Belum dibayar" },
+  OVERDUE: { bg: "#FEE2E2", text: "#991B1B", label: "Terlambat" },
 };
 
 const STATUS_FILTERS: { key: "ALL" | SavingItem["status"]; label: string }[] = [
@@ -116,11 +145,39 @@ export default function SavingsOverviewPage() {
 
   const summaryText = useMemo(() => {
     if (!data) return "";
+    const mandatory = data.mandatory_savings;
+    if (mandatory?.overdue_count) {
+      return `Ada ${mandatory.overdue_count} tagihan simpanan wajib yang belum lunas.`;
+    }
+    if (mandatory?.next_due_date) {
+      return `Tagihan simpanan wajib berikutnya jatuh tempo pada ${new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(mandatory.next_due_date))}.`;
+    }
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
     return "Kelola dan pantau simpanan wajib dan sukarela kamu.";
   }, [data]);
+
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return "-";
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  };
+
+  const formatMandatoryPeriod = (value: string | null | undefined, fallback: string) => {
+    if (!value) return fallback;
+    return new Intl.DateTimeFormat("id-ID", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(value));
+  };
 
   const visibleTransactions = useMemo(() => {
     if (!data) return [];
@@ -137,6 +194,14 @@ export default function SavingsOverviewPage() {
       return dateSortOrder === "desc" ? bTime - aTime : aTime - bTime;
     });
   }, [data, statusFilter, typeFilter, dateSortOrder]);
+
+  const activeMandatoryObligations = useMemo(() => {
+    if (!data?.mandatory_savings?.results) return [];
+
+    return data.mandatory_savings.results
+      .filter((item) => item.status !== "PAID")
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  }, [data]);
 
   if (loading) {
     return (
@@ -229,16 +294,98 @@ export default function SavingsOverviewPage() {
         </div>
       </div>
 
+      {data.mandatory_savings && (
+        <div className="bg-white rounded-2xl p-6 space-y-5" style={{ border: "1px solid #F1F5F9" }}>
+          <div className="flex flex-col gap-2 md:flex-row md:items-center md:justify-between">
+            <div>
+              <h3 className="font-bold text-lg" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+                Tagihan Simpanan Wajib Bulanan
+              </h3>
+              <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                Pantau status pembayaran bulanan, jatuh tempo, dan tunggakan yang masih aktif.
+              </p>
+            </div>
+            {data.mandatory_savings.overdue_count > 0 && (
+              <span className="inline-flex items-center gap-2 px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: "#FEE2E2", color: "#991B1B", fontFamily: "Inter, sans-serif" }}>
+                Ada tunggakan aktif
+              </span>
+            )}
+          </div>
+
+          <div className="grid gap-4 md:grid-cols-3">
+            <div className="rounded-2xl p-4" style={{ backgroundColor: "#F8FAFC" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                Total Tagihan Aktif
+              </p>
+              <p className="mt-2 font-bold text-2xl" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+                {data.mandatory_savings.count}
+              </p>
+            </div>
+            <div className="rounded-2xl p-4" style={{ backgroundColor: "#F8FAFC" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                Tunggakan
+              </p>
+              <p className="mt-2 font-bold text-2xl" style={{ fontFamily: "Montserrat, sans-serif", color: data.mandatory_savings.overdue_count > 0 ? "#991B1B" : "#242F43" }}>
+                {fmtRp(data.mandatory_savings.overdue_amount)}
+              </p>
+            </div>
+            <div className="rounded-2xl p-4" style={{ backgroundColor: "#F8FAFC" }}>
+              <p className="text-xs font-semibold uppercase tracking-wider" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                Jatuh Tempo Berikutnya
+              </p>
+              <p className="mt-2 font-bold text-base" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+                {formatDate(data.mandatory_savings.next_due_date)}
+              </p>
+            </div>
+          </div>
+
+          <div className="space-y-3">
+            {activeMandatoryObligations.length === 0 ? (
+              <p className="text-sm" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                Tidak ada tagihan wajib aktif saat ini. Tagihan yang sudah lunas muncul di riwayat transaksi.
+              </p>
+            ) : (
+              activeMandatoryObligations.slice(0, 6).map((item) => {
+                const st = OBLIGATION_STATUS_CONFIG[item.status];
+                return (
+                  <div key={item.id} className="flex flex-col gap-3 rounded-2xl p-4 md:flex-row md:items-center md:justify-between" style={{ backgroundColor: "#FAFAFA" }}>
+                    <div>
+                      <p className="font-bold" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+                        {formatMandatoryPeriod(item.period_start, item.period_label)}
+                      </p>
+                      <p className="text-sm mt-1" style={{ color: "#8E99A8", fontFamily: "Inter, sans-serif" }}>
+                        Jatuh tempo {formatDate(item.due_date)} • {fmtRp(item.amount)}
+                      </p>
+                      <p className="mt-1 text-xs" style={{ color: "#6B7280", fontFamily: "Inter, sans-serif" }}>
+                        {item.status === "PAID" ? `Dibayar via ${item.payment_method_display}` : "Menunggu pembayaran"}
+                      </p>
+                    </div>
+                    <span className="inline-flex items-center self-start md:self-center px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: st.bg, color: st.text, fontFamily: "Inter, sans-serif" }}>
+                      {st.label}
+                    </span>
+                  </div>
+                );
+              })
+            )}
+          </div>
+        </div>
+      )}
+
       {/* Table card */}
       <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #F1F5F9" }}>
-
+        
         {/* Toolbar */}
+        <div className="px-6 py-3 flex flex-wrap items-center gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
+          <h3 className="font-bold text-lg" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+            Riwayat Simpanan
+          </h3> 
+        </div>
         <div className="px-6 py-3 flex flex-wrap items-center gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
           
           {/* Status pill filters */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="px-3 py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
-              Status Transaksi
+            <p className="py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+            Status Transaksi
             </p>
             {STATUS_FILTERS.map((f) => (
               <button
