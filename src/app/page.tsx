@@ -83,19 +83,19 @@ export default function LandingPage() {
 
       <main>
         {/* --- HERO SECTION --- */}
-        <section className="max-w-7xl mx-auto px-12 py-20 grid md:grid-cols-2 gap-12 items-center">
-          <div className="animate-slide-up">
-            <h1 className="text-h2 leading-tight text-text-primary">
+        <section className="max-w-7xl mx-auto px-6 md:px-12 py-10 md:py-20 grid md:grid-cols-2 gap-8 md:gap-12 items-center">
+          <div className="animate-slide-up text-center md:text-left flex flex-col items-center md:items-start">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-h2 leading-tight text-text-primary">
               {hero.title}
             </h1>
-            <h1 className="text-h2 leading-tight mb-6 text-text-accent">
+            <h1 className="text-3xl sm:text-4xl md:text-5xl lg:text-h2 leading-tight mb-6 text-text-accent">
               {hero.brand_name}
             </h1>
-            <p className="text-p2 text-text-secondary mb-10 max-w-lg leading-relaxed">
+            <p className="text-sm md:text-p2 text-text-secondary mb-8 md:mb-10 max-w-lg leading-relaxed">
               {hero.description}
             </p>
-            <Link href="/register">
-              <Button size="lg" className="rounded-xl px-10 bg-primary-950 hover:bg-primary-500 active:bg-primary-950 text-white">
+            <Link href="/register" className="block w-full sm:w-auto">
+              <Button size="lg" className="w-full sm:w-auto rounded-xl px-10 bg-primary-950 hover:bg-primary-500 active:bg-primary-950 text-white">
                 {hero.cta_text || 'Daftar sebagai Anggota'}
               </Button>
             </Link>
@@ -113,10 +113,10 @@ export default function LandingPage() {
         </section>
 
         {/* --- DYNAMIC SERVICES SECTION --- */}
-        <section id="services" className="bg-white py-20 border-t border-gray-50">
-          <div className="max-w-6xl mx-auto px-12 text-center"> 
+        <section id="services" className="bg-white py-12 md:py-20 border-t border-gray-50">
+          <div className="max-w-6xl mx-auto px-6 md:px-12 text-center"> 
             <div className="mb-12">
-              <h2 className="text-h3 text-text-primary mb-3">Layanan Kami</h2>
+              <h2 className="text-2xl md:text-h3 text-text-primary mb-3">Layanan Kami</h2>
               <div className="w-16 h-1 bg-primary-950 mx-auto rounded-full"></div>
             </div>
 
@@ -127,13 +127,13 @@ export default function LandingPage() {
                   const IconComponent = iconMap[service.icon_name] || HelpCircle;
 
                   return (
-                    <div key={index} className="p-8 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all text-left group">
+                    <div key={index} className="p-6 md:p-8 rounded-3xl border border-gray-100 bg-white shadow-sm hover:shadow-md transition-all text-left group">
                       <div className="w-12 h-12 bg-bg-sections rounded-xl flex items-center justify-center mb-6 group-hover:bg-primary-100 transition-colors">
                         {/* Merender icon secara dinamis */}
                         <IconComponent className="w-6 h-6 text-text-secondary group-hover:text-primary-600 transition-colors" />
                       </div>
-                      <h3 className="text-h4 text-text-primary mb-3 font-bold">{service.title}</h3>
-                      <p className="text-p2 text-text-secondary leading-relaxed">
+                      <h3 className="text-xl md:text-h4 text-text-primary mb-3 font-bold">{service.title}</h3>
+                      <p className="text-sm md:text-p2 text-text-secondary leading-relaxed">
                         {service.description}
                       </p>
                     </div>
@@ -147,33 +147,33 @@ export default function LandingPage() {
         </section>
       </main>
 
-      <footer className="bg-primary-950 text-white py-20 mt-10">
-        <div className="max-w-6xl mx-auto px-12">
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-16 border-t border-primary-900 pt-16">
-            <div className="flex flex-col gap-6">
+      <footer className="bg-primary-950 text-white py-12 md:py-20 mt-10">
+        <div className="max-w-6xl mx-auto px-6 md:px-12">
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-10 md:gap-16 border-t border-primary-900 pt-10 md:pt-16">
+            <div className="flex flex-col gap-4 md:gap-6">
               <h3 className="text-h4 font-bold text-white uppercase tracking-tight">SI-MAPAN</h3>
               <p className="text-p3 text-primary-100 opacity-70 leading-relaxed max-w-xs">
                 Digitalisasi pengelolaan keuangan untuk masyarakat yang lebih sejahtera.
               </p>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Navigasi</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70">
                 <li><Link href="/" className="hover:text-white transition-all">Beranda</Link></li>
                 <li><Link href="/about" className="hover:text-white transition-all">Tentang Kami</Link></li>
                 <li><Link href="/faq" className="hover:text-white transition-all">FAQ</Link></li>
               </ul>
             </div>
-            <div className="flex flex-col gap-6 md:pl-10">
+            <div className="flex flex-col gap-4 md:gap-6 md:pl-10">
               <h4 className="text-p3 font-bold tracking-[0.2em] uppercase text-white">Portal Anggota</h4>
-              <ul className="space-y-4 text-primary-100 text-p3 opacity-70">
+              <ul className="space-y-3 md:space-y-4 text-primary-100 text-p3 opacity-70">
                 <li><Link href="/status" className="hover:text-white transition-all">Cek Status</Link></li>
                 <li><Link href="/login" className="hover:text-white transition-all">Masuk Anggota</Link></li>
                 <li><Link href="/register" className="hover:text-white transition-all">Daftar</Link></li>
               </ul>
             </div>
           </div>
-          <div className="w-full mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
+          <div className="w-full mt-10 md:mt-20 pt-8 border-t border-primary-900 flex flex-col md:flex-row justify-between items-center gap-6">
             <p className="text-p3 text-primary-300 opacity-60">
               © 2026 Sistem SI-MAPAN. Seluruh hak cipta dilindungi.
             </p>
