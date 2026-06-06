@@ -55,6 +55,7 @@ export interface DisbursedLoan {
   approved_at: string
   disbursed_at: string
   disbursed_by_name: string
+  disbursement_note: string
 }
 
 export interface InstallmentSchedule {
@@ -207,6 +208,7 @@ export async function disburseLoans(
   member_name: string
   amount: string
   disbursed_at: string
+  disbursement_note: string
 }> {
   const config = payload ? {
     headers: { 'Content-Type': 'multipart/form-data' }

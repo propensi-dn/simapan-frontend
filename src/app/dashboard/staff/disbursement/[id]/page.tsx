@@ -35,11 +35,12 @@ export default function DisbursementDetailPage() {
     fetchLoanDetail()
   }, [loanId, router])
 
-  const handleConfirmDisbursement = async (proof?: File) => {
+  const handleConfirmDisbursement = async (proof?: File, note?: string) => {
     try {
       setDisbursing(true)
       const formData = new FormData()
       if (proof) formData.append('disbursement_proof', proof)
+      if (note) formData.append('disbursement_note', note)
       await disburseLoans(parseInt(loanId, 10), formData)
       toast.success('Pinjaman berhasil dicairkan!')
       setTimeout(() => router.push('/dashboard/staff/disbursement'), 1000)

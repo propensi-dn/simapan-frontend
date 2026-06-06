@@ -22,6 +22,7 @@ const fmtDate = (d: string) =>
 export default function DisbursementDetailContent({ loanDetail, onConfirm, onCancel, loading }: Props) {
   const [proofFile, setProofFile] = useState<File | null>(null)
   const [dragOver, setDragOver] = useState(false)
+  const [staffNote, setStaffNote] = useState('')
   const [proofError, setProofError] = useState(false)
   const fileRef = useRef<HTMLInputElement>(null)
 
@@ -248,6 +249,37 @@ export default function DisbursementDetailContent({ loanDetail, onConfirm, onCan
                 </span>
               </div>
             )}
+
+            <hr style={{ borderColor: '#F1F5F9' }} />
+
+            {/* Disbursement Note */}
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <p
+                  className="text-xs font-semibold tracking-wider uppercase"
+                  style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+                >
+                  Catatan Petugas Koperasi
+                </p>
+                <span className="text-[10px] font-bold" style={{ color: '#EF4444' }}>* Wajib</span>
+              </div>
+
+              <textarea
+                value={staffNote}
+                onChange={e => setStaffNote(e.target.value)}
+                rows={4}
+                placeholder="Tulis catatan..."
+                className="w-full px-4 py-3 rounded-xl text-sm outline-none resize-none"
+                style={{
+                  border: '1px solid #E5E7EB',
+                  color: '#242F43',
+                  backgroundColor: '#FAFAFA',
+                  fontFamily: 'Inter, sans-serif',
+                }}
+              />
+            </div>
+              
+            
 
             <hr style={{ borderColor: '#F1F5F9' }} />
 
