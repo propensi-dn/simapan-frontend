@@ -421,6 +421,15 @@ export async function reviewManagerLoan(
   return data
 }
 
+/** POST /api/manager/loans/pending/bulk-approve/ */
+export async function bulkApproveManagerLoans(
+  loanIds: number[]
+): Promise<{ message: string; approved_count: number; failed_loans?: any[] }> {
+  const { data } = await api.post('/manager/loans/pending/bulk-approve/', { loan_ids: loanIds })
+  return data
+}
+
+
 // Bayar Pinjaman Types dan API calls
 
 export interface PayActiveLoan {

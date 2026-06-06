@@ -6,6 +6,7 @@ import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import {
   getManagerPendingLoans,
+  bulkApproveManagerLoans,
   type ManagerLoanSummary,
   type ManagerPendingLoanItem,
   type ManagerAllLoanItem,
@@ -43,6 +44,12 @@ export default function ManagerLoansPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [selectedIds, setSelectedIds] = useState<number[]>([])
+  const [bulkApproving, setBulkApproving] = useState(false)
+  const [showConfirmModal, setShowConfirmModal] = useState(false)
+  const [bulkSuccessMessage, setBulkSuccessMessage] = useState('')
+  const [bulkErrorMessage, setBulkErrorMessage] = useState('')
 
   const [page, setPage] = useState(1)
   const [totalPages, setTotalPages] = useState(1)
@@ -93,6 +100,7 @@ export default function ManagerLoansPage() {
       setAllPage(data.all_loans.current_page)
       setAllTotalPages(data.all_loans.total_pages)
       setAllCount(data.all_loans.count)
+      setSelectedIds([])
     } catch {
       setError('Gagal memuat daftar pinjaman. Silakan coba lagi.')
     } finally {
@@ -127,6 +135,42 @@ export default function ManagerLoansPage() {
       window.removeEventListener('resize', syncHeight)
     }
   }, [nearDueRows.length, loading, error])
+
+  const handleToggleSelectAll = () => {
+    if (selectedIds.length === pendingRows.length) {
+      setSelectedIds([])
+    } else {
+      setSelectedIds(pendingRows.map(loan => loan.id))
+    }
+  }
+
+  const handleToggleSelectOne = (id: number) => {
+    if (selectedIds.includes(id)) {
+      setSelectedIds(prev => prev.filter(x => x !== id))
+    } else {
+      setSelectedIds(prev => [...prev, id])
+    }
+  }
+
+  const handleBulkApprove = async () => {
+    if (selectedIds.length === 0) return
+    setBulkApproving(true)
+    setBulkErrorMessage('')
+    setBulkSuccessMessage('')
+    try {
+      const result = await bulkApproveManagerLoans(selectedIds)
+      setBulkSuccessMessage(result.message)
+      setSelectedIds([])
+      setShowConfirmModal(false)
+      load(page, search, sort, allSearch, allStatus, allPage)
+    } catch (err: any) {
+      const errorMsg = err.response?.data?.error || err.response?.data?.message || 'Gagal melakukan bulk approval. Silakan coba lagi.'
+      setBulkErrorMessage(errorMsg)
+      setShowConfirmModal(false)
+    } finally {
+      setBulkApproving(false)
+    }
+  }
 
   const handleSearch = (e: React.FormEvent) => {
     e.preventDefault()
@@ -352,6 +396,46 @@ export default function ManagerLoansPage() {
             </span>
           </div>
 
+          {bulkSuccessMessage && (
+            <div className="mx-6 mt-4 p-4 rounded-xl flex items-center justify-between text-sm transition-all" style={{ backgroundColor: '#ECFDF5', border: '1px solid #A7F3D0', color: '#065F46' }}>
+              <span>{bulkSuccessMessage}</span>
+              <button onClick={() => setBulkSuccessMessage('')} className="font-bold ml-2">×</button>
+            </div>
+          )}
+          {bulkErrorMessage && (
+            <div className="mx-6 mt-4 p-4 rounded-xl flex items-center justify-between text-sm transition-all" style={{ backgroundColor: '#FEF2F2', border: '1px solid #FCA5A5', color: '#991B1B' }}>
+              <span>{bulkErrorMessage}</span>
+              <button onClick={() => setBulkErrorMessage('')} className="font-bold ml-2">×</button>
+            </div>
+          )}
+
+          {selectedIds.length > 0 && (
+            <div className="px-6 py-3 flex items-center justify-between transition-all duration-300" style={{ backgroundColor: '#F0FDF4', borderBottom: '1px solid #DCFCE7' }}>
+              <div className="flex items-center gap-2">
+                <span className="w-2.5 h-2.5 rounded-full bg-green-500 animate-pulse" />
+                <span className="text-sm font-semibold" style={{ color: '#166534', fontFamily: 'Inter, sans-serif' }}>
+                  {selectedIds.length} pengajuan pinjaman dipilih
+                </span>
+              </div>
+              <div className="flex items-center gap-3">
+                <button
+                  type="button"
+                  onClick={() => setSelectedIds([])}
+                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all hover:bg-green-100"
+                  style={{ color: '#166534', border: '1px solid #BBF7D0' }}>
+                  Batal
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setShowConfirmModal(true)}
+                  className="px-4 py-1.5 rounded-lg text-xs font-bold text-white transition-all shadow-sm hover:bg-green-700"
+                  style={{ backgroundColor: '#15803d' }}>
+                  Setujui Terpilih
+                </button>
+              </div>
+            </div>
+          )}
+
           {error ? (
             <div className="px-6 py-12 text-center text-sm" style={{ color: '#EF4444' }}>
               {error}
@@ -376,6 +460,15 @@ export default function ManagerLoansPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
+                    <th className="px-6 py-3 text-left text-xs font-semibold tracking-wider" style={{ width: '40px' }}>
+                      <input
+                        type="checkbox"
+                        checked={pendingRows.length > 0 && selectedIds.length === pendingRows.length}
+                        onChange={handleToggleSelectAll}
+                        className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                        style={{ width: '16px', height: '16px' }}
+                      />
+                    </th>
                     {['NAMA ANGGOTA', 'KATEGORI PINJAMAN', 'NOMINAL PENGAJUAN', 'TENOR', 'TANGGAL PENGAJUAN', 'AKSI'].map(col => (
                       <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
                         style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
@@ -389,6 +482,15 @@ export default function ManagerLoansPage() {
                     <tr key={loan.id}
                       className="hover:bg-[#FAFAFA] transition-colors"
                       style={{ borderBottom: i < pendingRows.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                      <td className="px-6 py-4">
+                        <input
+                          type="checkbox"
+                          checked={selectedIds.includes(loan.id)}
+                          onChange={() => handleToggleSelectOne(loan.id)}
+                          className="rounded border-gray-300 text-blue-600 focus:ring-blue-500 cursor-pointer"
+                          style={{ width: '16px', height: '16px' }}
+                        />
+                      </td>
                       <td className="px-6 py-4 text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                         {loan.member_name}
                       </td>
@@ -623,6 +725,52 @@ export default function ManagerLoansPage() {
           )}
         </div>
       </main>
+
+      {/* Modal Konfirmasi Bulk Approval */}
+      {showConfirmModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm transition-opacity">
+          <div className="bg-white rounded-2xl p-6 max-w-md w-full shadow-2xl space-y-4 border border-[#F1F5F9]" style={{ fontFamily: 'Inter, sans-serif' }}>
+            <div className="flex items-center gap-3 text-green-600">
+              <div className="p-2 bg-green-50 rounded-xl">
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" strokeWidth="2.5" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <h3 className="font-bold text-lg text-slate-800" style={{ fontFamily: 'Montserrat, sans-serif' }}>
+                Konfirmasi Bulk Approval
+              </h3>
+            </div>
+            
+            <p className="text-sm text-slate-600 leading-relaxed">
+              Apakah Anda yakin ingin menyetujui <strong className="text-slate-800">{selectedIds.length}</strong> pengajuan pinjaman yang terpilih secara sekaligus?
+            </p>
+
+            <div className="flex justify-end gap-3 pt-2">
+              <button
+                type="button"
+                disabled={bulkApproving}
+                onClick={() => setShowConfirmModal(false)}
+                className="px-4 py-2 rounded-xl text-xs font-semibold border border-[#E2E8F0] text-slate-600 hover:bg-slate-50 transition-colors disabled:opacity-50">
+                Batal
+              </button>
+              <button
+                type="button"
+                disabled={bulkApproving}
+                onClick={handleBulkApprove}
+                className="px-4 py-2 rounded-xl text-xs font-bold text-white bg-green-600 hover:bg-green-700 transition-colors flex items-center gap-1.5 shadow-md disabled:opacity-75">
+                {bulkApproving ? (
+                  <>
+                    <div className="w-3.5 h-3.5 border-2 border-white border-t-transparent rounded-full animate-spin" />
+                    Memproses...
+                  </>
+                ) : (
+                  'Ya, Setujui'
+                )}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </DashboardLayout>
   )
 }
