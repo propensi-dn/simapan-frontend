@@ -1,6 +1,6 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useState, useMemo } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
@@ -216,6 +216,12 @@ const CheckAllIcon = () => (
   </svg>
 )
 
+const SearchIcon = () => (
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+  </svg>
+)
+
 // ── Props ─────────────────────────────────────────────────────────────────
 
 export interface NotificationListPageProps {
@@ -236,6 +242,15 @@ export default function NotificationListPage({
   const [error, setError]                 = useState('')
   const [typeFilter, setTypeFilter]       = useState('ALL')
   const [markingAll, setMarkingAll]       = useState(false)
+  const [search, setSearch]               = useState('')
+
+  const filteredKeywords = useMemo(() => {
+    const keyword = search.trim().trim().toLowerCase()
+    if (!keyword) return notifications
+    return notifications.filter(notif =>
+      notif.title.toLowerCase().includes(keyword) || notif.message.toLowerCase().includes(keyword)
+    )
+    }, [notifications, search])
 
   const unreadCount = notifications.filter(n => !n.is_read).length
 
@@ -333,6 +348,36 @@ export default function NotificationListPage({
           className="bg-white rounded-2xl overflow-hidden"
           style={{ border: '1px solid #F1F5F9' }}
         >
+
+        <div 
+            className="inline-flex items-center gap-1 text-xs font-semibold mt-2 px-2.5 py-1 rounded-lg transition-opacity hover:opacity-80"
+            style={{ borderBottom: '1px solid #F1F5F9' }}
+          >
+
+            <span style={{ color: '#525E71' }}><SearchIcon /></span>
+
+              <input
+                type="text"
+                placeholder="Cari notifikasi..."
+                value={search}
+                onChange={(e) => setSearch(e.target.value)}
+                className="px-3 py-2 rounded-xl text-xs outline-none"
+                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+              />
+              {search && (
+                <button
+                type="button"
+                  onClick={() => setSearch('')}
+                  className="px-3 py-2 rounded-xl text-xs font-bold"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  title="Clear"
+              >
+                x
+              </button>
+            )}
+          </div>
+        </div>
+
           {/* Type filter tabs */}
           <div
             className="flex overflow-x-auto"
@@ -380,7 +425,7 @@ export default function NotificationListPage({
                 Coba lagi
               </button>
             </div>
-          ) : notifications.length === 0 ? (
+          ) : filteredKeywords.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3">
               <div style={{ color: '#D1D5DB' }}>
                 <BellSlashIcon />
@@ -392,7 +437,7 @@ export default function NotificationListPage({
             </div>
           ) : (
             <div>
-              {notifications.map(item => (
+              {filteredKeywords.map(item => (
                 <NotificationRow
                   key={item.id}
                   item={item}
@@ -413,10 +458,9 @@ export default function NotificationListPage({
                 fontFamily: 'Inter, sans-serif',
               }}
             >
-              Menampilkan {notifications.length} notifikasi
+              Menampilkan {filteredKeywords.length} keyword
             </div>
           )}
-        </div>
       </main>
     </DashboardLayout>
   )

@@ -24,6 +24,7 @@ export interface NotificationListItem {
   id: number
   type: NotificationType
   title: string
+  message: string
   is_read: boolean
   redirect_url: string
   created_at: string
