@@ -89,8 +89,13 @@ function SkeletonCard() {
 export default function MemberDashboardPage() {
   const [dashboard, setDashboard] = useState<DashboardData | null>(null)
   const [loading, setLoading] = useState(true)
+  const [txLoading, setTxLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
 
+  const [startDate, setStartDate] = useState('')
+  const [endDate, setEndDate] = useState('')
+  const [isFiltered, setIsFiltered] = useState(false)
+  const [dateError, setDateError] = useState('')
   const { userName, userStatus } = useUserProfile()
   const memberStatus = userStatus || '—'
   const firstName    = userName.split(' ')[0]
@@ -113,6 +118,42 @@ export default function MemberDashboardPage() {
     fetchAll()
     return () => { cancelled = true }
   }, [])
+
+  const handleApplyFilter = async () => {
+    if (startDate && endDate && startDate > endDate) {
+      setDateError('Tanggal mulai harus sebelum tanggal akhir.')
+      return
+    }
+    setDateError('')
+    setTxLoading(true)
+    try {
+      const params: Record<string, string> = {}
+      if (startDate) params.start_date = startDate
+      if (endDate) params.end_date = endDate
+      const res = await api.get('/dashboards/member/', { params })
+      setDashboard(res.data)
+      setIsFiltered(true)
+    } catch {
+      setError('Gagal memuat data transaksi.')
+    } finally {
+      setTxLoading(false)
+    }
+  }
+
+  const handleResetFilter = async () => {
+    setStartDate('')
+    setEndDate('')
+    setDateError('')
+    setTxLoading(true)
+    try {
+      const res = await api.get('/dashboards/member/')
+      setDashboard(res.data)
+    } catch {
+      setError('Gagal memuat data transaksi.')
+    } finally {
+      setTxLoading(false)
+    }
+  }
 
   return (
     <DashboardLayout role="MEMBER">
@@ -177,14 +218,14 @@ export default function MemberDashboardPage() {
         {/* Transaksi Terbaru */}
         <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
           <div
-            className="px-6 py-4 flex items-center justify-between"
+            className="px-6 py-4 flex flex-wrap items-center justify-between gap-3"
             style={{ borderBottom: '1px solid #F1F5F9' }}
           >
             <h3
               className="font-bold text-base"
               style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}
             >
-              Transaksi Terbaru
+              {isFiltered ? 'Transaksi Terbaru (Difilter)' : 'Transaksi Terbaru'}
             </h3>
             <div className="flex gap-2">
               <Link
@@ -204,7 +245,64 @@ export default function MemberDashboardPage() {
             </div>
           </div>
 
-          {loading ? (
+          <div
+            className="px-6 py-4 flex flex-wrap items-center gap-3"
+            style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}
+          >
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                Tanggal Mulai
+              </label>
+              <input
+                type="date"
+                value={startDate}
+                max={endDate || undefined}
+                onChange={e => setStartDate(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <label className="text-xs font-medium" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                Tanggal Akhir
+              </label>
+              <input
+                type="date"
+                value={endDate}
+                min={startDate || undefined}
+                onChange={e => setEndDate(e.target.value)}
+                className="px-3 py-1.5 rounded-lg border border-gray-300 text-sm"
+              />
+            </div>
+            <button
+              onClick={handleApplyFilter}
+              disabled={txLoading}
+              className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+              style={{ backgroundColor: '#11447D', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
+            >
+              Terapkan Filter
+            </button>
+            {isFiltered && (
+              <button
+                onClick={handleResetFilter}
+                disabled={txLoading}
+                className="text-xs font-semibold px-3 py-1.5 rounded-lg transition-all disabled:opacity-50"
+                style={{ backgroundColor: '#F1F5F9', color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+              >
+                Reset
+              </button>
+            )}
+
+            </div>
+            {dateError && (
+              <div
+                className="mt-2 px-3 py-2 rounded-lg text-sm"
+                style={{ backgroundColor: '#FEE2E2', color: '#991B1B', fontFamily: 'Inter, sans-serif' }}
+              >
+                {dateError}
+              </div>
+            )}
+
+          {loading || txLoading ? (
             <div className="flex justify-center py-16">
               <div
                 className="w-8 h-8 rounded-full border-2 animate-spin"
@@ -213,7 +311,7 @@ export default function MemberDashboardPage() {
             </div>
           ) : !dashboard || dashboard.recent_transactions.length === 0 ? (
             <div className="py-16 text-center text-sm" style={{ color: '#8E99A8' }}>
-              Belum ada transaksi.
+              {isFiltered ? 'Tidak ada transaksi yang sesuai dengan filter tanggal.' : 'Belum ada transaksi untuk ditampilkan.'}
             </div>
           ) : (
             <div className="overflow-x-auto">
