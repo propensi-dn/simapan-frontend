@@ -14,18 +14,16 @@ export default function SavingsLayout({ children }: { children: React.ReactNode 
     <DashboardLayout role="MEMBER">
       {isFormPage ? (
         <DashboardHeader
-          variant="form"
-          title={isWithdrawPage ? "Form Penarikan" : "Form Setoran"}
-          backLabel="Kembali ke Ringkasan Simpanan"
-          backHref="/dashboard/member/savings"
+          variant="detail"
+          parentLabel="Simpanan"
+          parentHref="/dashboard/member/savings"
+          currentLabel={isWithdrawPage ? "Form Penarikan" : "Form Setoran"}
           notifCount={2}
         />
       ) : (
         <DashboardHeader
-          variant="detail"
-          parentLabel="Dashboard"
-          parentHref="/dashboard/member"
-          currentLabel="Simpanan"
+          variant="default"
+          title="Simpanan"
           notifCount={2}
         />
       )}

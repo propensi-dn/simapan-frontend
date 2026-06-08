@@ -58,7 +58,7 @@ function ResetPasswordForm() {
   // Token gak ada / invalid di URL
   if (!token) {
     return (
-      <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-10 animate-slide-up">
+      <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-6 sm:p-10 animate-slide-up">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 rounded-full border-2 border-dashed border-red-200 flex items-center justify-center text-red-400 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
@@ -88,7 +88,7 @@ function ResetPasswordForm() {
   // Success state
   if (success) {
     return (
-      <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-10 animate-slide-up">
+      <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-6 sm:p-10 animate-slide-up">
         <div className="flex flex-col items-center mb-6">
           <div className="w-16 h-16 rounded-full bg-green-50 border-2 border-green-200 flex items-center justify-center text-green-600 mb-4">
             <svg xmlns="http://www.w3.org/2000/svg" width="32" height="32" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
@@ -136,7 +136,7 @@ function ResetPasswordForm() {
   }
 
   return (
-    <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-10 animate-slide-up">
+    <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-6 sm:p-10 animate-slide-up">
       <div className="flex flex-col items-center mb-8">
         <div className="w-16 h-16 rounded-full border-2 border-dashed border-gray-200 flex items-center justify-center text-text-tertiary mb-4">
           <ShieldIcon />
@@ -208,7 +208,7 @@ export default function ResetPasswordPage() {
         <div className="w-full max-w-md">
           <Suspense
             fallback={
-              <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-10 text-center">
+              <div className="bg-bg-card rounded-3xl border border-gray-100 shadow-card p-6 sm:p-10 text-center">
                 <p className="font-body text-sm text-text-secondary">Memuat...</p>
               </div>
             }
