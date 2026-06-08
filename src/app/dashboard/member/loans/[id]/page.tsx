@@ -170,10 +170,12 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                         backgroundColor: loan.status === 'ACTIVE' ? '#D1FAE5'
                           : loan.status === 'OVERDUE' ? '#FEE2E2'
                           : loan.status === 'LUNAS' ? '#DBEAFE'
+                          : loan.status === 'REJECTED' ? '#FEE2E2'
                           : '#F3F4F6',
                         color: loan.status === 'ACTIVE' ? '#065F46'
                           : loan.status === 'OVERDUE' ? '#991B1B'
                           : loan.status === 'LUNAS' ? '#1E40AF'
+                          : loan.status === 'REJECTED' ? '#991B1B'
                           : '#6B7280',
                       }}>
                       {loan.status_display}
@@ -191,7 +193,32 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
               </button>
             </div>
 
-            {/* Summary Cards */}
+            {/* Rejection notice — tampil khusus saat status REJECTED */}
+            {loan.status === 'REJECTED' && (
+              <div className="bg-white rounded-2xl p-6 flex gap-4 items-start"
+                style={{ border: '1px solid #FECACA', backgroundColor: '#FEF2F2' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#FEE2E2' }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#991B1B" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-sm" style={{ color: '#991B1B', fontFamily: 'Montserrat, sans-serif' }}>
+                    Pengajuan Pinjaman Ditolak
+                  </p>
+                  <p className="text-sm mt-1" style={{ color: '#525E71' }}>
+                    {loan.rejection_reason
+                      ? `Alasan: ${loan.rejection_reason}`
+                      : 'Pengajuan pinjaman ini telah ditolak oleh manajer. Anda dapat mengajukan pinjaman baru kapan saja.'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Summary Cards — disembunyiin kalau REJECTED (tidak ada saldo aktif / tagihan) */}
+            {loan.status !== 'REJECTED' && (
             <div className="grid grid-cols-2 gap-5">
               {/* Outstanding Balance */}
               <div className="bg-white rounded-2xl p-6 space-y-3"
@@ -250,8 +277,10 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                 )}
               </div>
             </div>
+            )}
 
-            {/* Installment Schedule Table */}
+            {/* Installment Schedule Table — REJECTED loan tidak punya jadwal cicilan */}
+            {loan.status !== 'REJECTED' && (
             <div className="bg-white rounded-2xl overflow-hidden"
               style={{ border: '1px solid #F1F5F9' }}>
               {/* Table header */}
@@ -372,6 +401,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
             </div>
+            )}
           </>
         )}
       </main>

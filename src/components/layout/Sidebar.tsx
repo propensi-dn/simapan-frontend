@@ -37,11 +37,6 @@ const SavingsVerifIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
   </svg>
 )
-const WithdrawalIcon = () => (
-  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M2.25 6L9 12.75l4.286-4.286a11.948 11.948 0 014.306 6.43l.776 2.898m0 0l3.182-5.511m-3.182 5.51l-5.511-3.181" />
-  </svg>
-)
 const DisburseIcon = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M12 6v12m-3-2.818l.879.659c1.171.879 3.07.879 4.242 0 1.172-.879 1.172-2.303 0-3.182C13.536 12.219 12.768 12 12 12c-.725 0-1.45-.22-2.003-.659-1.106-.879-1.106-2.303 0-3.182s2.9-.879 4.006 0l.415.33M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
@@ -77,6 +72,11 @@ const FinanceIcon = () => (
     <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 14.25v2.25m3-4.5v4.5m3-6.75v6.75m3-9v9M6 20.25h12A2.25 2.25 0 0020.25 18V6A2.25 2.25 0 0018 3.75H6A2.25 2.25 0 003.75 6v12A2.25 2.25 0 006 20.25z" />
   </svg>
 )
+const RefundIcon = () => (
+  <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+  </svg>
+)
 const LogoutIcon = () => (
   <svg width="18" height="18" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
     <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 9V5.25A2.25 2.25 0 0013.5 3h-6a2.25 2.25 0 00-2.25 2.25v13.5A2.25 2.25 0 007.5 21h6a2.25 2.25 0 002.25-2.25V15M12 9l-3 3m0 0l3 3m-3-3h12.75" />
@@ -99,14 +99,13 @@ const NAV_CONFIG: Record<string, NavItem[]> = {
     { label: 'Profil',   href: '/dashboard/member/profile',  icon: <ProfileIcon />,   group: 'AKUN' },
   ],
   STAFF: [
-    { label: 'Dasbor',               href: '/dashboard/staff',                      icon: <DashboardIcon />,    group: 'RINGKASAN' },
-    { label: 'Verifikasi Anggota',   href: '/dashboard/staff/verification',         icon: <VerificationIcon />, group: 'ANGGOTA' },
-    { label: 'Verifikasi Simpanan',  href: '/dashboard/staff/verifications/savings',icon: <SavingsVerifIcon />, group: 'SIMPANAN' },
-    { label: 'Penarikan Simpanan',   href: '/dashboard/staff/withdrawals',          icon: <WithdrawalIcon />,   group: 'SIMPANAN' },
-    { label: 'Dasbor Pinjaman',      href: '/dashboard/staff/loans',               icon: <LoanApprovalIcon />, group: 'PINJAMAN' },
-    { label: 'Pencairan',            href: '/dashboard/staff/disbursement',         icon: <DisburseIcon />,     group: 'PINJAMAN' },
-    { label: 'Pembayaran Angsuran',  href: '/dashboard/staff/installments',         icon: <InstallmentIcon />,  group: 'PINJAMAN' },
-    { label: 'Pengembalian Dana',    href: '/dashboard/staff/refunds',             icon: <RefundIcon />,       group: 'PINJAMAN' },
+    { label: 'Dasbor',                 href: '/dashboard/staff',                        icon: <DashboardIcon />,    group: 'RINGKASAN' },
+    { label: 'Verifikasi Anggota',     href: '/dashboard/staff/verification',           icon: <VerificationIcon />, group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Verifikasi Simpanan',    href: '/dashboard/staff/verifications/savings',  icon: <SavingsVerifIcon />, group: 'ANGGOTA & SIMPANAN' },
+    { label: 'Dasbor Pinjaman',        href: '/dashboard/staff/loans',                 icon: <LoanApprovalIcon />, group: 'PINJAMAN' },
+    { label: 'Pencairan',              href: '/dashboard/staff/disbursement',           icon: <DisburseIcon />,     group: 'PINJAMAN' },
+    { label: 'Pembayaran Angsuran',    href: '/dashboard/staff/installments',           icon: <InstallmentIcon />,  group: 'PINJAMAN' },
+    { label: 'Pengembalian Dana',      href: '/dashboard/staff/refunds',               icon: <RefundIcon />,       group: 'PINJAMAN' },
   ],
   MANAGER: [
     { label: 'Dasbor',                   href: '/dashboard/manager',              icon: <DashboardIcon />,    group: 'RINGKASAN' },
@@ -325,10 +324,8 @@ export default function Sidebar({ role, userName = 'User', avatarUrl, isLoading,
         {/* User + Logout */}
         <div className="px-3 py-4" style={{ borderTop: '1px solid #F1F5F9' }}>
           <div className="flex items-center gap-2.5 px-2 py-2 rounded-xl" style={{ backgroundColor: '#FAFAFA' }}>
-            <div
-              className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
-              style={{ backgroundColor: '#E5E7EB' }}
-            >
+            <div className="w-8 h-8 rounded-full overflow-hidden flex-shrink-0 flex items-center justify-center"
+              style={{ backgroundColor: '#E5E7EB' }}>
               {avatarUrl ? (
                 <Image src={avatarUrl} alt={userName} width={32} height={32} className="object-cover" />
               ) : (

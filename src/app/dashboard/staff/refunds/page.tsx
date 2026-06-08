@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -174,7 +174,7 @@ export default function StaffRefundsPage() {
   }
 
   return (
-    <DashboardLayout role="STAFF">
+    <DashboardLayout role="STAFF" userName="Petugas">
       <DashboardHeader variant="default" title="Pengembalian Dana" />
 
       <main className="flex-1 p-8 space-y-6">

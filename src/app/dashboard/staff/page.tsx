@@ -63,57 +63,11 @@ const InstallmentIcon = () => (
       d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
   </svg>
 )
-
-const RefundIcon = () => (
-  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
-  </svg>
-)
-
-const ResignIcon = () => (
-  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
-  </svg>
-)
-
-const WithdrawalIcon = () => (
-  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
-  </svg>
-)
-
-// ── Helpers ────────────────────────────────────────────────────────────────
-
-function formatRupiah(value: string | number): string {
-  const num = typeof value === 'string' ? parseFloat(value) : value
-  if (isNaN(num)) return 'Rp 0'
-  if (num >= 1_000_000_000) {
-    const m = num / 1_000_000_000
-    return `Rp ${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M`
-  }
-  if (num >= 1_000_000) {
-    const jt = num / 1_000_000
-    return `Rp ${jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)}Jt`
-  }
-  if (num >= 1_000) {
-    return `Rp ${(num / 1_000).toFixed(0)}Rb`
-  }
-  return `Rp ${num.toLocaleString('id-ID')}`
-}
-
-// ── Category & Status styles ────────────────────────────────────────────────
-
+// ── Category badge styles ──────────────────────────────────────────────────
 const CATEGORY_STYLE: Record<string, { bg: string; text: string }> = {
-  ANGGOTA:      { bg: '#DBEAFE', text: '#1E40AF' },
-  SIMPANAN:     { bg: '#D1FAE5', text: '#065F46' },
-  PINJAMAN:     { bg: '#FEF3C7', text: '#92400E' },
-  ANGSURAN:     { bg: '#EDE9FE', text: '#5B21B6' },
-  PENARIKAN:    { bg: '#CFFAFE', text: '#155E75' },
-  PENGEMBALIAN: { bg: '#FEE2E2', text: '#991B1B' },
-  PENUTUPAN:    { bg: '#FFEDD5', text: '#9A3412' },
+  MEMBER:  { bg: '#DBEAFE', text: '#1E40AF' },
+  SAVINGS: { bg: '#D1FAE5', text: '#065F46' },
+  LOAN:    { bg: '#FEF3C7', text: '#92400E' },
 }
 
 const STATUS_DOT: Record<string, string> = {
@@ -122,23 +76,22 @@ const STATUS_DOT: Record<string, string> = {
   'Menunggu Pencairan': '#FB923C',
 }
 
-// ── Skeleton Card ──────────────────────────────────────────────────────────
+// ── Mock data ──────────────────────────────────────────────────────────────
+type TaskCategory = 'MEMBER' | 'SAVINGS' | 'LOAN'
 
-function SkeletonCard() {
-  return (
-    <div
-      className="bg-white rounded-2xl p-6 animate-pulse"
-      style={{ border: '1px solid #F1F5F9' }}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: '#F1F5F9' }} />
-      </div>
-      <div className="h-3 rounded w-20 mb-2" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-6 rounded w-28 mb-1" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-3 rounded w-24" style={{ backgroundColor: '#F1F5F9' }} />
-    </div>
-  )
-}
+const MOCK_TASKS: {
+  id: string
+  category: TaskCategory
+  subject: string
+  status: 'Pending' | 'In Progress' | 'Completed'
+  action: string
+  href: string
+}[] = [
+  { id: 'T-8801', category: 'MEMBER',     subject: 'New Registration: Budi Santoso',   status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/1' },
+  { id: 'T-8802', category: 'SAVINGS',    subject: 'Deposit Verification: Rp 500.000', status: 'In Progress', action: 'Check',    href: '/dashboard/staff/verification/2' },
+  { id: 'T-8803', category: 'LOAN',       subject: 'Disbursement: Small Biz Grant',    status: 'Pending',     action: 'Disburse', href: '/dashboard/staff/disbursement/3' },
+  { id: 'T-8805', category: 'MEMBER',     subject: 'KYC Update: Siti Aminah',           status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/5' },
+]
 
 // ── Page ──────────────────────────────────────────────────────────────────
 
@@ -195,95 +148,11 @@ export default function StaffDashboardPage() {
           </p>
         </div>
 
-        {/* Error banner */}
-        {error && (
-          <div
-            className="mb-6 px-4 py-3 rounded-xl text-sm"
-            style={{ backgroundColor: '#FEE2E2', color: '#991B1B', fontFamily: 'Inter, sans-serif' }}
-          >
-            ⚠️ {error}
-          </div>
-        )}
-
-        {/* ── Row 1: 4 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 1 — Pending Members */}
-              <StatCard
-                label="Verifikasi Anggota"
-                value={String(data?.total_pending_members ?? 0)}
-                subtitle="Perlu ditindaklanjuti"
-                icon={<MemberIcon />}
-                accent="#11447D"
-              />
-
-              {/* 2 — Pending Savings */}
-              <StatCard
-                label="Verifikasi Simpanan"
-                value={formatRupiah(data?.total_pending_savings_amount ?? '0')}
-                subtitle={`${data?.total_pending_savings_count ?? 0} transaksi menunggu verifikasi`}
-                icon={<SavingsIcon />}
-                accent="#10B981"
-              />
-
-              {/* 3 — Approved Loans (to disburse) */}
-              <StatCard
-                label="Pencairan Pinjaman"
-                value={formatRupiah(data?.total_approved_loans_amount ?? '0')}
-                subtitle={`${data?.total_approved_loans_count ?? 0} pinjaman siap dicairkan`}
-                icon={<LoanIcon />}
-                accent="#F2A025"
-              />
-
-              {/* 4 — Pending Installments */}
-              <StatCard
-                label="Verifikasi Angsuran"
-                value={formatRupiah(data?.total_pending_installments_amount ?? '0')}
-                subtitle={`${data?.total_pending_installments_count ?? 0} pembayaran menunggu verifikasi`}
-                icon={<InstallmentIcon />}
-                accent="#8B5CF6"
-              />
-            </>
-          )}
-        </div>
-
-        {/* ── Row 2: 3 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 5 — Pending Withdrawals */}
-              <StatCard
-                label="Penarikan Menunggu"
-                value={String(data?.total_pending_withdrawals ?? 0)}
-                subtitle="Penarikan perlu diproses"
-                icon={<WithdrawalIcon />}
-                accent="#06B6D4"
-              />
-
-              {/* 6 — Approved Refunds (pending disbursement) */}
-              <StatCard
-                label="Pengembalian Dana"
-                value={String(data?.total_approved_refunds ?? 0)}
-                subtitle="Perlu dicairkan staff"
-                icon={<RefundIcon />}
-                accent="#EF4444"
-              />
-
-              {/* 7 — Approved Resignations */}
-              <StatCard
-                label="Penutupan Akun"
-                value={String(data?.total_approved_resignations ?? 0)}
-                subtitle="Disetujui manajer, perlu diproses"
-                icon={<ResignIcon />}
-                accent="#F59E0B"
-              />
-            </>
-          )}
+        {/* Stat Cards */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <StatCard label="Members"     value="124"       subtitle="Pending Members" icon={<MemberIcon />}   accent="#11447D" />
+          <StatCard label="Savings"     value="Rp 15M"    subtitle="To Verify"       icon={<SavingsIcon />}  accent="#10B981" />
+          <StatCard label="Loans"       value="Rp 45.2M"  subtitle="To Disburse"     icon={<LoanIcon />}     accent="#F2A025" />
         </div>
 
         {/* ── Today's Tasks Summary ───────────────────────────────────── */}
