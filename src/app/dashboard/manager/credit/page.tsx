@@ -332,21 +332,6 @@ export default function ManagerCreditPage() {
                 ))}
               </select>
 
-<<<<<<< HEAD
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as '' | BadDebtStatus)}
-              className="px-3 py-2 rounded-xl text-xs outline-none"
-              style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-            >
-              <option value="">Semua Status</option>
-              {orderedStatuses.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
-=======
               {(search || statusFilter) && (
                 <button
                   type="button"
@@ -361,7 +346,6 @@ export default function ManagerCreditPage() {
                   Reset
                 </button>
               )}
->>>>>>> development
 
               <button
                 type="button"
@@ -462,12 +446,8 @@ export default function ManagerCreditPage() {
                             className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
                             style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}
                           >
-<<<<<<< HEAD
-                            {st.label}
-=======
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
                             {STATUS_LABELS_EN[row.status] || row.status}
->>>>>>> development
                           </span>
                         </td>
                         <td className="px-6 py-4">
