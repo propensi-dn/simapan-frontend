@@ -63,17 +63,49 @@ const InstallmentIcon = () => (
       d="M9 14.25l6-6m4.5-3.493V21.75l-3.75-1.5-3.75 1.5-3.75-1.5-3.75 1.5V4.757c0-1.108.806-2.057 1.907-2.185a48.507 48.507 0 0111.186 0c1.1.128 1.907 1.077 1.907 2.185z" />
   </svg>
 )
-// ── Category badge styles ──────────────────────────────────────────────────
+
+const RefundIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M9 15L3 9m0 0l6-6M3 9h12a6 6 0 010 12h-3" />
+  </svg>
+)
+
+const ResignIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M22 10.5h-6m-2.25-4.125a3.375 3.375 0 11-6.75 0 3.375 3.375 0 016.75 0zM4 19.235v-.11a6.375 6.375 0 0112.75 0v.109A12.318 12.318 0 0110.374 21c-2.331 0-4.512-.645-6.374-1.766z" />
+  </svg>
+)
+
+const WithdrawalIcon = () => (
+  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.8}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M2.25 8.25h19.5M2.25 9h19.5m-16.5 5.25h6m-6 2.25h3m-3.75 3h15a2.25 2.25 0 002.25-2.25V6.75A2.25 2.25 0 0019.5 4.5h-15a2.25 2.25 0 00-2.25 2.25v10.5A2.25 2.25 0 004.5 19.5z" />
+  </svg>
+)
+
+// ── Helpers ────────────────────────────────────────────────────────────────
+
+function formatRupiah(value: string | number): string {
+  const num = typeof value === 'string' ? parseFloat(value) : value
+  if (isNaN(num)) return 'Rp 0'
+  return `Rp ${num.toLocaleString('id-ID')}`
+}
+
+
+// ── Category & Status styles ────────────────────────────────────────────────
+
 const CATEGORY_STYLE: Record<string, { bg: string; text: string }> = {
   MEMBER:  { bg: '#DBEAFE', text: '#1E40AF' },
   SAVINGS: { bg: '#D1FAE5', text: '#065F46' },
   LOAN:    { bg: '#FEF3C7', text: '#92400E' },
 }
 
-const STATUS_DOT: Record<string, string> = {
-  'Menunggu':           '#9CA3AF',
-  'Disetujui':          '#F59E0B',
-  'Menunggu Pencairan': '#FB923C',
+const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+  'Menunggu':           { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B', label: 'PENDING' },
+  'Disetujui':          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', label: 'APPROVED' },
+  'Menunggu Pencairan': { bg: '#FFEDD5', text: '#C2410C', dot: '#F97316', label: 'PENDING DISBURSEMENT' },
 }
 
 // ── Mock data ──────────────────────────────────────────────────────────────
@@ -249,26 +281,24 @@ export default function StaffDashboardPage() {
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: STATUS_DOT[task.status] ?? '#9CA3AF' }}
-                          />
-                          <span
-                            className="text-sm"
-                            style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-                          >
-                            {task.status}
-                          </span>
-                        </div>
+                        {(() => {
+                          const st = STATUS_BADGE[task.status] ?? { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF', label: task.status }
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                              style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                              {st.label}
+                            </span>
+                          )
+                        })()}
                       </td>
 
                       {/* Tindakan */}
                       <td className="px-6 py-4">
                         <Link
                           href={task.link}
-                          className="text-sm font-bold transition-colors hover:opacity-70"
-                          style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
+                          className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                          style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                         >
                           {task.action}
                         </Link>
@@ -303,16 +333,15 @@ export default function StaffDashboardPage() {
                 className="px-6 py-3 flex items-center justify-between text-sm"
                 style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
               >
-                <span>Menampilkan {start}–{end} dari {allTasks.length} tugas</span>
+                <span>Halaman {currentPage} dari {totalPages} • {allTasks.length} total data</span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     style={{
                       border: '1px solid #E5E7EB',
-                      color: currentPage === 1 ? '#D1D5DB' : '#525E71',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      color: '#525E71',
                     }}
                   >
                     ‹
@@ -324,7 +353,7 @@ export default function StaffDashboardPage() {
                       <button
                         key={p}
                         onClick={() => setCurrentPage(p as number)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
                         style={{
                           backgroundColor: p === currentPage ? '#242F43' : 'transparent',
                           color: p === currentPage ? '#FFFFFF' : '#525E71',
@@ -338,11 +367,10 @@ export default function StaffDashboardPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     style={{
                       border: '1px solid #E5E7EB',
-                      color: currentPage === totalPages ? '#D1D5DB' : '#525E71',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      color: '#525E71',
                     }}
                   >
                     ›

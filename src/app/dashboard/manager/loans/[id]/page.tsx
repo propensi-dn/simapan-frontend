@@ -24,14 +24,14 @@ const fmtDate = (iso: string | null) => {
   })
 }
 
-const STATUS_STYLE: Record<LoanStatus, { bg: string; text: string }> = {
-  PENDING:             { bg: '#FEF3C7', text: '#92400E' },
-  APPROVED:            { bg: '#D1FAE5', text: '#065F46' },
-  REJECTED:            { bg: '#FEE2E2', text: '#991B1B' },
-  ACTIVE:              { bg: '#DBEAFE', text: '#1E40AF' },
-  LUNAS:               { bg: '#D1FAE5', text: '#065F46' },
-  OVERDUE:             { bg: '#FEE2E2', text: '#991B1B' },
-  LUNAS_AFTER_OVERDUE: { bg: '#FEF3C7', text: '#92400E' },
+const STATUS_STYLE: Record<LoanStatus, { bg: string; text: string; dot: string }> = {
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
 }
 
 const CREDIT_SCORE_COLOR: Record<string, { bar: string; text: string }> = {
@@ -316,12 +316,14 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                   </p>
                 </div>
                 <span
-                  className="inline-flex items-center px-3 py-1.5 rounded-lg text-xs font-bold"
+                  className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-bold"
                   style={{
                     backgroundColor: (STATUS_STYLE[data.loan.status] || STATUS_STYLE.PENDING).bg,
                     color: (STATUS_STYLE[data.loan.status] || STATUS_STYLE.PENDING).text,
+                    textTransform: 'uppercase',
                   }}
                 >
+                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: (STATUS_STYLE[data.loan.status] || STATUS_STYLE.PENDING).dot }} />
                   {data.loan.status_display}
                 </span>
               </div>
@@ -564,8 +566,9 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                                 {fmtRp(loan.amount)}
                               </td>
                               <td className="px-4 py-3">
-                                <span className="inline-flex px-2 py-1 rounded-md text-xs font-bold"
-                                  style={{ backgroundColor: st.bg, color: st.text }}>
+                                <span className="inline-flex items-center gap-1.5 px-2 py-1 rounded-md text-xs font-bold"
+                                  style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase' }}>
+                                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
                                   {loan.status_display}
                                 </span>
                               </td>

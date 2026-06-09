@@ -160,56 +160,36 @@ function StatusContent() {
             </p>
 
             {/* Tombol Aksi Sesuai Status */}
-            <div className="mt-6 flex flex-col gap-3">
-              {result.status === 'NOT_FOUND' && (
-                <>
+            {result.status !== 'PENDING' && result.status !== 'INACTIVE' && (
+              <div className="mt-6 flex flex-col gap-3">
+                {result.status === 'NOT_FOUND' && (
                   <a href="/register"
                     className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center transition-all bg-primary-950 hover:bg-primary-500">
                     Daftar Sekarang
                   </a>
-                  <button
-                    onClick={() => checkStatus(result.email)}
-                    disabled={loading}
-                    className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50 border border-gray-200 text-gray-600 hover:bg-gray-50">
-                    {loading ? 'Memeriksa...' : 'Coba Lagi'}
-                  </button>
-                </>
-              )}
+                )}
 
-              {(result.status === 'VERIFIED' || result.status === 'ACTIVE') && (
-                <a href="/login"
-                  className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center transition-all"
-                  style={{ backgroundColor: '#11447D', fontFamily: 'Montserrat, sans-serif' }}>
-                  Login Sekarang
-                </a>
-              )}
+                {(result.status === 'VERIFIED' || result.status === 'ACTIVE') && (
+                  <a href="/login"
+                    className="w-full py-3 rounded-xl font-bold text-sm text-white flex items-center justify-center transition-all"
+                    style={{ backgroundColor: '#11447D', fontFamily: 'Montserrat, sans-serif' }}>
+                    Login Sekarang
+                  </a>
+                )}
 
-              {result.status === 'REJECTED' && (
-                <a href="mailto:propensi.ksb@gmail.com"
-                  className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all"
-                  style={{
-                    border: '1.5px solid #242F43',
-                    color: '#242F43',
-                    fontFamily: 'Montserrat, sans-serif',
-                  }}>
-                  Hubungi Petugas
-                </a>
-              )}
-
-              {(result.status === 'PENDING' || result.status === 'INACTIVE') && (
-                <button
-                  onClick={() => checkStatus(result.email)}
-                  disabled={loading}
-                  className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all disabled:opacity-50"
-                  style={{
-                    border: '1.5px solid #d1d5db',
-                    color: '#525E71',
-                    fontFamily: 'Montserrat, sans-serif',
-                  }}>
-                  {loading ? 'Memeriksa...' : 'Perbarui Status'}
-                </button>
-              )}
-            </div>
+                {result.status === 'REJECTED' && (
+                  <a href="mailto:propensi.ksb@gmail.com"
+                    className="w-full py-3 rounded-xl font-bold text-sm flex items-center justify-center transition-all"
+                    style={{
+                      border: '1.5px solid #242F43',
+                      color: '#242F43',
+                      fontFamily: 'Montserrat, sans-serif',
+                    }}>
+                    Hubungi Petugas
+                  </a>
+                )}
+              </div>
+            )}
           </div>
         )}
 

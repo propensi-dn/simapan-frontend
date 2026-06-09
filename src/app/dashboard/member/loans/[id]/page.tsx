@@ -28,6 +28,16 @@ const INSTALLMENT_STATUS: Record<InstallmentStatus, { bg: string; text: string; 
   PAID:    { bg: '#D1FAE5', text: '#065F46', dot: '#10B981', label: 'Paid' },
 }
 
+const LOAN_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
+}
+
 const STATUS_FILTERS = [
   { key: '', label: 'Semua' },
   { key: 'UNPAID', label: 'Unpaid' },
@@ -165,19 +175,14 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                       style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                       Loan ID: #{loan.loan_id}
                     </h2>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-md"
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
                       style={{
-                        backgroundColor: loan.status === 'ACTIVE' ? '#D1FAE5'
-                          : loan.status === 'OVERDUE' ? '#FEE2E2'
-                          : loan.status === 'LUNAS' ? '#DBEAFE'
-                          : loan.status === 'REJECTED' ? '#FEE2E2'
-                          : '#F3F4F6',
-                        color: loan.status === 'ACTIVE' ? '#065F46'
-                          : loan.status === 'OVERDUE' ? '#991B1B'
-                          : loan.status === 'LUNAS' ? '#1E40AF'
-                          : loan.status === 'REJECTED' ? '#991B1B'
-                          : '#6B7280',
+                        backgroundColor: (LOAN_STATUS_STYLE[loan.status] ?? { bg: '#F3F4F6' }).bg,
+                        color: (LOAN_STATUS_STYLE[loan.status] ?? { text: '#6B7280' }).text,
+                        textTransform: 'uppercase',
                       }}>
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: (LOAN_STATUS_STYLE[loan.status] ?? { dot: '#9CA3AF' }).dot }} />
                       {loan.status_display}
                     </span>
                   </div>
