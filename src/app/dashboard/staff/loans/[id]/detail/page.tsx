@@ -300,8 +300,8 @@ export default function StaffLoanDetailMonitoringPage() {
                         ) : row.status === 'PENDING' ? (
                           <Link
                             href={`/dashboard/staff/installments/${row.id}`}
-                            className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg"
-                            style={{ backgroundColor: '#111827', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                           >
                             Tinjau
                           </Link>
@@ -317,7 +317,7 @@ export default function StaffLoanDetailMonitoringPage() {
           </div>
 
           <div className="px-6 py-3 flex items-center justify-between" style={{ borderTop: '1px solid #F1F5F9' }}>
-            <span className="text-xs" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+            <span className="text-xs" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>
               Menampilkan {showingFrom} sampai {showingTo} dari {count} data
             </span>
 

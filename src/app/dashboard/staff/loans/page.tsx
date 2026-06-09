@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useState, useEffect, useCallback } from 'react'
 import Link from 'next/link'
@@ -41,27 +41,34 @@ const getInitials = (name: string) =>
 
 // ── Status Badge ─────────────────────────────────────────────────────────────
 const StatusBadge = ({ status }: { status: string }) => {
-  const map: Record<string, { bg: string; color: string; label: string }> = {
-    ACTIVE:       { bg: '#DCFCE7', color: '#15803D', label: 'AKTIF' },
-    PENDING:      { bg: '#FEF9C3', color: '#A16207', label: 'PENDING' },
-    OVERDUE:      { bg: '#FEE2E2', color: '#B91C1C', label: 'OVERDUE' },
-    GRACE_PERIOD: { bg: '#DBEAFE', color: '#1D4ED8', label: 'GRACE PERIOD' },
-    LUNAS:        { bg: '#DCFCE7', color: '#15803D', label: 'LUNAS' },
+  const map: Record<string, { bg: string; color: string; dot: string; label: string }> = {
+    PENDING:             { bg: '#FEF3C7', color: '#B45309', dot: '#F59E0B', label: 'PENDING' },
+    APPROVED:            { bg: '#EFF6FF', color: '#1D4ED8', dot: '#3B82F6', label: 'APPROVED' },
+    REJECTED:            { bg: '#FEF2F2', color: '#991B1B', dot: '#EF4444', label: 'REJECTED' },
+    ACTIVE:              { bg: '#ECFDF5', color: '#047857', dot: '#10B981', label: 'ACTIVE' },
+    LUNAS:               { bg: '#F0FDFA', color: '#0F766E', dot: '#14B8A6', label: 'PAID' },
+    OVERDUE:             { bg: '#FFF1F2', color: '#BE123C', dot: '#BE123C', label: 'OVERDUE' },
+    LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', color: '#6D28D9', dot: '#8B5CF6', label: 'PAID AFTER OVERDUE' },
+    GRACE_PERIOD:        { bg: '#DBEAFE', color: '#1D4ED8', dot: '#3B82F6', label: 'GRACE PERIOD' },
   }
-  const s = map[status] || { bg: '#F3F4F6', color: '#374151', label: status }
+  const s = map[status] || { bg: '#F3F4F6', color: '#374151', dot: '#9CA3AF', label: status }
   return (
     <span
+      className="inline-flex items-center gap-1.5"
       style={{
         background: s.bg,
         color: s.color,
         fontSize: 10,
-        fontWeight: 800,
+        fontWeight: 700,
         padding: '3px 10px',
         borderRadius: 20,
         letterSpacing: 0.5,
         whiteSpace: 'nowrap',
+        textTransform: 'uppercase',
+        fontFamily: 'Inter, sans-serif',
       }}
     >
+      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: s.dot }} />
       {s.label}
     </span>
   )
@@ -280,15 +287,15 @@ const StatCard = ({ label, value, subtitle, icon, iconBg, subtitleColor, subtitl
     }}
   >
     <div>
-      <p style={{ fontSize: 13, color: '#8A9BB0', fontWeight: 500, margin: '0 0 6px' }}>
+      <p style={{ fontSize: 13, color: '#8E99A8', fontWeight: 500, margin: '0 0 6px', fontFamily: 'Inter, sans-serif' }}>
         {label}
       </p>
-      <p style={{ fontSize: 36, fontWeight: 900, color: '#111827', margin: '0 0 6px', lineHeight: 1 }}>
+      <p style={{ fontSize: 32, fontWeight: 700, color: '#242F43', margin: '0 0 6px', lineHeight: 1, fontFamily: 'Montserrat, sans-serif' }}>
         {value}
       </p>
       <div style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
         {subtitleIcon}
-        <p style={{ fontSize: 12, color: subtitleColor || '#8A9BB0', margin: 0, fontWeight: subtitleColor ? 700 : 400 }}>
+        <p style={{ fontSize: 12, color: subtitleColor || '#8E99A8', margin: 0, fontWeight: subtitleColor ? 700 : 400, fontFamily: 'Inter, sans-serif' }}>
           {subtitle}
         </p>
       </div>
@@ -371,7 +378,7 @@ export default function StaffLoanDashboardPage() {
           padding: '28px 32px',
           background: '#F7F8FA',
           minHeight: '100vh',
-          fontFamily: "'Plus Jakarta Sans', 'Segoe UI', sans-serif",
+          fontFamily: "'Inter', sans-serif",
         }}
       >
         {/* ── Stat Cards ── */}
@@ -422,7 +429,7 @@ export default function StaffLoanDashboardPage() {
         >
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#242F43', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>
               Aktivitas Pinjaman Terkini
             </h2>
             {/* Weekly / Monthly toggle */}
@@ -489,7 +496,7 @@ export default function StaffLoanDashboardPage() {
         >
           {/* Header */}
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 20 }}>
-            <h2 style={{ fontSize: 16, fontWeight: 800, color: '#111827', margin: 0 }}>
+            <h2 style={{ fontSize: 16, fontWeight: 700, color: '#242F43', margin: 0, fontFamily: 'Montserrat, sans-serif' }}>
               Pinjaman Mendekati Jatuh Tempo
             </h2>
             <Link
@@ -500,6 +507,7 @@ export default function StaffLoanDashboardPage() {
                 color: '#6B7280',
                 textDecoration: 'none',
                 letterSpacing: 0.5,
+                fontFamily: 'Inter, sans-serif',
               }}
             >
               LIHAT SEMUA
@@ -513,7 +521,7 @@ export default function StaffLoanDashboardPage() {
                 <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 13 }}>
                   <thead>
                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      {['NAMA MEMBER', 'LOAN ID', 'SISA SALDO', 'JATUH TEMPO', 'STATUS', 'AKSI'].map((h) => (
+                      {['LOAN ID', 'NAMA MEMBER', 'SISA SALDO', 'JATUH TEMPO', 'STATUS', 'AKSI'].map((h) => (
                         <th
                           key={h}
                           style={{
@@ -542,21 +550,20 @@ export default function StaffLoanDashboardPage() {
                         onMouseEnter={(e) => (e.currentTarget.style.background = '#FAFBFC')}
                         onMouseLeave={(e) => (e.currentTarget.style.background = 'transparent')}
                       >
-                        {/* Member name with avatar */}
-                        <td style={{ padding: '12px 12px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                            <Avatar name={loan.member_name} index={i} />
-                            <span style={{ fontWeight: 600, color: '#111827' }}>
-                              {loan.member_name}
-                            </span>
-                          </div>
-                        </td>
                         {/* Loan ID */}
-                        <td style={{ padding: '12px', color: '#6B7280', fontWeight: 500 }}>
-                          {loan.loan_id}
+                        <td style={{ padding: '12px' }}>
+                          <span className="font-bold" style={{ color: '#11447D', letterSpacing: '-0.2px', fontFamily: 'Inter, sans-serif' }}>
+                            {loan.loan_id}
+                          </span>
+                        </td>
+                        {/* Member name without avatar */}
+                        <td style={{ padding: '12px 12px' }}>
+                          <span style={{ fontWeight: 600, color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                            {loan.member_name}
+                          </span>
                         </td>
                         {/* Remaining balance */}
-                        <td style={{ padding: '12px', color: '#111827', fontWeight: 700 }}>
+                        <td style={{ padding: '12px', color: '#242F43', fontWeight: 700, fontFamily: 'Inter, sans-serif' }}>
                           {formatCurrency(loan.remaining_balance)}
                         </td>
                         {/* Due date */}
@@ -575,15 +582,11 @@ export default function StaffLoanDashboardPage() {
                         <td style={{ padding: '12px' }}>
                           <Link
                             href={`/dashboard/staff/loans/${loan.id}`}
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
                             style={{
-                              fontSize: 13,
-                              fontWeight: 700,
-                              color: '#111827',
-                              textDecoration: 'none',
-                              padding: '0',
+                              backgroundColor: '#242F43',
+                              fontFamily: 'Inter, sans-serif',
                             }}
-                            onMouseEnter={(e) => (e.currentTarget.style.color = '#3B7DFF')}
-                            onMouseLeave={(e) => (e.currentTarget.style.color = '#111827')}
                           >
                             Tinjau
                           </Link>
@@ -593,51 +596,6 @@ export default function StaffLoanDashboardPage() {
                   </tbody>
                 </table>
               </div>
-
-              {/* Pagination */}
-              {pageInfo.total_pages > 1 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 20,
-                    paddingTop: 16,
-                    borderTop: '1px solid #F1F5F9',
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: '#94A3B8' }}>
-                    {(pageInfo.current_page - 1) * pageInfo.page_size + 1}–
-                    {Math.min(pageInfo.current_page * pageInfo.page_size, pageInfo.count)} dari {pageInfo.count}
-                  </span>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      onClick={() => setPage(Math.max(1, page - 1))}
-                      disabled={page === 1}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151',
-                        fontSize: 13, fontWeight: 600, cursor: page === 1 ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      <ChevronLeft size={14} /> Sebelumnya
-                    </button>
-                    <button
-                      onClick={() => setPage(Math.min(pageInfo.total_pages, page + 1))}
-                      disabled={page === pageInfo.total_pages}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === pageInfo.total_pages ? '#D1D5DB' : '#374151',
-                        fontSize: 13, fontWeight: 600, cursor: page === pageInfo.total_pages ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      Selanjutnya <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div
@@ -654,6 +612,65 @@ export default function StaffLoanDashboardPage() {
               </p>
             </div>
           )}
+
+          {/* Footer always visible */}
+          {(() => {
+            const totalPages = Math.max(1, pageInfo.total_pages)
+            const pages: (number | '...')[] = []
+            if (totalPages <= 5) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i)
+            } else {
+              pages.push(1)
+              if (page > 3) pages.push('...')
+              for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i)
+              if (page < totalPages - 2) pages.push('...')
+              pages.push(totalPages)
+            }
+            return (
+              <div
+                className="px-3 py-3 flex items-center justify-between text-sm"
+                style={{ borderTop: '1px solid #F1F5F9', color: '#94A3B8', fontFamily: 'Inter, sans-serif', marginTop: 16 }}
+              >
+                <span>Halaman {page} dari {totalPages} • {pageInfo.count} total data</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  >
+                    ‹
+                  </button>
+                  {pages.map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#94A3B8' }}>…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p as number)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                        style={{
+                          backgroundColor: p === page ? '#242F43' : 'transparent',
+                          color: p === page ? '#FFFFFF' : '#525E71',
+                          border: p === page ? 'none' : '1px solid #E5E7EB',
+                        }}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                  <button
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </main>
     </DashboardLayout>

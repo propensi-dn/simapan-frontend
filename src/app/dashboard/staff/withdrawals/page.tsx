@@ -226,47 +226,6 @@ export default function StaffWithdrawalsPage() {
                 Kelola pencairan penarikan simpanan sukarela anggota.
               </p>
             </div>
-
-            <div className="flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9', paddingBottom: '12px' }}>
-              <form onSubmit={(e) => { e.preventDefault(); onSearchSubmit() }} className="flex items-center gap-2 flex-1 max-w-xs">
-                <div className="relative flex-1">
-                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                    width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B0BAC5" strokeWidth={2.5}>
-                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-                  </svg>
-                  <input type="text" placeholder="Cari ID penarikan atau nama..."
-                    value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
-                    className="w-full pl-8 pr-3 py-2 rounded-xl text-sm outline-none"
-                    style={{ border: '1px solid #E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif', backgroundColor: '#FAFAFA' }}
-                  />
-                </div>
-                <button type="submit"
-                  className="px-3 py-2 rounded-xl text-xs font-bold"
-                  style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                  Cari
-                </button>
-                {search && (
-                  <button type="button"
-                    onClick={() => { setSearchInput(''); setSearch('') }}
-                    className="px-3 py-2 rounded-xl text-xs font-bold"
-                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                    Reset
-                  </button>
-                )}
-              </form>
-
-              <div className="h-4 w-px bg-gray-200" />
-
-              <button
-                type="button"
-                disabled={isExporting}
-                onClick={handleExport}
-                className="px-3 py-2 rounded-xl text-xs font-bold disabled:opacity-60"
-                style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
-              >
-                {isExporting ? 'Mengekspor...' : 'Ekspor'}
-              </button>
-            </div>
           </div>
 
           <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
@@ -286,10 +245,49 @@ export default function StaffWithdrawalsPage() {
           </div>
 
           <section className="rounded-2xl border bg-white" style={{ borderColor: '#E2E8F0' }}>
-            <div className="border-b px-5 py-4" style={{ borderColor: '#F1F5F9' }}>
-              <h2 className="text-lg font-semibold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+            <div className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <h2 className="text-base font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                 Permintaan Penarikan Menunggu
               </h2>
+
+              <div className="flex flex-wrap items-center gap-3">
+                <form onSubmit={(e) => { e.preventDefault(); onSearchSubmit() }} className="flex items-center gap-2">
+                  <div className="relative">
+                    <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                      width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B0BAC5" strokeWidth={2.5}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                    </svg>
+                    <input type="text" placeholder="Cari penarikan..."
+                      value={searchInput} onChange={(e) => setSearchInput(e.target.value)}
+                      className="w-64 pl-8 pr-3 py-2 rounded-xl text-xs outline-none"
+                      style={{ border: '1px solid #E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif', backgroundColor: '#FAFAFA' }}
+                    />
+                  </div>
+                  <button type="submit"
+                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                    style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                    Cari
+                  </button>
+                  {search && (
+                    <button type="button"
+                      onClick={() => { setSearchInput(''); setSearch('') }}
+                      className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                      style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                      Reset
+                    </button>
+                  )}
+                </form>
+
+                <button
+                  type="button"
+                  disabled={isExporting}
+                  onClick={handleExport}
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50 disabled:opacity-60"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                >
+                  {isExporting ? 'Mengekspor...' : 'Ekspor'}
+                </button>
+              </div>
             </div>
 
             {isLoading ? (
@@ -333,10 +331,11 @@ export default function StaffWithdrawalsPage() {
                         </td>
                         <td className="px-5 py-4">
                           <span
-                            className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                            style={{ backgroundColor: '#FEF3C7', color: '#92400E' }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                            style={{ backgroundColor: '#FEF3C7', color: '#B45309', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}
                           >
-                            Menunggu
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#F59E0B' }} />
+                            PENDING
                           </span>
                         </td>
                         <td className="px-5 py-4 text-right">
@@ -346,7 +345,8 @@ export default function StaffWithdrawalsPage() {
                               setSelectedWithdrawal(row)
                               setTransferProof(null)
                             }}
-                            className="rounded-lg bg-black px-3 py-1.5 text-xs font-semibold text-white"
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                           >
                             Cairkan Dana
                           </button>
@@ -358,8 +358,10 @@ export default function StaffWithdrawalsPage() {
               </div>
             )}
 
-            <div className="px-5 py-3 flex items-center justify-between text-sm" style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              <p className="text-xs" style={{ color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}>{pendingRangeText}</p>
+            <div className="px-6 py-3 flex items-center justify-between text-sm" style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+              <span>
+                Halaman {pendingPage} dari {pendingTotalPages} • {pendingCount} total data
+              </span>
               <div className="flex items-center gap-1">
                 <button
                   type="button"
@@ -405,9 +407,9 @@ export default function StaffWithdrawalsPage() {
             </div>
           </section>
 
-          <section className="rounded-2xl border bg-white" style={{ borderColor: '#E2E8F0' }}>
-            <div className="border-b px-5 py-4" style={{ borderColor: '#F1F5F9' }}>
-              <h2 className="text-lg font-semibold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+          <section className="rounded-2xl border bg-white mt-6" style={{ borderColor: '#E2E8F0' }}>
+            <div className="px-6 py-4 flex items-center justify-between" style={{ borderBottom: '1px solid #F1F5F9' }}>
+              <h2 className="text-base font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                 Riwayat Penarikan
               </h2>
             </div>
@@ -449,10 +451,11 @@ export default function StaffWithdrawalsPage() {
                         <td className="px-5 py-4" style={{ color: '#334155' }}>{fmtDate(row.processed_at || row.created_at)}</td>
                         <td className="px-5 py-4">
                           <span
-                            className="rounded-full px-2.5 py-1 text-xs font-semibold"
-                            style={{ backgroundColor: '#DCFCE7', color: '#166534' }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                            style={{ backgroundColor: '#ECFDF5', color: '#047857', textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}
                           >
-                            Berhasil
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: '#10B981' }} />
+                            SUCCESS
                           </span>
                         </td>
                       </tr>

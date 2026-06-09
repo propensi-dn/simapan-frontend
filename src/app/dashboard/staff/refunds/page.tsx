@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import toast from 'react-hot-toast'
@@ -27,6 +27,18 @@ const fmtDate = (iso: string | null) => {
     month: 'short',
     year: 'numeric',
   })
+}
+
+const getPaginationRange = (current: number, total: number) => {
+  const delta = 2
+  const range: (number | '...')[] = []
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+    range.push(i)
+  }
+  if (range.length === 0) return range
+  if (range[0] !== 1) { range.unshift('...'); range.unshift(1) }
+  if (range[range.length - 1] !== total) { range.push('...'); range.push(total) }
+  return range
 }
 
 export default function StaffRefundsPage() {
@@ -228,63 +240,65 @@ export default function StaffRefundsPage() {
         {/* Pending table */}
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div
-            className="px-6 py-4 flex flex-wrap items-center gap-3"
+            className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
             style={{ borderBottom: '1px solid #F1F5F9' }}
           >
             <h3
-              className="font-bold text-base mr-auto"
+              className="font-bold text-base"
               style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
             >
               Daftar Dana yang Perlu Dikembalikan
             </h3>
 
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Cari nama anggota..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
-                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-              />
-              <button
-                type="submit"
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}
-              >
-                Cari
-              </button>
-            </form>
+            <div className="flex flex-wrap items-center gap-3">
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari nama anggota..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}
+                >
+                  Cari
+                </button>
+              </form>
 
-            <div className="flex items-center gap-2">
-              <label className="text-xs" style={{ color: '#525E71' }}>Dari:</label>
-              <input
-                type="date"
-                value={startDate}
-                onChange={(e) => setStartDate(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
-                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-              />
-              <label className="text-xs" style={{ color: '#525E71' }}>s/d:</label>
-              <input
-                type="date"
-                value={endDate}
-                onChange={(e) => setEndDate(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
-                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-              />
+              <div className="flex items-center gap-2">
+                <label className="text-xs" style={{ color: '#525E71' }}>Dari:</label>
+                <input
+                  type="date"
+                  value={startDate}
+                  onChange={(e) => setStartDate(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+                />
+                <label className="text-xs" style={{ color: '#525E71' }}>s/d:</label>
+                <input
+                  type="date"
+                  value={endDate}
+                  onChange={(e) => setEndDate(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+                />
+              </div>
+
+              {(search || startDate || endDate) && (
+                <button
+                  type="button"
+                  onClick={handleReset}
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                >
+                  Reset
+                </button>
+              )}
             </div>
-
-            {(search || startDate || endDate) && (
-              <button
-                type="button"
-                onClick={handleReset}
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
-              >
-                Atur Ulang
-              </button>
-            )}
           </div>
 
           {error ? (
@@ -360,8 +374,8 @@ export default function StaffRefundsPage() {
                         <button
                           type="button"
                           onClick={() => openModal(row)}
-                          className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                          style={{ backgroundColor: '#242F43' }}
+                          className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                          style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                         >
                           Cairkan Dana
                         </button>
@@ -373,14 +387,13 @@ export default function StaffRefundsPage() {
             </div>
           )}
 
-          {!loading && !error && pendingRows.length > 0 && (
+          {!loading && !error && (
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
-              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8' }}
+              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
               <span>
-                Menampilkan {(page - 1) * pageSize + 1}–{Math.min(page * pageSize, count)} dari{' '}
-                {count} data
+                Halaman {page} dari {totalPages} • {count} total data
               </span>
               <div className="flex items-center gap-1">
                 <button
@@ -388,24 +401,42 @@ export default function StaffRefundsPage() {
                     if (page > 1) reload(page - 1, historyPage, search, startDate, endDate)
                   }}
                   disabled={page === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'<'}
+                  {'‹'}
                 </button>
-                <span className="px-3" style={{ color: '#525E71' }}>
-                  {page} / {totalPages}
-                </span>
+
+                {getPaginationRange(page, totalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`pending-ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => reload(p as number, historyPage, search, startDate, endDate)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === page ? '#242F43' : 'transparent',
+                        color: p === page ? '#FFFFFF' : '#525E71',
+                        border: p === page ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => {
                     if (page < totalPages)
                       reload(page + 1, historyPage, search, startDate, endDate)
                   }}
                   disabled={page === totalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'>'}
+                  {'›'}
                 </button>
               </div>
             </div>
@@ -414,16 +445,21 @@ export default function StaffRefundsPage() {
 
         {/* History table */}
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
-          <div className="px-6 py-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
-            <h3
-              className="font-bold text-base"
-              style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
-            >
-              Riwayat Pencairan Dana
-            </h3>
-            <p className="text-xs mt-1" style={{ color: '#8E99A8' }}>
-              Dana yang sudah berhasil dicairkan kepada anggota.
-            </p>
+          <div
+            className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
+            style={{ borderBottom: '1px solid #F1F5F9' }}
+          >
+            <div>
+              <h3
+                className="font-bold text-base"
+                style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
+              >
+                Riwayat Pencairan Dana
+              </h3>
+              <p className="text-xs mt-1" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
+                Dana yang sudah berhasil dicairkan kepada anggota.
+              </p>
+            </div>
           </div>
 
           {loading ? (
@@ -489,40 +525,56 @@ export default function StaffRefundsPage() {
             </div>
           )}
 
-          {!loading && historyRows.length > 0 && (
+          {!loading && !error && (
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
-              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8' }}
+              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
               <span>
-                Menampilkan {(historyPage - 1) * pageSize + 1}–
-                {Math.min(historyPage * pageSize, historyCount)} dari {historyCount} data
+                Halaman {historyPage} dari {historyTotalPages} • {historyCount} total data
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => {
-                    if (historyPage > 1)
-                      reload(page, historyPage - 1, search, startDate, endDate)
+                    if (historyPage > 1) reload(page, historyPage - 1, search, startDate, endDate)
                   }}
                   disabled={historyPage === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'<'}
+                  {'‹'}
                 </button>
-                <span className="px-3" style={{ color: '#525E71' }}>
-                  {historyPage} / {historyTotalPages}
-                </span>
+
+                {getPaginationRange(historyPage, historyTotalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`history-ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => reload(page, p as number, search, startDate, endDate)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === historyPage ? '#242F43' : 'transparent',
+                        color: p === historyPage ? '#FFFFFF' : '#525E71',
+                        border: p === historyPage ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => {
                     if (historyPage < historyTotalPages)
                       reload(page, historyPage + 1, search, startDate, endDate)
                   }}
                   disabled={historyPage === historyTotalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'>'}
+                  {'›'}
                 </button>
               </div>
             </div>
