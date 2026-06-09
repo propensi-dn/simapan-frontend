@@ -31,13 +31,13 @@ const fmtDate = (iso: string | null) => {
 // ── Constants ─────────────────────────────────────────────────────────────
 
 const LOAN_STATUS: Record<LoanStatus, { bg: string; text: string; dot: string; label: string }> = {
-  PENDING:             { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF', label: 'Pending' },
-  APPROVED:            { bg: '#DBEAFE', text: '#1E40AF', dot: '#3B82F6', label: 'Approved' },
-  REJECTED:            { bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444', label: 'Rejected' },
-  ACTIVE:              { bg: '#D1FAE5', text: '#065F46', dot: '#10B981', label: 'Active' },
-  LUNAS:               { bg: '#D1FAE5', text: '#065F46', dot: '#10B981', label: 'Lunas' },
-  OVERDUE:             { bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444', label: 'Overdue' },
-  LUNAS_AFTER_OVERDUE: { bg: '#FEF3C7', text: '#92400E', dot: '#F59E0B', label: 'Lunas (After Overdue)' },
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B', label: 'Pending' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', label: 'Approved' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444', label: 'Rejected' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981', label: 'Active' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6', label: 'Lunas' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C', label: 'Overdue' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6', label: 'Lunas (After Overdue)' },
 }
 
 const CREDIT_SCORE_COLOR: Record<string, { bar: string; text: string }> = {
@@ -110,20 +110,23 @@ export default function LoanOverviewPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [searchText,   setSearchText]   = useState('')
   const [searchQ,      setSearchQ]      = useState('')
-  const [hasBadDebt,   setHasBadDebt]   = useState(false)
-  const [blockModal,   setBlockModal]   = useState<'inactive' | 'bad_debt' | null>(null)
+  const [hasBadDebt,        setHasBadDebt]        = useState(false)
+  const [wajibOverdueMonths, setWajibOverdueMonths] = useState(0)
+  const [blockModal,        setBlockModal]        = useState<'inactive' | 'bad_debt' | 'wajib_arrears' | null>(null)
 
   const { userStatus } = useUserProfile()
 
   useEffect(() => {
     api.get('/loans/create/').then(r => {
       setHasBadDebt(r.data.has_bad_debt)
+      setWajibOverdueMonths(r.data.wajib_overdue_months ?? 0)
     }).catch(() => {})
   }, [])
 
   function handleAjukanPinjaman() {
     if (hasBadDebt) { setBlockModal('bad_debt'); return }
     if (userStatus !== 'ACTIVE') { setBlockModal('inactive'); return }
+    if (wajibOverdueMonths > 2) { setBlockModal('wajib_arrears'); return }
     router.push('/dashboard/member/loans/apply')
   }
 
@@ -222,59 +225,57 @@ export default function LoanOverviewPage() {
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
 
           {/* Toolbar */}
-          <div className="px-6 py-3 flex flex-wrap items-center gap-3"
+          <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             style={{ borderBottom: '1px solid #F1F5F9' }}>
 
-            {/* Status filter pills */}
-            <div className="flex items-center gap-1.5 flex-wrap">
-              {STATUS_FILTERS.map(f => (
-                <button key={f.key}
-                  onClick={() => setStatusFilter(f.key)}
-                  className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                  style={{
-                    backgroundColor: statusFilter === f.key ? '#242F43' : '#F1F5F9',
-                    color: statusFilter === f.key ? '#fff' : '#525E71',
-                    fontFamily: 'Inter, sans-serif',
-                  }}>
-                  {f.label}
+            <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              Daftar Pinjaman
+            </h3>
+
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <form onSubmit={e => { e.preventDefault(); setSearchQ(searchText) }}
+                className="flex items-center gap-2">
+                <div className="relative">
+                  <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                    width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B0BAC5" strokeWidth={2.5}>
+                    <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
+                  </svg>
+                  <input type="text" placeholder="Cari Loan ID..."
+                    value={searchText} onChange={e => setSearchText(e.target.value)}
+                    className="w-64 pl-8 pr-3 py-2 rounded-xl text-xs outline-none"
+                    style={{ border: '1px solid #E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif', backgroundColor: '#FAFAFA' }}
+                  />
+                </div>
+                <button type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                  Cari
                 </button>
-              ))}
+                {searchQ && (
+                  <button type="button"
+                    onClick={() => { setSearchText(''); setSearchQ('') }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                    Reset
+                  </button>
+                )}
+              </form>
+
+              {/* Status Filter Dropdown */}
+              <select
+                value={statusFilter}
+                onChange={e => setStatusFilter(e.target.value)}
+                className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer"
+                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43', fontFamily: 'Inter, sans-serif' }}
+              >
+                {STATUS_FILTERS.map(f => (
+                  <option key={f.key} value={f.key}>
+                    {f.key === '' ? 'Semua Status' : f.label}
+                  </option>
+                ))}
+              </select>
             </div>
-
-            <div className="h-4 w-px bg-gray-200" />
-
-            {/* Search */}
-            <form onSubmit={e => { e.preventDefault(); setSearchQ(searchText) }}
-              className="flex items-center gap-2 flex-1 max-w-xs">
-              <div className="relative flex-1">
-                <svg className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="#B0BAC5" strokeWidth={2.5}>
-                  <path strokeLinecap="round" strokeLinejoin="round" d="M21 21l-4.35-4.35M17 11A6 6 0 115 11a6 6 0 0112 0z" />
-                </svg>
-                <input type="text" placeholder="Search Loan ID..."
-                  value={searchText} onChange={e => setSearchText(e.target.value)}
-                  className="w-full pl-8 pr-3 py-2 rounded-xl text-sm outline-none"
-                  style={{ border: '1px solid #E5E7EB', color: '#242F43', fontFamily: 'Inter, sans-serif', backgroundColor: '#FAFAFA' }}
-                />
-              </div>
-              <button type="submit"
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                Cari
-              </button>
-              {searchQ && (
-                <button type="button"
-                  onClick={() => { setSearchText(''); setSearchQ('') }}
-                  className="px-3 py-2 rounded-xl text-xs font-bold"
-                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                  Reset
-                </button>
-              )}
-            </form>
-
-            <span className="ml-auto text-xs" style={{ color: '#B0BAC5', fontFamily: 'Inter, sans-serif' }}>
-              {loans.length} pinjaman
-            </span>
           </div>
 
           {/* Table body */}
@@ -344,7 +345,7 @@ export default function LoanOverviewPage() {
                         </td>
                         <td className="px-5 py-4">
                           <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
-                            style={{ backgroundColor: st.bg, color: st.text, fontFamily: 'Inter, sans-serif' }}>
+                            style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
                             <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                               style={{ backgroundColor: st.dot }} />
                             {st.label}
@@ -352,9 +353,9 @@ export default function LoanOverviewPage() {
                         </td>
                         <td className="px-5 py-4">
                           <Link href={`/dashboard/member/loans/${loan.id}`}
-                            className="text-sm font-bold transition-opacity hover:opacity-60"
-                            style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
-                            View Detail →
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
+                            Lihat Detail
                           </Link>
                         </td>
                       </tr>
@@ -385,8 +386,8 @@ export default function LoanOverviewPage() {
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-                style={{ backgroundColor: blockModal === 'bad_debt' ? '#FEE2E2' : '#FEF3C7' }}>
-                {blockModal === 'bad_debt' ? (
+                style={{ backgroundColor: blockModal === 'bad_debt' ? '#FEE2E2' : blockModal === 'wajib_arrears' ? '#FEE2E2' : '#FEF3C7' }}>
+                {blockModal === 'bad_debt' || blockModal === 'wajib_arrears' ? (
                   <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#EF4444" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round"
                       d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
@@ -400,14 +401,28 @@ export default function LoanOverviewPage() {
               </div>
               <h3 className="font-bold text-lg mb-2"
                 style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                {blockModal === 'bad_debt' ? 'Pengajuan Tidak Dapat Dilakukan' : 'Keanggotaan Belum Aktif'}
+                {blockModal === 'bad_debt'
+                  ? 'Pengajuan Tidak Dapat Dilakukan'
+                  : blockModal === 'wajib_arrears'
+                  ? 'Tunggakan Simpanan Wajib'
+                  : 'Keanggotaan Belum Aktif'}
               </h3>
               <p className="text-sm mb-6 leading-relaxed"
                 style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                 {blockModal === 'bad_debt'
                   ? 'Anda memiliki riwayat kredit macet. Pengajuan pinjaman baru tidak dapat dilakukan hingga kredit macet diselesaikan. Hubungi admin koperasi untuk informasi lebih lanjut.'
+                  : blockModal === 'wajib_arrears'
+                  ? `Anda memiliki tunggakan simpanan wajib selama ${wajibOverdueMonths} bulan. Lunasi terlebih dahulu sebelum mengajukan pinjaman baru (maksimal 2 bulan tunggakan diperbolehkan).`
                   : 'Keanggotaan Anda belum aktif. Pastikan simpanan pokok sudah diverifikasi oleh petugas untuk mengaktifkan keanggotaan.'}
               </p>
+              {blockModal === 'wajib_arrears' && (
+                <button
+                  onClick={() => { setBlockModal(null); router.push('/dashboard/member/savings') }}
+                  className="w-full py-3 rounded-xl font-bold text-sm mb-2 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+                  Lunasi Simpanan Wajib
+                </button>
+              )}
               {blockModal === 'inactive' && (
                 <button
                   onClick={() => { setBlockModal(null); router.push('/dashboard/member/savings') }}

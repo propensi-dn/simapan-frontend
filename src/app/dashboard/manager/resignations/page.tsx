@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useState } from 'react'
 import Link from 'next/link'
@@ -28,11 +28,30 @@ const fmtDate = (iso: string | null) => {
   })
 }
 
-const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
-  PENDING: { bg: '#FEF3C7', text: '#92400E' },
-  APPROVED: { bg: '#DBEAFE', text: '#1E40AF' },
-  REJECTED: { bg: '#FEE2E2', text: '#991B1B' },
-  RESIGNED: { bg: '#F1F5F9', text: '#525E71' },
+const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING: { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED: { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED: { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  RESIGNED: { bg: '#F1F5F9', text: '#525E71', dot: '#9CA3AF' },
+}
+
+const STATUS_LABELS_EN: Record<string, string> = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  RESIGNED: 'RESIGNED',
+}
+
+const getPaginationRange = (current: number, total: number) => {
+  const delta = 2
+  const range: (number | '...')[] = []
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+    range.push(i)
+  }
+  if (range.length === 0) return range
+  if (range[0] !== 1) { range.unshift('...'); range.unshift(1) }
+  if (range[range.length - 1] !== total) { range.push('...'); range.push(total) }
+  return range
 }
 
 export default function ManagerResignationsPage() {
@@ -191,59 +210,61 @@ export default function ManagerResignationsPage() {
           style={{ border: '1px solid #F1F5F9' }}
         >
           <div
-            className="px-6 py-4 flex flex-wrap items-center gap-3"
+            className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
             style={{ borderBottom: '1px solid #F1F5F9' }}
           >
             <h3
-              className="font-bold text-base mr-auto"
+              className="font-bold text-base"
               style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
             >
               Permintaan Penutupan Akun
             </h3>
 
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Cari anggota..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
-                style={{
-                  border: '1px solid #E5E7EB',
-                  backgroundColor: '#FAFAFA',
-                  color: '#242F43',
-                }}
-              />
-              <button
-                type="submit"
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}
-              >
-                Cari
-              </button>
-              {search && (
-                <button
-                  type="button"
-                  onClick={() => {
-                    setSearchInput('')
-                    setSearch('')
+            <div className="flex flex-wrap items-center gap-3">
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari anggota..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{
+                    border: '1px solid #E5E7EB',
+                    backgroundColor: '#FAFAFA',
+                    color: '#242F43',
                   }}
-                  className="px-3 py-2 rounded-xl text-xs font-bold"
-                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}
                 >
-                  Atur Ulang
+                  Cari
                 </button>
-              )}
-            </form>
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setSearchInput('')
+                      setSearch('')
+                    }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  >
+                    Reset
+                  </button>
+                )}
+              </form>
 
-            <button
-              type="button"
-              onClick={handleExport}
-              className="px-3 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
-            >
-              Ekspor
-            </button>
+              <button
+                type="button"
+                onClick={handleExport}
+                className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+              >
+                Ekspor
+              </button>
+            </div>
           </div>
 
           {error ? (
@@ -266,7 +287,7 @@ export default function ManagerResignationsPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['NAMA ANGGOTA', 'ID ANGGOTA', 'TANGGAL PERMINTAAN', 'STATUS', 'AKSI'].map((col) => (
+                    {['ID ANGGOTA', 'NAMA ANGGOTA', 'TANGGAL PERMINTAAN', 'STATUS', 'AKSI'].map((col) => (
                       <th
                         key={col}
                         className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
@@ -286,6 +307,11 @@ export default function ManagerResignationsPage() {
                         className="hover:bg-[#FAFAFA] transition-colors"
                         style={{ borderBottom: i < pendingRows.length - 1 ? '1px solid #F8FAFC' : 'none' }}
                       >
+                        <td className="px-6 py-4 text-sm">
+                          <span className="font-bold" style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
+                            {row.member_id || '-'}
+                          </span>
+                        </td>
                         <td
                           className="px-6 py-4 text-sm font-semibold"
                           style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
@@ -293,24 +319,22 @@ export default function ManagerResignationsPage() {
                           {row.member_name}
                         </td>
                         <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>
-                          {row.member_id || '-'}
-                        </td>
-                        <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>
                           {fmtDate(row.request_date)}
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold"
-                            style={{ backgroundColor: st.bg, color: st.text }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                            style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}
                           >
-                            {row.status_display}
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                            {STATUS_LABELS_EN[row.status] || row.status}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <Link
                             href={`/dashboard/manager/resignations/${row.id}`}
-                            className="text-xs font-bold px-3 py-1.5 rounded-lg text-white"
-                            style={{ backgroundColor: '#242F43' }}
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                           >
                             Tinjau
                           </Link>
@@ -323,33 +347,51 @@ export default function ManagerResignationsPage() {
             </div>
           )}
 
-          {!loading && !error && pendingRows.length > 0 && (
+          {!loading && !error && (
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
-              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8' }}
+              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
               <span>
-                Menampilkan {(page - 1) * pageSize + 1} - {Math.min(page * pageSize, count)} dari {count} data
+                Halaman {page} dari {totalPages} • {count} total data
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handlePage(page - 1)}
                   disabled={page === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'<'}
+                  {'‹'}
                 </button>
-                <span className="px-3" style={{ color: '#525E71' }}>
-                  {page} / {totalPages}
-                </span>
+
+                {getPaginationRange(page, totalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`pending-ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => handlePage(p as number)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === page ? '#242F43' : 'transparent',
+                        color: p === page ? '#FFFFFF' : '#525E71',
+                        border: p === page ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handlePage(page + 1)}
                   disabled={page === totalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'>'}
+                  {'›'}
                 </button>
               </div>
             </div>
@@ -384,7 +426,7 @@ export default function ManagerResignationsPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['NAMA ANGGOTA', 'ID ANGGOTA', 'TANGGAL DISETUJUI', 'PAYOUT'].map((col) => (
+                    {['ID ANGGOTA', 'NAMA ANGGOTA', 'TANGGAL DISETUJUI', 'PAYOUT'].map((col) => (
                       <th
                         key={col}
                         className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
@@ -401,14 +443,16 @@ export default function ManagerResignationsPage() {
                       key={row.id}
                       style={{ borderBottom: i < historyRows.length - 1 ? '1px solid #F8FAFC' : 'none' }}
                     >
+                      <td className="px-6 py-4 text-sm">
+                        <span className="font-bold" style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
+                          {row.member_id || '-'}
+                        </span>
+                      </td>
                       <td
                         className="px-6 py-4 text-sm font-semibold"
                         style={{ color: '#242F43' }}
                       >
                         {row.member_name}
-                      </td>
-                      <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>
-                        {row.member_id || '-'}
                       </td>
                       <td className="px-6 py-4 text-sm" style={{ color: '#525E71' }}>
                         {fmtDate(row.approval_date)}
@@ -423,33 +467,51 @@ export default function ManagerResignationsPage() {
             </div>
           )}
 
-          {historyRows.length > 0 && (
+          {(
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
-              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8' }}
+              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
               <span>
-                Menampilkan {(historyPage - 1) * pageSize + 1} - {Math.min(historyPage * pageSize, historyCount)} dari {historyCount} data
+                Halaman {historyPage} dari {historyTotalPages} • {historyCount} total data
               </span>
               <div className="flex items-center gap-1">
                 <button
                   onClick={() => handleHistoryPage(historyPage - 1)}
                   disabled={historyPage === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'<'}
+                  {'‹'}
                 </button>
-                <span className="px-3" style={{ color: '#525E71' }}>
-                  {historyPage} / {historyTotalPages}
-                </span>
+
+                {getPaginationRange(historyPage, historyTotalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`history-ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => handleHistoryPage(p as number)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === historyPage ? '#242F43' : 'transparent',
+                        color: p === historyPage ? '#FFFFFF' : '#525E71',
+                        border: p === historyPage ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handleHistoryPage(historyPage + 1)}
                   disabled={historyPage === historyTotalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'>'}
+                  {'›'}
                 </button>
               </div>
             </div>

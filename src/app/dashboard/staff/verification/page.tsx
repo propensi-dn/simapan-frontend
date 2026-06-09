@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import React, { useCallback, useEffect, useState } from 'react'
 import { useRouter } from 'next/navigation'
@@ -17,11 +17,11 @@ function formatDate(iso: string) {
 }
 
 const STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
-  PENDING:  { bg: '#FEF3C7', text: '#92400E', dot: '#F59E0B' },
-  VERIFIED: { bg: '#D1FAE5', text: '#065F46', dot: '#10B981' },
-  REJECTED: { bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444' },
-  ACTIVE:   { bg: '#DBEAFE', text: '#1E40AF', dot: '#3B82F6' },
-  INACTIVE: { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' },
+  PENDING:  { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  VERIFIED: { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  REJECTED: { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:   { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  INACTIVE: { bg: '#F1F5F9', text: '#525E71', dot: '#9CA3AF' },
 }
 
 const SearchIcon = () => (
@@ -114,42 +114,49 @@ export default function PendingMembersPage() {
         <div className="bg-white rounded-2xl" style={{ border: '1px solid #F1F5F9' }}>
 
           {/* Toolbar */}
-          <div className="px-6 py-4 flex items-center justify-between gap-4"
+          <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4"
             style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+              Calon Anggota Pending
+            </h3>
 
-            {/* Search */}
-            <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1 max-w-sm">
-              <div className="relative flex-1">
-                <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
-                  style={{ color: '#8E99A8' }}>
-                  <SearchIcon />
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Search */}
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
+                <div className="relative">
+                  <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none"
+                    style={{ color: '#8E99A8' }}>
+                    <SearchIcon />
+                  </div>
+                  <input
+                    type="text"
+                    placeholder="Cari nama, email, NIK…"
+                    value={searchInput}
+                    onChange={e => setSearchInput(e.target.value)}
+                    className="w-64 pl-9 pr-4 py-2 rounded-xl text-xs outline-none transition-all"
+                    style={{
+                      border: '1px solid #E5E7EB',
+                      color: '#242F43',
+                      fontFamily: 'Inter, sans-serif',
+                      backgroundColor: '#FAFAFA',
+                    }}
+                  />
                 </div>
-                <input
-                  type="text"
-                  placeholder="Cari nama, email, atau NIK…"
-                  value={searchInput}
-                  onChange={e => setSearchInput(e.target.value)}
-                  className="w-full pl-9 pr-4 py-2 rounded-xl text-sm outline-none transition-all"
-                  style={{
-                    border: '1px solid #E5E7EB',
-                    color: '#242F43',
-                    fontFamily: 'Inter, sans-serif',
-                    backgroundColor: '#FAFAFA',
-                  }}
-                />
-              </div>
-              <Button type="submit" size="sm" variant="primary">Cari</Button>
-              {search && (
-                <Button type="button" size="sm" variant="outline"
-                  onClick={() => { setSearchInput(''); setSearch('') }}>
-                  Reset
-                </Button>
-              )}
-            </form>
-
-            <span className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              {count} calon anggota
-            </span>
+                <button type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90 text-white"
+                  style={{ backgroundColor: '#242F43' }}>
+                  Cari
+                </button>
+                {search && (
+                  <button type="button"
+                    onClick={() => { setSearchInput(''); setSearch('') }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                    Reset
+                  </button>
+                )}
+              </form>
+            </div>
           </div>
 
           {/* Table */}
@@ -214,7 +221,7 @@ export default function PendingMembersPage() {
                       <td className="px-6 py-4">
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
-                          style={{ backgroundColor: s.bg, color: s.text, fontFamily: 'Inter, sans-serif' }}>
+                          style={{ backgroundColor: s.bg, color: s.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
                           <span className="w-1.5 h-1.5 rounded-full" style={{ backgroundColor: s.dot }} />
                           {m.status}
                         </span>
@@ -223,8 +230,8 @@ export default function PendingMembersPage() {
                       <td className="px-6 py-4">
                         <button
                           onClick={() => router.push(`/dashboard/staff/verification/${m.id}/verify`)}
-                          className="text-sm font-bold transition-all hover:opacity-70 underline-offset-2 hover:underline"
-                          style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
+                          className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                          style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                           Lihat Detail
                         </button>
                       </td>
@@ -236,7 +243,7 @@ export default function PendingMembersPage() {
           )}
 
           {/* Pagination */}
-          {!loading && !error && members.length > 0 && (
+          {!loading && !error && (
             <div className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               <span>

@@ -26,10 +26,24 @@ const fmtDate = (iso: string | null) => {
   })
 }
 
-const STATUS_BADGE: Record<string, { bg: string; text: string }> = {
-  PENDING: { bg: '#FEF3C7', text: '#92400E' },
-  APPROVED: { bg: '#D1FAE5', text: '#065F46' },
-  REJECTED: { bg: '#FEE2E2', text: '#991B1B' },
+const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
+}
+
+const STATUS_LABELS_EN: Record<string, string> = {
+  PENDING: 'PENDING',
+  APPROVED: 'APPROVED',
+  REJECTED: 'REJECTED',
+  ACTIVE: 'ACTIVE',
+  LUNAS: 'PAID',
+  OVERDUE: 'OVERDUE',
+  LUNAS_AFTER_OVERDUE: 'PAID AFTER OVERDUE',
 }
 
 export default function ManagerLoansPage() {
@@ -261,7 +275,7 @@ export default function ManagerLoansPage() {
                 <table className="w-full">
                   <thead>
                     <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                      {['NAMA ANGGOTA', 'ID PINJAMAN', 'SISA PINJAMAN', 'JATUH TEMPO', 'STATUS', 'AKSI'].map(col => (
+                      {['ID PINJAMAN', 'NAMA ANGGOTA', 'SISA PINJAMAN', 'JATUH TEMPO', 'AKSI'].map(col => (
                         <th key={col} className="px-4 py-3 text-left text-xs font-semibold tracking-wider"
                           style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                           {col}
@@ -271,23 +285,18 @@ export default function ManagerLoansPage() {
                   </thead>
                   <tbody>
                     {nearDueRows.map((loan, i) => {
-                      const st = STATUS_BADGE[loan.status] ?? { bg: '#F3F4F6', text: '#6B7280' }
                       return (
                         <tr key={loan.id} style={{ borderBottom: i < nearDueRows.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                          <td className="px-4 py-3 text-sm">
+                            <span className="font-bold" style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>{loan.loan_id}</span>
+                          </td>
                           <td className="px-4 py-3 text-sm" style={{ color: '#242F43' }}>{loan.member_name}</td>
-                          <td className="px-4 py-3 text-sm" style={{ color: '#525E71' }}>{loan.loan_id}</td>
                           <td className="px-4 py-3 text-sm font-semibold" style={{ color: '#242F43' }}>{fmtRp(loan.remaining_balance)}</td>
                           <td className="px-4 py-3 text-sm" style={{ color: '#525E71' }}>{fmtDate(loan.due_date)}</td>
                           <td className="px-4 py-3">
-                            <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold"
-                              style={{ backgroundColor: st.bg, color: st.text }}>
-                              {loan.status_display}
-                            </span>
-                          </td>
-                          <td className="px-4 py-3">
                             <Link href={`/dashboard/manager/loans/${loan.id}`}
-                              className="text-xs font-bold px-2.5 py-1 rounded-md"
-                              style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                              className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                              style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                               Lihat Detail
                             </Link>
                           </td>
@@ -302,19 +311,19 @@ export default function ManagerLoansPage() {
         </div>
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
-          <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
-            <h3 className="font-bold text-base mr-auto" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+          <div className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               Pengajuan Pinjaman Menunggu Persetujuan
             </h3>
 
-            <form onSubmit={handleSearch} className="flex items-center gap-2 flex-1 max-w-sm">
-              <div className="relative flex-1">
+            <div className="flex flex-wrap items-center gap-3">
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
                 <input
                   type="text"
                   placeholder="Cari nama anggota..."
                   value={searchInput}
                   onChange={e => setSearchInput(e.target.value)}
-                  className="w-full pl-4 pr-4 py-2 rounded-xl text-sm outline-none"
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
                   style={{
                     border: '1px solid #E5E7EB',
                     color: '#242F43',
@@ -322,34 +331,30 @@ export default function ManagerLoansPage() {
                     backgroundColor: '#FAFAFA',
                   }}
                 />
-              </div>
-              <button
-                type="submit"
-                className="px-4 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                  Cari
-              </button>
-              {search && (
                 <button
-                  type="button"
-                  onClick={() => { setSearchInput(''); setSearch('') }}
-                  className="px-4 py-2 rounded-xl text-xs font-bold"
-                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                  Atur Ulang
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                  Cari
                 </button>
-              )}
-            </form>
+                {search && (
+                  <button
+                    type="button"
+                    onClick={() => { setSearchInput(''); setSearch('') }}
+                    className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                    Reset
+                  </button>
+                )}
+              </form>
 
-            <button
-              onClick={() => setSort(prev => prev === '-application_date' ? 'application_date' : '-application_date')}
-              className="px-4 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-              Urutkan Tanggal: {sort === '-application_date' ? 'Terbaru' : 'Terlama'}
-            </button>
-
-            <span className="text-sm" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-              {count} pengajuan
-            </span>
+              <button
+                onClick={() => setSort(prev => prev === '-application_date' ? 'application_date' : '-application_date')}
+                className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                Urutkan: {sort === '-application_date' ? 'Terbaru' : 'Terlama'}
+              </button>
+            </div>
           </div>
 
           {error ? (
@@ -407,7 +412,7 @@ export default function ManagerLoansPage() {
                       <td className="px-6 py-4">
                         <Link
                           href={`/dashboard/manager/loans/${loan.id}`}
-                          className="text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all"
+                          className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
                           style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                           Tinjau
                         </Link>
@@ -419,7 +424,7 @@ export default function ManagerLoansPage() {
             </div>
           )}
 
-          {!loading && !error && pendingRows.length > 0 && (
+          {!loading && !error && (
             <div className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               <span>
@@ -467,55 +472,57 @@ export default function ManagerLoansPage() {
         </div>
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
-          <div className="px-6 py-4 flex flex-wrap items-center gap-3" style={{ borderBottom: '1px solid #F1F5F9' }}>
-            <h3 className="font-bold text-base mr-auto" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
+          <div className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4" style={{ borderBottom: '1px solid #F1F5F9' }}>
+            <h3 className="font-bold text-base" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
               Semua Pinjaman
             </h3>
 
-            <form onSubmit={handleAllSearch} className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Cari anggota..."
-                value={allSearchInput}
-                onChange={e => setAllSearchInput(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
-                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-              />
-              <button
-                type="submit"
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}>
-                Cari
-              </button>
-            </form>
+            <div className="flex flex-wrap items-center gap-3">
+              <form onSubmit={handleAllSearch} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari anggota..."
+                  value={allSearchInput}
+                  onChange={e => setAllSearchInput(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                  Cari
+                </button>
+              </form>
 
-            <select
-              value={allStatus}
-              onChange={e => setAllStatus(e.target.value as '' | LoanStatus)}
-              className="px-3 py-2 rounded-xl text-xs outline-none"
-              style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}>
-              <option value="">Semua Status</option>
-              <option value="APPROVED">Disetujui</option>
-              <option value="ACTIVE">Aktif</option>
-              <option value="OVERDUE">Jatuh Tempo Terlewat</option>
-              <option value="LUNAS">Lunas</option>
-              <option value="LUNAS_AFTER_OVERDUE">Lunas Setelah Terlambat</option>
-              <option value="REJECTED">Ditolak</option>
-            </select>
+              <select
+                value={allStatus}
+                onChange={e => setAllStatus(e.target.value as '' | LoanStatus)}
+                className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer"
+                style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}>
+                <option value="">Semua Status</option>
+                <option value="APPROVED">Disetujui</option>
+                <option value="ACTIVE">Aktif</option>
+                <option value="OVERDUE">Jatuh Tempo Terlewat</option>
+                <option value="LUNAS">Lunas</option>
+                <option value="LUNAS_AFTER_OVERDUE">Lunas Setelah Terlambat</option>
+                <option value="REJECTED">Ditolak</option>
+              </select>
 
-            {(allSearch || allStatus) && (
-              <button
-                type="button"
-                onClick={() => {
-                  setAllSearchInput('')
-                  setAllSearch('')
-                  setAllStatus('')
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
-                Atur Ulang
-              </button>
-            )}
+              {(allSearch || allStatus) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setAllSearchInput('')
+                    setAllSearch('')
+                    setAllStatus('')
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}>
+                  Reset
+                </button>
+              )}
+            </div>
           </div>
 
           {allRows.length === 0 ? (
@@ -527,7 +534,7 @@ export default function ManagerLoansPage() {
               <table className="w-full">
                 <thead>
                   <tr style={{ borderBottom: '1px solid #F1F5F9' }}>
-                    {['NAMA ANGGOTA', 'ID PINJAMAN', 'SISA PINJAMAN', 'JATUH TEMPO', 'STATUS', 'AKSI'].map(col => (
+                    {['ID PINJAMAN', 'NAMA ANGGOTA', 'SISA PINJAMAN', 'JATUH TEMPO', 'STATUS', 'AKSI'].map(col => (
                       <th key={col} className="px-6 py-3 text-left text-xs font-semibold tracking-wider"
                         style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
                         {col}
@@ -537,16 +544,18 @@ export default function ManagerLoansPage() {
                 </thead>
                 <tbody>
                   {allRows.map((loan, i) => {
-                    const st = STATUS_BADGE[loan.status] ?? { bg: '#F3F4F6', text: '#6B7280' }
+                    const st = STATUS_BADGE[loan.status] ?? { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF' }
                     return (
                       <tr key={loan.id}
                         className="hover:bg-[#FAFAFA] transition-colors"
                         style={{ borderBottom: i < allRows.length - 1 ? '1px solid #F8FAFC' : 'none' }}>
+                        <td className="px-6 py-4 text-sm">
+                          <span className="font-bold" style={{ color: '#11447D', fontFamily: 'Inter, sans-serif' }}>
+                            {loan.loan_id}
+                          </span>
+                        </td>
                         <td className="px-6 py-4 text-sm font-semibold" style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                           {loan.member_name}
-                        </td>
-                        <td className="px-6 py-4 text-sm" style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
-                          {loan.loan_id}
                         </td>
                         <td className="px-6 py-4 text-sm font-bold" style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}>
                           {fmtRp(loan.remaining_balance)}
@@ -555,16 +564,17 @@ export default function ManagerLoansPage() {
                           {fmtDate(loan.due_date)}
                         </td>
                         <td className="px-6 py-4">
-                          <span className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold"
-                            style={{ backgroundColor: st.bg, color: st.text, fontFamily: 'Inter, sans-serif' }}>
-                            {loan.status_display}
+                          <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                            style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                            {STATUS_LABELS_EN[loan.status] || loan.status}
                           </span>
                         </td>
                         <td className="px-6 py-4">
                           <Link
                             href={`/dashboard/manager/loans/${loan.id}`}
-                            className="text-xs font-bold px-2.5 py-1 rounded-md"
-                            style={{ backgroundColor: '#242F43', color: '#fff' }}>
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}>
                             Lihat Detail
                           </Link>
                         </td>
@@ -576,7 +586,7 @@ export default function ManagerLoansPage() {
             </div>
           )}
 
-          {!loading && !error && allRows.length > 0 && (
+          {!loading && !error && (
             <div className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
               <span>

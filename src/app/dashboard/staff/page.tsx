@@ -90,55 +90,40 @@ const WithdrawalIcon = () => (
 function formatRupiah(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value
   if (isNaN(num)) return 'Rp 0'
-  if (num >= 1_000_000_000) {
-    const m = num / 1_000_000_000
-    return `Rp ${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M`
-  }
-  if (num >= 1_000_000) {
-    const jt = num / 1_000_000
-    return `Rp ${jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)}Jt`
-  }
-  if (num >= 1_000) {
-    return `Rp ${(num / 1_000).toFixed(0)}Rb`
-  }
   return `Rp ${num.toLocaleString('id-ID')}`
 }
+
 
 // ── Category & Status styles ────────────────────────────────────────────────
 
 const CATEGORY_STYLE: Record<string, { bg: string; text: string }> = {
-  ANGGOTA:      { bg: '#DBEAFE', text: '#1E40AF' },
-  SIMPANAN:     { bg: '#D1FAE5', text: '#065F46' },
-  PINJAMAN:     { bg: '#FEF3C7', text: '#92400E' },
-  ANGSURAN:     { bg: '#EDE9FE', text: '#5B21B6' },
-  PENARIKAN:    { bg: '#CFFAFE', text: '#155E75' },
-  PENGEMBALIAN: { bg: '#FEE2E2', text: '#991B1B' },
-  PENUTUPAN:    { bg: '#FFEDD5', text: '#9A3412' },
+  MEMBER:  { bg: '#DBEAFE', text: '#1E40AF' },
+  SAVINGS: { bg: '#D1FAE5', text: '#065F46' },
+  LOAN:    { bg: '#FEF3C7', text: '#92400E' },
 }
 
-const STATUS_DOT: Record<string, string> = {
-  'Menunggu':           '#9CA3AF',
-  'Disetujui':          '#F59E0B',
-  'Menunggu Pencairan': '#FB923C',
+const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string; label: string }> = {
+  'Menunggu':           { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B', label: 'PENDING' },
+  'Disetujui':          { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6', label: 'APPROVED' },
+  'Menunggu Pencairan': { bg: '#FFEDD5', text: '#C2410C', dot: '#F97316', label: 'PENDING DISBURSEMENT' },
 }
 
-// ── Skeleton Card ──────────────────────────────────────────────────────────
+// ── Mock data ──────────────────────────────────────────────────────────────
+type TaskCategory = 'MEMBER' | 'SAVINGS' | 'LOAN'
 
-function SkeletonCard() {
-  return (
-    <div
-      className="bg-white rounded-2xl p-6 animate-pulse"
-      style={{ border: '1px solid #F1F5F9' }}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: '#F1F5F9' }} />
-      </div>
-      <div className="h-3 rounded w-20 mb-2" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-6 rounded w-28 mb-1" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-3 rounded w-24" style={{ backgroundColor: '#F1F5F9' }} />
-    </div>
-  )
-}
+const MOCK_TASKS: {
+  id: string
+  category: TaskCategory
+  subject: string
+  status: 'Pending' | 'In Progress' | 'Completed'
+  action: string
+  href: string
+}[] = [
+  { id: 'T-8801', category: 'MEMBER',     subject: 'New Registration: Budi Santoso',   status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/1' },
+  { id: 'T-8802', category: 'SAVINGS',    subject: 'Deposit Verification: Rp 500.000', status: 'In Progress', action: 'Check',    href: '/dashboard/staff/verification/2' },
+  { id: 'T-8803', category: 'LOAN',       subject: 'Disbursement: Small Biz Grant',    status: 'Pending',     action: 'Disburse', href: '/dashboard/staff/disbursement/3' },
+  { id: 'T-8805', category: 'MEMBER',     subject: 'KYC Update: Siti Aminah',           status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/5' },
+]
 
 // ── Page ──────────────────────────────────────────────────────────────────
 
@@ -195,95 +180,11 @@ export default function StaffDashboardPage() {
           </p>
         </div>
 
-        {/* Error banner */}
-        {error && (
-          <div
-            className="mb-6 px-4 py-3 rounded-xl text-sm"
-            style={{ backgroundColor: '#FEE2E2', color: '#991B1B', fontFamily: 'Inter, sans-serif' }}
-          >
-            ⚠️ {error}
-          </div>
-        )}
-
-        {/* ── Row 1: 4 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 1 — Pending Members */}
-              <StatCard
-                label="Verifikasi Anggota"
-                value={String(data?.total_pending_members ?? 0)}
-                subtitle="Perlu ditindaklanjuti"
-                icon={<MemberIcon />}
-                accent="#11447D"
-              />
-
-              {/* 2 — Pending Savings */}
-              <StatCard
-                label="Verifikasi Simpanan"
-                value={formatRupiah(data?.total_pending_savings_amount ?? '0')}
-                subtitle={`${data?.total_pending_savings_count ?? 0} transaksi menunggu verifikasi`}
-                icon={<SavingsIcon />}
-                accent="#10B981"
-              />
-
-              {/* 3 — Approved Loans (to disburse) */}
-              <StatCard
-                label="Pencairan Pinjaman"
-                value={formatRupiah(data?.total_approved_loans_amount ?? '0')}
-                subtitle={`${data?.total_approved_loans_count ?? 0} pinjaman siap dicairkan`}
-                icon={<LoanIcon />}
-                accent="#F2A025"
-              />
-
-              {/* 4 — Pending Installments */}
-              <StatCard
-                label="Verifikasi Angsuran"
-                value={formatRupiah(data?.total_pending_installments_amount ?? '0')}
-                subtitle={`${data?.total_pending_installments_count ?? 0} pembayaran menunggu verifikasi`}
-                icon={<InstallmentIcon />}
-                accent="#8B5CF6"
-              />
-            </>
-          )}
-        </div>
-
-        {/* ── Row 2: 3 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 5 — Pending Withdrawals */}
-              <StatCard
-                label="Penarikan Menunggu"
-                value={String(data?.total_pending_withdrawals ?? 0)}
-                subtitle="Penarikan perlu diproses"
-                icon={<WithdrawalIcon />}
-                accent="#06B6D4"
-              />
-
-              {/* 6 — Approved Refunds (pending disbursement) */}
-              <StatCard
-                label="Pengembalian Dana"
-                value={String(data?.total_approved_refunds ?? 0)}
-                subtitle="Perlu dicairkan staff"
-                icon={<RefundIcon />}
-                accent="#EF4444"
-              />
-
-              {/* 7 — Approved Resignations */}
-              <StatCard
-                label="Penutupan Akun"
-                value={String(data?.total_approved_resignations ?? 0)}
-                subtitle="Disetujui manajer, perlu diproses"
-                icon={<ResignIcon />}
-                accent="#F59E0B"
-              />
-            </>
-          )}
+        {/* Stat Cards */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <StatCard label="Members"     value="124"       subtitle="Pending Members" icon={<MemberIcon />}   accent="#11447D" />
+          <StatCard label="Savings"     value="Rp 15M"    subtitle="To Verify"       icon={<SavingsIcon />}  accent="#10B981" />
+          <StatCard label="Loans"       value="Rp 45.2M"  subtitle="To Disburse"     icon={<LoanIcon />}     accent="#F2A025" />
         </div>
 
         {/* ── Today's Tasks Summary ───────────────────────────────────── */}
@@ -380,26 +281,24 @@ export default function StaffDashboardPage() {
 
                       {/* Status */}
                       <td className="px-6 py-4">
-                        <div className="flex items-center gap-2">
-                          <div
-                            className="w-1.5 h-1.5 rounded-full"
-                            style={{ backgroundColor: STATUS_DOT[task.status] ?? '#9CA3AF' }}
-                          />
-                          <span
-                            className="text-sm"
-                            style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
-                          >
-                            {task.status}
-                          </span>
-                        </div>
+                        {(() => {
+                          const st = STATUS_BADGE[task.status] ?? { bg: '#F3F4F6', text: '#6B7280', dot: '#9CA3AF', label: task.status }
+                          return (
+                            <span className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                              style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}>
+                              <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                              {st.label}
+                            </span>
+                          )
+                        })()}
                       </td>
 
                       {/* Tindakan */}
                       <td className="px-6 py-4">
                         <Link
                           href={task.link}
-                          className="text-sm font-bold transition-colors hover:opacity-70"
-                          style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
+                          className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                          style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                         >
                           {task.action}
                         </Link>
@@ -412,11 +311,9 @@ export default function StaffDashboardPage() {
           </table>
 
           {/* Footer pagination */}
-          {(data?.recent_tasks ?? []).length > 0 && (() => {
+          {(() => {
             const allTasks = data?.recent_tasks ?? []
-            const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE)
-            const start = (currentPage - 1) * TASKS_PER_PAGE + 1
-            const end   = Math.min(currentPage * TASKS_PER_PAGE, allTasks.length)
+            const totalPages = Math.max(1, Math.ceil(allTasks.length / TASKS_PER_PAGE))
 
             const pages: (number | '...')[] = []
             if (totalPages <= 5) {
@@ -432,30 +329,29 @@ export default function StaffDashboardPage() {
             return (
               <div
                 className="px-6 py-3 flex items-center justify-between text-sm"
-                style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+                style={{ borderTop: '1px solid #F1F5F9', color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}
               >
-                <span>Menampilkan {start}–{end} dari {allTasks.length} tugas</span>
+                <span>Halaman {currentPage} dari {totalPages} • {allTasks.length} total data</span>
                 <div className="flex items-center gap-1">
                   <button
                     onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
                     disabled={currentPage === 1}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     style={{
                       border: '1px solid #E5E7EB',
-                      color: currentPage === 1 ? '#D1D5DB' : '#525E71',
-                      cursor: currentPage === 1 ? 'not-allowed' : 'pointer',
+                      color: '#525E71',
                     }}
                   >
                     ‹
                   </button>
                   {pages.map((p, idx) =>
                     p === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm">…</span>
+                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#94A3B8' }}>…</span>
                     ) : (
                       <button
                         key={p}
                         onClick={() => setCurrentPage(p as number)}
-                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium"
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
                         style={{
                           backgroundColor: p === currentPage ? '#242F43' : 'transparent',
                           color: p === currentPage ? '#FFFFFF' : '#525E71',
@@ -469,11 +365,10 @@ export default function StaffDashboardPage() {
                   <button
                     onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
                     disabled={currentPage === totalPages}
-                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm"
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
                     style={{
                       border: '1px solid #E5E7EB',
-                      color: currentPage === totalPages ? '#D1D5DB' : '#525E71',
-                      cursor: currentPage === totalPages ? 'not-allowed' : 'pointer',
+                      color: '#525E71',
                     }}
                   >
                     ›

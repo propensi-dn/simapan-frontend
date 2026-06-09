@@ -173,7 +173,8 @@ export default function ApplyLoanPage() {
       if (data && typeof data === 'object') {
         const mapped: Record<string, string> = {}
         Object.entries(data).forEach(([k, v]) => {
-          mapped[k] = Array.isArray(v) ? v[0] as string : String(v)
+          const key = k === 'non_field_errors' ? 'non_field' : k
+          mapped[key] = Array.isArray(v) ? v[0] as string : String(v)
         })
         setErrors(mapped)
       } else {
