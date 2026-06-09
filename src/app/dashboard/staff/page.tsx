@@ -97,13 +97,9 @@ function formatRupiah(value: string | number): string {
 // ── Category & Status styles ────────────────────────────────────────────────
 
 const CATEGORY_STYLE: Record<string, { bg: string; text: string }> = {
-  ANGGOTA:      { bg: '#DBEAFE', text: '#1E40AF' },
-  SIMPANAN:     { bg: '#D1FAE5', text: '#065F46' },
-  PINJAMAN:     { bg: '#FEF3C7', text: '#92400E' },
-  ANGSURAN:     { bg: '#EDE9FE', text: '#5B21B6' },
-  PENARIKAN:    { bg: '#CFFAFE', text: '#155E75' },
-  PENGEMBALIAN: { bg: '#FEE2E2', text: '#991B1B' },
-  PENUTUPAN:    { bg: '#FFEDD5', text: '#9A3412' },
+  MEMBER:  { bg: '#DBEAFE', text: '#1E40AF' },
+  SAVINGS: { bg: '#D1FAE5', text: '#065F46' },
+  LOAN:    { bg: '#FEF3C7', text: '#92400E' },
 }
 
 const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string; label: string }> = {
@@ -112,23 +108,22 @@ const STATUS_BADGE: Record<string, { bg: string; text: string; dot: string; labe
   'Menunggu Pencairan': { bg: '#FFEDD5', text: '#C2410C', dot: '#F97316', label: 'PENDING DISBURSEMENT' },
 }
 
-// ── Skeleton Card ──────────────────────────────────────────────────────────
+// ── Mock data ──────────────────────────────────────────────────────────────
+type TaskCategory = 'MEMBER' | 'SAVINGS' | 'LOAN'
 
-function SkeletonCard() {
-  return (
-    <div
-      className="bg-white rounded-2xl p-6 animate-pulse"
-      style={{ border: '1px solid #F1F5F9' }}
-    >
-      <div className="flex items-start justify-between mb-3">
-        <div className="w-10 h-10 rounded-xl" style={{ backgroundColor: '#F1F5F9' }} />
-      </div>
-      <div className="h-3 rounded w-20 mb-2" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-6 rounded w-28 mb-1" style={{ backgroundColor: '#F1F5F9' }} />
-      <div className="h-3 rounded w-24" style={{ backgroundColor: '#F1F5F9' }} />
-    </div>
-  )
-}
+const MOCK_TASKS: {
+  id: string
+  category: TaskCategory
+  subject: string
+  status: 'Pending' | 'In Progress' | 'Completed'
+  action: string
+  href: string
+}[] = [
+  { id: 'T-8801', category: 'MEMBER',     subject: 'New Registration: Budi Santoso',   status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/1' },
+  { id: 'T-8802', category: 'SAVINGS',    subject: 'Deposit Verification: Rp 500.000', status: 'In Progress', action: 'Check',    href: '/dashboard/staff/verification/2' },
+  { id: 'T-8803', category: 'LOAN',       subject: 'Disbursement: Small Biz Grant',    status: 'Pending',     action: 'Disburse', href: '/dashboard/staff/disbursement/3' },
+  { id: 'T-8805', category: 'MEMBER',     subject: 'KYC Update: Siti Aminah',           status: 'Pending',     action: 'Verify',   href: '/dashboard/staff/verification/5' },
+]
 
 // ── Page ──────────────────────────────────────────────────────────────────
 
@@ -185,95 +180,11 @@ export default function StaffDashboardPage() {
           </p>
         </div>
 
-        {/* Error banner */}
-        {error && (
-          <div
-            className="mb-6 px-4 py-3 rounded-xl text-sm"
-            style={{ backgroundColor: '#FEE2E2', color: '#991B1B', fontFamily: 'Inter, sans-serif' }}
-          >
-            ⚠️ {error}
-          </div>
-        )}
-
-        {/* ── Row 1: 4 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-4">
-          {loading ? (
-            Array.from({ length: 4 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 1 — Pending Members */}
-              <StatCard
-                label="Verifikasi Anggota"
-                value={String(data?.total_pending_members ?? 0)}
-                subtitle="Perlu ditindaklanjuti"
-                icon={<MemberIcon />}
-                accent="#11447D"
-              />
-
-              {/* 2 — Pending Savings */}
-              <StatCard
-                label="Verifikasi Simpanan"
-                value={formatRupiah(data?.total_pending_savings_amount ?? '0')}
-                subtitle={`${data?.total_pending_savings_count ?? 0} transaksi menunggu verifikasi`}
-                icon={<SavingsIcon />}
-                accent="#10B981"
-              />
-
-              {/* 3 — Approved Loans (to disburse) */}
-              <StatCard
-                label="Pencairan Pinjaman"
-                value={formatRupiah(data?.total_approved_loans_amount ?? '0')}
-                subtitle={`${data?.total_approved_loans_count ?? 0} pinjaman siap dicairkan`}
-                icon={<LoanIcon />}
-                accent="#F2A025"
-              />
-
-              {/* 4 — Pending Installments */}
-              <StatCard
-                label="Verifikasi Angsuran"
-                value={formatRupiah(data?.total_pending_installments_amount ?? '0')}
-                subtitle={`${data?.total_pending_installments_count ?? 0} pembayaran menunggu verifikasi`}
-                icon={<InstallmentIcon />}
-                accent="#8B5CF6"
-              />
-            </>
-          )}
-        </div>
-
-        {/* ── Row 2: 3 cards ─────────────────────────────────────────── */}
-        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
-          {loading ? (
-            Array.from({ length: 3 }).map((_, i) => <SkeletonCard key={i} />)
-          ) : (
-            <>
-              {/* 5 — Pending Withdrawals */}
-              <StatCard
-                label="Penarikan Menunggu"
-                value={String(data?.total_pending_withdrawals ?? 0)}
-                subtitle="Penarikan perlu diproses"
-                icon={<WithdrawalIcon />}
-                accent="#06B6D4"
-              />
-
-              {/* 6 — Approved Refunds (pending disbursement) */}
-              <StatCard
-                label="Pengembalian Dana"
-                value={String(data?.total_approved_refunds ?? 0)}
-                subtitle="Perlu dicairkan staff"
-                icon={<RefundIcon />}
-                accent="#EF4444"
-              />
-
-              {/* 7 — Approved Resignations */}
-              <StatCard
-                label="Penutupan Akun"
-                value={String(data?.total_approved_resignations ?? 0)}
-                subtitle="Disetujui manajer, perlu diproses"
-                icon={<ResignIcon />}
-                accent="#F59E0B"
-              />
-            </>
-          )}
+        {/* Stat Cards */}
+        <div className="grid grid-cols-3 gap-4 mb-8">
+          <StatCard label="Members"     value="124"       subtitle="Pending Members" icon={<MemberIcon />}   accent="#11447D" />
+          <StatCard label="Savings"     value="Rp 15M"    subtitle="To Verify"       icon={<SavingsIcon />}  accent="#10B981" />
+          <StatCard label="Loans"       value="Rp 45.2M"  subtitle="To Disburse"     icon={<LoanIcon />}     accent="#F2A025" />
         </div>
 
         {/* ── Today's Tasks Summary ───────────────────────────────────── */}

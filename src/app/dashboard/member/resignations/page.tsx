@@ -12,7 +12,8 @@ import {
   type ResignationSettlement,
   type ResignationRequestDetail,
 } from '@/lib/resignations-api'
-import { logout, getUserName } from '@/lib/auth'
+import { logout } from '@/lib/auth'
+import api from '@/lib/axios'
 
 const fmtRp = (v: string | number) =>
   new Intl.NumberFormat('id-ID', {
@@ -138,6 +139,10 @@ export default function MemberResignationsPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [profile, setProfile] = useState<{ full_name?: string } | null>(null)
+  const [agreed, setAgreed] = useState(false)
+
   const CHECKLIST = [
     'Saya ingin menutup akun dan menerima estimasi pengembalian dana.',
     'Saya telah memeriksa rincian simpanan dan pinjaman di atas dan setuju dengan jumlahnya.',
@@ -160,6 +165,12 @@ export default function MemberResignationsPage() {
         setError('Gagal memuat data. Silakan coba lagi.')
       } finally {
         setLoading(false)
+      }
+      try {
+        const profileData = await api.get('/members/profile/').then((r) => r.data)
+        setProfile(profileData)
+      } catch {
+        // profile failure is non-fatal
       }
     }
     load()
@@ -195,7 +206,7 @@ export default function MemberResignationsPage() {
     }
   }
 
-  const userName = settlement?.member_name || getUserName() || 'Anggota'
+  const userName = profile?.full_name || settlement?.member_name || 'Anggota'
 
   // ── Full-screen states ────────────────────────────────────────────────────
   // RESIGNED = account fully closed. Force a logout flow.
@@ -542,7 +553,7 @@ export default function MemberResignationsPage() {
                     <div className="flex items-center justify-end gap-3">
                       <button
                         type="button"
-                        onClick={() => setCheckedList(new Array(CHECKLIST.length).fill(false))}
+                        onClick={() => setAgreed(false)}
                         className="px-5 py-2.5 rounded-xl text-sm font-bold transition-colors"
                         style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                       >
