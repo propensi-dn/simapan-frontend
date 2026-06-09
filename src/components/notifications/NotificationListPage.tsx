@@ -1,16 +1,29 @@
 'use client'
 
-import { useCallback, useEffect, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { useRouter } from 'next/navigation'
 import DashboardLayout from '@/components/layout/DashboardLayout'
 import DashboardHeader from '@/components/layout/DashboardHeader'
 import {
   getNotifications,
   markAllNotificationsRead,
+  markNotificationRead,
   deleteNotification,
   type NotificationListItem,
   type NotificationType,
 } from '@/lib/notifications-api'
+
+// ═══════════════════════════════════════════════════════════════════════════
+// PBI-14: Lihat Daftar Notifikasi
+// Fitur tambahan di file ini:
+//   1. Search bar untuk filter berdasarkan kata di title / message
+//   2. Multi-select checkbox + tombol "Tandai Terpilih Dibaca"
+//   3. Filter kategori (tabs) & "Tandai Semua Dibaca" — fitur lama dipertahankan
+//
+// PBI-15: Lihat Detail Notifikasi → ada di file terpisah
+//   (NotificationDetailPage.tsx). Notifikasi otomatis ditandai sudah dibaca
+//   ketika halaman detail dibuka (lihat getNotificationDetail di notifications-api).
+// ═══════════════════════════════════════════════════════════════════════════
 
 // ── Helpers ───────────────────────────────────────────────────────────────
 
@@ -48,10 +61,6 @@ const TYPE_CONFIG: Record<
     bg: '#FEF3C7', text: '#92400E', dot: '#F59E0B',
     label: 'Pinjaman', icon: '💰',
   },
-  WITHDRAWAL: {
-    bg: '#FFF7ED', text: '#92400E', dot: '#FB923C',
-    label: 'Penarikan', icon: '💸',
-  },
   RESIGNATION: {
     bg: '#FEE2E2', text: '#991B1B', dot: '#EF4444',
     label: 'Pengunduran Diri', icon: '🚪',
@@ -67,12 +76,12 @@ const TYPE_FILTER_OPTIONS: { key: string; label: string }[] = [
   { key: 'REGISTRATION', label: 'Registrasi' },
   { key: 'SAVING', label: 'Simpanan' },
   { key: 'LOAN', label: 'Pinjaman' },
-  { key: 'WITHDRAWAL', label: 'Penarikan' },
   { key: 'RESIGNATION', label: 'Pengunduran Diri' },
   { key: 'GENERAL', label: 'Umum' },
 ]
 
-// ── Trash icon ────────────────────────────────────────────────────────────
+// ── Icons ─────────────────────────────────────────────────────────────────
+
 const TrashIcon = () => (
   <svg width="14" height="14" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
     <path strokeLinecap="round" strokeLinejoin="round"
@@ -80,14 +89,40 @@ const TrashIcon = () => (
   </svg>
 )
 
+const BellSlashIcon = () => (
+  <svg width="48" height="48" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.2}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M9.143 17.082a24.248 24.248 0 003.844.398c2.538 0 4.96-.44 7.199-1.247a1 1 0 00-.548-1.779c-.247-.012-.494-.037-.74-.072M9.143 17.082C8.394 15.83 8 14.337 8 12.75V12c0-1.657-.448-3.21-1.23-4.547M9.143 17.082L3 21m0 0l2.563-2.563M21 21l-4.5-4.5M3 3l18 18M15 12c0-.847-.105-1.668-.302-2.449M9.268 7.5A6.75 6.75 0 0115 12" />
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M11.25 21a.75.75 0 00.12 1.484A1.5 1.5 0 0112 22.5a1.5 1.5 0 001.48-1.27" />
+  </svg>
+)
+
+const CheckAllIcon = () => (
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
+  </svg>
+)
+
+const SearchIcon = () => (
+  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+    <path strokeLinecap="round" strokeLinejoin="round"
+      d="M21 21l-5.197-5.197m0 0A7.5 7.5 0 105.196 5.196a7.5 7.5 0 0010.607 10.607z" />
+  </svg>
+)
+
 // ── Notification row item ─────────────────────────────────────────────────
 
 function NotificationRow({
   item,
+  selected,
+  onToggleSelect,
   onClick,
   onDelete,
 }: {
   item: NotificationListItem
+  selected: boolean
+  onToggleSelect: (id: number) => void
   onClick: (id: number) => void
   onDelete: (id: number) => void
 }) {
@@ -96,7 +131,7 @@ function NotificationRow({
   const cfg = TYPE_CONFIG[item.type] ?? TYPE_CONFIG.GENERAL
 
   const handleDelete = async (e: React.MouseEvent) => {
-    e.stopPropagation() // jangan trigger onClick row
+    e.stopPropagation()
     setDeleting(true)
     try {
       await deleteNotification(item.id)
@@ -108,15 +143,32 @@ function NotificationRow({
 
   return (
     <div
-      className="relative"
+      className="relative flex items-stretch"
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ borderBottom: '1px solid #F1F5F9' }}
+      style={{
+        borderBottom: '1px solid #F1F5F9',
+        backgroundColor: selected ? '#EFF6FF' : (item.is_read ? 'transparent' : '#F0F6FF'),
+      }}
     >
+      {/* Checkbox utk multi-select */}
+      <label
+        className="flex items-center justify-center px-4 cursor-pointer"
+        onClick={(e) => e.stopPropagation()}
+      >
+        <input
+          type="checkbox"
+          checked={selected}
+          onChange={() => onToggleSelect(item.id)}
+          className="w-4 h-4 cursor-pointer"
+          style={{ accentColor: '#11447D' }}
+        />
+      </label>
+
       <button
         onClick={() => onClick(item.id)}
-        className="w-full text-left px-6 py-4 flex items-start gap-4 transition-colors hover:bg-[#FAFAFA] focus:outline-none focus:ring-2 focus:ring-inset focus:ring-primary-200"
-        style={{ backgroundColor: item.is_read ? 'transparent' : '#F0F6FF' }}
+        className="flex-1 text-left px-2 py-4 flex items-start gap-4 transition-colors hover:bg-[#FAFAFA] focus:outline-none"
+        style={{ backgroundColor: 'transparent' }}
       >
         {/* Icon bubble */}
         <div
@@ -172,7 +224,7 @@ function NotificationRow({
         </svg>
       </button>
 
-      {/* Delete button — muncul on hover, posisi absolute di kanan */}
+      {/* Delete button */}
       <button
         onClick={handleDelete}
         disabled={deleting}
@@ -198,23 +250,6 @@ function NotificationRow({
     </div>
   )
 }
-const BellSlashIcon = () => (
-  <svg
-    width="48" height="48" fill="none" viewBox="0 0 24 24"
-    stroke="currentColor" strokeWidth={1.2}
-  >
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M9.143 17.082a24.248 24.248 0 003.844.398c2.538 0 4.96-.44 7.199-1.247a1 1 0 00-.548-1.779c-.247-.012-.494-.037-.74-.072M9.143 17.082C8.394 15.83 8 14.337 8 12.75V12c0-1.657-.448-3.21-1.23-4.547M9.143 17.082L3 21m0 0l2.563-2.563M21 21l-4.5-4.5M3 3l18 18M15 12c0-.847-.105-1.668-.302-2.449M9.268 7.5A6.75 6.75 0 0115 12" />
-    <path strokeLinecap="round" strokeLinejoin="round"
-      d="M11.25 21a.75.75 0 00.12 1.484A1.5 1.5 0 0112 22.5a1.5 1.5 0 001.48-1.27" />
-  </svg>
-)
-
-const CheckAllIcon = () => (
-  <svg width="16" height="16" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
-    <path strokeLinecap="round" strokeLinejoin="round" d="M4.5 12.75l6 6 9-13.5" />
-  </svg>
-)
 
 // ── Props ─────────────────────────────────────────────────────────────────
 
@@ -237,7 +272,12 @@ export default function NotificationListPage({
   const [typeFilter, setTypeFilter]       = useState('ALL')
   const [markingAll, setMarkingAll]       = useState(false)
 
-  const unreadCount = notifications.filter(n => !n.is_read).length
+  // PBI-14: state utk search bar (filter berdasarkan kata di title / message)
+  const [searchQuery, setSearchQuery]     = useState('')
+
+  // PBI-14: state utk multi-select checkbox
+  const [selectedIds, setSelectedIds]     = useState<Set<number>>(new Set())
+  const [markingSelected, setMarkingSelected] = useState(false)
 
   const load = useCallback(async () => {
     setLoading(true)
@@ -247,6 +287,8 @@ export default function NotificationListPage({
         typeFilter !== 'ALL' ? { type: typeFilter as NotificationType } : undefined
       )
       setNotifications(res.results)
+      // bersihkan selection setiap reload supaya gak nyangkut ke id basi
+      setSelectedIds(new Set())
     } catch {
       setError('Gagal memuat notifikasi. Silakan coba lagi.')
     } finally {
@@ -258,12 +300,63 @@ export default function NotificationListPage({
     load()
   }, [load])
 
+  // PBI-14: gabungkan filter kategori (server-side) dengan search (client-side)
+  // Pencarian gak case-sensitive, cek di title & message.
+  const visibleNotifications = useMemo(() => {
+    const q = searchQuery.trim().toLowerCase()
+    if (!q) return notifications
+    return notifications.filter(n =>
+      n.title.toLowerCase().includes(q) ||
+      n.message.toLowerCase().includes(q)
+    )
+  }, [notifications, searchQuery])
+
+  const unreadCount = notifications.filter(n => !n.is_read).length
+  const selectedCount = selectedIds.size
+
+  // Checkbox "Select All" di header berlaku utk yg lagi visible aja
+  const allVisibleSelected =
+    visibleNotifications.length > 0 &&
+    visibleNotifications.every(n => selectedIds.has(n.id))
+
   const handleClickNotification = (id: number) => {
     router.push(`${detailBasePath}/${id}`)
   }
 
   const handleDeleteNotification = (id: number) => {
     setNotifications(prev => prev.filter(n => n.id !== id))
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      next.delete(id)
+      return next
+    })
+  }
+
+  const handleToggleSelect = (id: number) => {
+    setSelectedIds(prev => {
+      const next = new Set(prev)
+      if (next.has(id)) next.delete(id)
+      else next.add(id)
+      return next
+    })
+  }
+
+  const handleToggleSelectAll = () => {
+    if (allVisibleSelected) {
+      // Uncheck semua yg visible
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        visibleNotifications.forEach(n => next.delete(n.id))
+        return next
+      })
+    } else {
+      // Check semua yg visible
+      setSelectedIds(prev => {
+        const next = new Set(prev)
+        visibleNotifications.forEach(n => next.add(n.id))
+        return next
+      })
+    }
   }
 
   const handleMarkAllRead = async () => {
@@ -273,13 +366,38 @@ export default function NotificationListPage({
       await markAllNotificationsRead()
       setNotifications(prev => prev.map(n => ({ ...n, is_read: true })))
     } catch {
-      // silent fail — reload will sync
+      // silent fail — reload akan sync
     } finally {
       setMarkingAll(false)
     }
   }
 
-  // Parent dashboard href per role
+  // PBI-14: tandai notifikasi yg di-check sebagai sudah dibaca.
+  // Pakai markNotificationRead per-id dalam Promise.all biar simple
+  // (gak perlu endpoint batch baru di BE).
+  const handleMarkSelectedRead = async () => {
+    if (selectedCount === 0) return
+    const ids = Array.from(selectedIds)
+    // Skip yg udah read biar gak buang request
+    const unreadIds = ids.filter(id => {
+      const n = notifications.find(x => x.id === id)
+      return n && !n.is_read
+    })
+
+    setMarkingSelected(true)
+    try {
+      await Promise.all(unreadIds.map(id => markNotificationRead(id)))
+      setNotifications(prev =>
+        prev.map(n => (selectedIds.has(n.id) ? { ...n, is_read: true } : n))
+      )
+      setSelectedIds(new Set())
+    } catch {
+      // silent fail — reload akan sync
+    } finally {
+      setMarkingSelected(false)
+    }
+  }
+
   const dashboardHref = `/dashboard/${role.toLowerCase()}`
 
   return (
@@ -289,13 +407,13 @@ export default function NotificationListPage({
         parentLabel="Dashboard"
         parentHref={dashboardHref}
         currentLabel="Notifikasi"
-        notifCount={0} // we're already on notif page, no badge needed
+        notifCount={0}
         notifHref={`${detailBasePath}`}
       />
 
       <main className="flex-1 p-8">
         {/* Page title row */}
-        <div className="flex items-start justify-between mb-6">
+        <div className="flex items-start justify-between mb-6 gap-4 flex-wrap">
           <div>
             <h2
               className="font-bold text-2xl mb-1"
@@ -310,30 +428,80 @@ export default function NotificationListPage({
             </p>
           </div>
 
-          {/* Mark all read button */}
-          {unreadCount > 0 && (
-            <button
-              onClick={handleMarkAllRead}
-              disabled={markingAll}
-              className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
-              style={{
-                border: '1px solid #E5E7EB',
-                color: '#525E71',
-                fontFamily: 'Inter, sans-serif',
-                backgroundColor: '#FAFAFA',
-              }}
-            >
-              <CheckAllIcon />
-              {markingAll ? 'Menandai...' : 'Tandai Semua Dibaca'}
-            </button>
-          )}
+          <div className="flex items-center gap-2 flex-wrap">
+            {/* PBI-14: Tombol Tandai Terpilih — muncul kalau ada yg di-check */}
+            {selectedCount > 0 && (
+              <button
+                onClick={handleMarkSelectedRead}
+                disabled={markingSelected}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold text-white transition-all disabled:opacity-50"
+                style={{ backgroundColor: '#11447D', fontFamily: 'Inter, sans-serif' }}
+              >
+                <CheckAllIcon />
+                {markingSelected
+                  ? 'Menandai...'
+                  : `Tandai ${selectedCount} Dibaca`}
+              </button>
+            )}
+
+            {/* Tombol Tandai SEMUA — fitur lama */}
+            {unreadCount > 0 && (
+              <button
+                onClick={handleMarkAllRead}
+                disabled={markingAll}
+                className="flex items-center gap-2 px-4 py-2 rounded-xl text-sm font-semibold transition-all disabled:opacity-50"
+                style={{
+                  border: '1px solid #E5E7EB',
+                  color: '#525E71',
+                  fontFamily: 'Inter, sans-serif',
+                  backgroundColor: '#FAFAFA',
+                }}
+              >
+                <CheckAllIcon />
+                {markingAll ? 'Menandai...' : 'Tandai Semua Dibaca'}
+              </button>
+            )}
+          </div>
         </div>
 
         <div
           className="bg-white rounded-2xl overflow-hidden"
           style={{ border: '1px solid #F1F5F9' }}
         >
-          {/* Type filter tabs */}
+          {/* PBI-14: Search bar utk filter berdasarkan kata di title/message */}
+          <div
+            className="px-6 py-3 flex items-center gap-3"
+            style={{ borderBottom: '1px solid #F1F5F9' }}
+          >
+            <div
+              className="flex items-center gap-2 flex-1 px-3 py-2 rounded-xl"
+              style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA' }}
+            >
+              <span style={{ color: '#8E99A8' }}>
+                <SearchIcon />
+              </span>
+              <input
+                type="text"
+                placeholder="Cari notifikasi (judul atau isi)..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                className="flex-1 bg-transparent text-sm outline-none"
+                style={{ color: '#242F43', fontFamily: 'Inter, sans-serif' }}
+              />
+              {searchQuery && (
+                <button
+                  onClick={() => setSearchQuery('')}
+                  className="text-xs font-semibold px-2 py-0.5 rounded"
+                  style={{ color: '#8E99A8' }}
+                  title="Bersihkan pencarian"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          </div>
+
+          {/* Type filter tabs — fitur lama dipertahankan */}
           <div
             className="flex overflow-x-auto"
             style={{ borderBottom: '1px solid #F1F5F9' }}
@@ -358,6 +526,35 @@ export default function NotificationListPage({
             })}
           </div>
 
+          {/* PBI-14: Bar "Pilih Semua" — cuma muncul kalau ada notifikasi visible */}
+          {!loading && !error && visibleNotifications.length > 0 && (
+            <div
+              className="px-6 py-2.5 flex items-center gap-3"
+              style={{ borderBottom: '1px solid #F1F5F9', backgroundColor: '#FAFAFA' }}
+            >
+              <label className="flex items-center gap-2 cursor-pointer">
+                <input
+                  type="checkbox"
+                  checked={allVisibleSelected}
+                  onChange={handleToggleSelectAll}
+                  className="w-4 h-4 cursor-pointer"
+                  style={{ accentColor: '#11447D' }}
+                />
+                <span
+                  className="text-xs font-semibold"
+                  style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}
+                >
+                  {allVisibleSelected ? 'Batalkan Pilih Semua' : 'Pilih Semua'}
+                </span>
+              </label>
+              {selectedCount > 0 && (
+                <span className="text-xs" style={{ color: '#8E99A8' }}>
+                  · {selectedCount} dipilih
+                </span>
+              )}
+            </div>
+          )}
+
           {/* Content */}
           {loading ? (
             <div className="flex justify-center py-20">
@@ -380,22 +577,25 @@ export default function NotificationListPage({
                 Coba lagi
               </button>
             </div>
-          ) : notifications.length === 0 ? (
+          ) : visibleNotifications.length === 0 ? (
             <div className="py-20 flex flex-col items-center justify-center gap-3">
               <div style={{ color: '#D1D5DB' }}>
                 <BellSlashIcon />
               </div>
               <p className="text-sm font-semibold" style={{ color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}>
-                Tidak ada notifikasi
-                {typeFilter !== 'ALL' ? ' untuk kategori ini' : ''}
+                {searchQuery
+                  ? `Tidak ada notifikasi yang cocok dengan "${searchQuery}"`
+                  : `Tidak ada notifikasi${typeFilter !== 'ALL' ? ' untuk kategori ini' : ''}`}
               </p>
             </div>
           ) : (
             <div>
-              {notifications.map(item => (
+              {visibleNotifications.map(item => (
                 <NotificationRow
                   key={item.id}
                   item={item}
+                  selected={selectedIds.has(item.id)}
+                  onToggleSelect={handleToggleSelect}
                   onClick={handleClickNotification}
                   onDelete={handleDeleteNotification}
                 />
@@ -404,7 +604,7 @@ export default function NotificationListPage({
           )}
 
           {/* Footer count */}
-          {!loading && !error && notifications.length > 0 && (
+          {!loading && !error && visibleNotifications.length > 0 && (
             <div
               className="px-6 py-3 text-xs"
               style={{
@@ -413,7 +613,8 @@ export default function NotificationListPage({
                 fontFamily: 'Inter, sans-serif',
               }}
             >
-              Menampilkan {notifications.length} notifikasi
+              Menampilkan {visibleNotifications.length} dari {notifications.length} notifikasi
+              {searchQuery && ` · pencarian: "${searchQuery}"`}
             </div>
           )}
         </div>

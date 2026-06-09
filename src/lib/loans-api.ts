@@ -70,6 +70,7 @@ export interface Installment {
 
 export interface LoanDetail extends Loan {
   description:          string
+  rejection_reason:     string
   progress_percent:     number
   disbursed_at:         string | null
   bank_account: {
