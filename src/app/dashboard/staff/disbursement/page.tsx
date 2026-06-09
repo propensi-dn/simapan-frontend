@@ -462,7 +462,7 @@ export default function StaffDisbursementPage() {
           )}
 
           {/* Pagination */}
-          {!approvedLoading && approvedPageInfo.total_pages > 1 && (
+          {!approvedLoading && (
             <Pagination
               page={approvedPage}
               total={approvedPageInfo.total_pages}
@@ -628,7 +628,7 @@ export default function StaffDisbursementPage() {
           )}
 
           {/* Pagination */}
-          {!disbursedLoading && disbursedPageInfo.total_pages > 1 && (
+          {!disbursedLoading && (
             <Pagination
               page={disbursedPage}
               total={disbursedPageInfo.total_pages}

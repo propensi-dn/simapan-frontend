@@ -426,8 +426,8 @@ export default function ManagerLoanDetailPage({ params }: { params: Promise<{ id
                                 <button
                                   type="button"
                                   onClick={() => openProof(row.transfer_proof_url)}
-                                  className="inline-flex items-center text-xs font-semibold px-3 py-1.5 rounded-lg"
-                                  style={{ backgroundColor: '#111827', color: '#FFFFFF', fontFamily: 'Inter, sans-serif' }}
+                                  className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                                  style={{ backgroundColor: '#242F43', fontFamily: 'Inter, sans-serif' }}
                                 >
                                   Lihat Bukti
                                 </button>
