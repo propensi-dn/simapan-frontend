@@ -112,6 +112,7 @@ export interface LoanFormData {
   seasoned_savings:             number
   total_savings:                number
   current_monthly_obligations:  number
+  wajib_overdue_months:         number
 }
 
 export interface LoanCreatePayload {

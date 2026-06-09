@@ -110,20 +110,23 @@ export default function LoanOverviewPage() {
   const [statusFilter, setStatusFilter] = useState('')
   const [searchText,   setSearchText]   = useState('')
   const [searchQ,      setSearchQ]      = useState('')
-  const [hasBadDebt,   setHasBadDebt]   = useState(false)
-  const [blockModal,   setBlockModal]   = useState<'inactive' | 'bad_debt' | null>(null)
+  const [hasBadDebt,        setHasBadDebt]        = useState(false)
+  const [wajibOverdueMonths, setWajibOverdueMonths] = useState(0)
+  const [blockModal,        setBlockModal]        = useState<'inactive' | 'bad_debt' | 'wajib_arrears' | null>(null)
 
   const { userStatus } = useUserProfile()
 
   useEffect(() => {
     api.get('/loans/create/').then(r => {
       setHasBadDebt(r.data.has_bad_debt)
+      setWajibOverdueMonths(r.data.wajib_overdue_months ?? 0)
     }).catch(() => {})
   }, [])
 
   function handleAjukanPinjaman() {
     if (hasBadDebt) { setBlockModal('bad_debt'); return }
     if (userStatus !== 'ACTIVE') { setBlockModal('inactive'); return }
+    if (wajibOverdueMonths > 2) { setBlockModal('wajib_arrears'); return }
     router.push('/dashboard/member/loans/apply')
   }
 
@@ -385,8 +388,8 @@ export default function LoanOverviewPage() {
             style={{ backgroundColor: 'rgba(0,0,0,0.5)' }}>
             <div className="bg-white rounded-2xl p-8 max-w-sm w-full text-center shadow-2xl">
               <div className="w-16 h-16 rounded-full flex items-center justify-center mx-auto mb-5"
-                style={{ backgroundColor: blockModal === 'bad_debt' ? '#FEE2E2' : '#FEF3C7' }}>
-                {blockModal === 'bad_debt' ? (
+                style={{ backgroundColor: blockModal === 'bad_debt' ? '#FEE2E2' : blockModal === 'wajib_arrears' ? '#FEE2E2' : '#FEF3C7' }}>
+                {blockModal === 'bad_debt' || blockModal === 'wajib_arrears' ? (
                   <svg width="28" height="28" fill="none" viewBox="0 0 24 24" stroke="#EF4444" strokeWidth={2}>
                     <path strokeLinecap="round" strokeLinejoin="round"
                       d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.008v.008H12v-.008z" />
@@ -400,14 +403,28 @@ export default function LoanOverviewPage() {
               </div>
               <h3 className="font-bold text-lg mb-2"
                 style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
-                {blockModal === 'bad_debt' ? 'Pengajuan Tidak Dapat Dilakukan' : 'Keanggotaan Belum Aktif'}
+                {blockModal === 'bad_debt'
+                  ? 'Pengajuan Tidak Dapat Dilakukan'
+                  : blockModal === 'wajib_arrears'
+                  ? 'Tunggakan Simpanan Wajib'
+                  : 'Keanggotaan Belum Aktif'}
               </h3>
               <p className="text-sm mb-6 leading-relaxed"
                 style={{ color: '#525E71', fontFamily: 'Inter, sans-serif' }}>
                 {blockModal === 'bad_debt'
                   ? 'Anda memiliki riwayat kredit macet. Pengajuan pinjaman baru tidak dapat dilakukan hingga kredit macet diselesaikan. Hubungi admin koperasi untuk informasi lebih lanjut.'
+                  : blockModal === 'wajib_arrears'
+                  ? `Anda memiliki tunggakan simpanan wajib selama ${wajibOverdueMonths} bulan. Lunasi terlebih dahulu sebelum mengajukan pinjaman baru (maksimal 2 bulan tunggakan diperbolehkan).`
                   : 'Keanggotaan Anda belum aktif. Pastikan simpanan pokok sudah diverifikasi oleh petugas untuk mengaktifkan keanggotaan.'}
               </p>
+              {blockModal === 'wajib_arrears' && (
+                <button
+                  onClick={() => { setBlockModal(null); router.push('/dashboard/member/savings') }}
+                  className="w-full py-3 rounded-xl font-bold text-sm mb-2 transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff', fontFamily: 'Inter, sans-serif' }}>
+                  Lunasi Simpanan Wajib
+                </button>
+              )}
               {blockModal === 'inactive' && (
                 <button
                   onClick={() => { setBlockModal(null); router.push('/dashboard/member/savings') }}
