@@ -31,6 +31,13 @@ type OverviewResponse = {
     next_due_date: string | null;
     results: MandatoryObligation[];
   };
+  mandatory_savings?: {
+    count: number;
+    overdue_count: number;
+    overdue_amount: string;
+    next_due_date: string | null;
+    results: MandatoryObligation[];
+  };
   count: number;
   total_pages?: number;
   current_page?: number;
@@ -38,6 +45,21 @@ type OverviewResponse = {
   next: string | null;
   previous: string | null;
   results: SavingItem[];
+};
+
+type MandatoryObligation = {
+  id: number;
+  period_start: string;
+  period_label: string;
+  due_date: string;
+  amount: string;
+  status: "UNPAID" | "PENDING" | "PAID" | "OVERDUE";
+  payment_method: "MANUAL" | "AUTO_DEBIT";
+  payment_method_display: string;
+  payment_transaction_id: number | null;
+  paid_at: string | null;
+  reminder_sent_at: string | null;
+  overdue_notified_at: string | null;
 };
 
 type MandatoryObligation = {
@@ -72,6 +94,13 @@ const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string;
   POKOK:    { bg: "#F1F5F9", text: "#525E71", label: "Pokok" },
   WAJIB:    { bg: "#DBEAFE", text: "#1E40AF", label: "Wajib" },
   SUKARELA: { bg: "#EDE9FE", text: "#5B21B6", label: "Sukarela" },
+};
+
+const OBLIGATION_STATUS_CONFIG: Record<MandatoryObligation["status"], { bg: string; text: string; label: string }> = {
+  PAID: { bg: "#D1FAE5", text: "#065F46", label: "Lunas" },
+  PENDING: { bg: "#FEF3C7", text: "#92400E", label: "Menunggu verifikasi" },
+  UNPAID: { bg: "#E0F2FE", text: "#075985", label: "Belum dibayar" },
+  OVERDUE: { bg: "#FEE2E2", text: "#991B1B", label: "Terlambat" },
 };
 
 const OBLIGATION_STATUS_CONFIG: Record<MandatoryObligation["status"], { bg: string; text: string; label: string }> = {
@@ -156,11 +185,39 @@ export default function SavingsOverviewPage() {
         year: "numeric",
       }).format(new Date(mandatory.next_due_date))}.`;
     }
+    const mandatory = data.mandatory_savings;
+    if (mandatory?.overdue_count) {
+      return `Ada ${mandatory.overdue_count} tagihan simpanan wajib yang belum lunas.`;
+    }
+    if (mandatory?.next_due_date) {
+      return `Tagihan simpanan wajib berikutnya jatuh tempo pada ${new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(mandatory.next_due_date))}.`;
+    }
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
     return "Kelola dan pantau simpanan wajib dan sukarela kamu.";
   }, [data]);
+
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return "-";
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  };
+
+  const formatMandatoryPeriod = (value: string | null | undefined, fallback: string) => {
+    if (!value) return fallback;
+    return new Intl.DateTimeFormat("id-ID", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(value));
+  };
 
   const formatDate = (value: string | null | undefined) => {
     if (!value) return "-";
@@ -194,6 +251,14 @@ export default function SavingsOverviewPage() {
       return dateSortOrder === "desc" ? bTime - aTime : aTime - bTime;
     });
   }, [data, statusFilter, typeFilter, dateSortOrder]);
+
+  const activeMandatoryObligations = useMemo(() => {
+    if (!data?.mandatory_savings?.results) return [];
+
+    return data.mandatory_savings.results
+      .filter((item) => item.status !== "PAID")
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  }, [data]);
 
   const activeMandatoryObligations = useMemo(() => {
     if (!data?.mandatory_savings?.results) return [];
@@ -373,6 +438,7 @@ export default function SavingsOverviewPage() {
 
       {/* Table card */}
       <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #F1F5F9" }}>
+        
         
         {/* Toolbar */}
         <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
