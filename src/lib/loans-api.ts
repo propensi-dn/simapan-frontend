@@ -70,6 +70,7 @@ export interface Installment {
 
 export interface LoanDetail extends Loan {
   description:          string
+  rejection_reason:     string
   progress_percent:     number
   disbursed_at:         string | null
   bank_account: {
@@ -112,6 +113,7 @@ export interface LoanFormData {
   seasoned_savings:             number
   total_savings:                number
   current_monthly_obligations:  number
+  wajib_overdue_months:         number
 }
 
 export interface LoanCreatePayload {

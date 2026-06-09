@@ -31,6 +31,13 @@ type OverviewResponse = {
     next_due_date: string | null;
     results: MandatoryObligation[];
   };
+  mandatory_savings?: {
+    count: number;
+    overdue_count: number;
+    overdue_amount: string;
+    next_due_date: string | null;
+    results: MandatoryObligation[];
+  };
   count: number;
   total_pages?: number;
   current_page?: number;
@@ -38,6 +45,21 @@ type OverviewResponse = {
   next: string | null;
   previous: string | null;
   results: SavingItem[];
+};
+
+type MandatoryObligation = {
+  id: number;
+  period_start: string;
+  period_label: string;
+  due_date: string;
+  amount: string;
+  status: "UNPAID" | "PENDING" | "PAID" | "OVERDUE";
+  payment_method: "MANUAL" | "AUTO_DEBIT";
+  payment_method_display: string;
+  payment_transaction_id: number | null;
+  paid_at: string | null;
+  reminder_sent_at: string | null;
+  overdue_notified_at: string | null;
 };
 
 type MandatoryObligation = {
@@ -72,6 +94,13 @@ const TYPE_CONFIG: Record<SavingItem["saving_type"], { bg: string; text: string;
   POKOK:    { bg: "#F1F5F9", text: "#525E71", label: "Pokok" },
   WAJIB:    { bg: "#DBEAFE", text: "#1E40AF", label: "Wajib" },
   SUKARELA: { bg: "#EDE9FE", text: "#5B21B6", label: "Sukarela" },
+};
+
+const OBLIGATION_STATUS_CONFIG: Record<MandatoryObligation["status"], { bg: string; text: string; label: string }> = {
+  PAID: { bg: "#D1FAE5", text: "#065F46", label: "Lunas" },
+  PENDING: { bg: "#FEF3C7", text: "#92400E", label: "Menunggu verifikasi" },
+  UNPAID: { bg: "#E0F2FE", text: "#075985", label: "Belum dibayar" },
+  OVERDUE: { bg: "#FEE2E2", text: "#991B1B", label: "Terlambat" },
 };
 
 const OBLIGATION_STATUS_CONFIG: Record<MandatoryObligation["status"], { bg: string; text: string; label: string }> = {
@@ -156,11 +185,39 @@ export default function SavingsOverviewPage() {
         year: "numeric",
       }).format(new Date(mandatory.next_due_date))}.`;
     }
+    const mandatory = data.mandatory_savings;
+    if (mandatory?.overdue_count) {
+      return `Ada ${mandatory.overdue_count} tagihan simpanan wajib yang belum lunas.`;
+    }
+    if (mandatory?.next_due_date) {
+      return `Tagihan simpanan wajib berikutnya jatuh tempo pada ${new Intl.DateTimeFormat("id-ID", {
+        day: "2-digit",
+        month: "short",
+        year: "numeric",
+      }).format(new Date(mandatory.next_due_date))}.`;
+    }
     if (data.member_status === "VERIFIED") {
       return "Status kamu VERIFIED. Silakan upload simpanan pokok dulu.";
     }
     return "Kelola dan pantau simpanan wajib dan sukarela kamu.";
   }, [data]);
+
+  const formatDate = (value: string | null | undefined) => {
+    if (!value) return "-";
+    return new Intl.DateTimeFormat("id-ID", {
+      day: "2-digit",
+      month: "short",
+      year: "numeric",
+    }).format(new Date(value));
+  };
+
+  const formatMandatoryPeriod = (value: string | null | undefined, fallback: string) => {
+    if (!value) return fallback;
+    return new Intl.DateTimeFormat("id-ID", {
+      month: "long",
+      year: "numeric",
+    }).format(new Date(value));
+  };
 
   const formatDate = (value: string | null | undefined) => {
     if (!value) return "-";
@@ -194,6 +251,14 @@ export default function SavingsOverviewPage() {
       return dateSortOrder === "desc" ? bTime - aTime : aTime - bTime;
     });
   }, [data, statusFilter, typeFilter, dateSortOrder]);
+
+  const activeMandatoryObligations = useMemo(() => {
+    if (!data?.mandatory_savings?.results) return [];
+
+    return data.mandatory_savings.results
+      .filter((item) => item.status !== "PAID")
+      .sort((a, b) => new Date(a.due_date).getTime() - new Date(b.due_date).getTime());
+  }, [data]);
 
   const activeMandatoryObligations = useMemo(() => {
     if (!data?.mandatory_savings?.results) return [];
@@ -360,7 +425,7 @@ export default function SavingsOverviewPage() {
                         {item.status === "PAID" ? `Dibayar via ${item.payment_method_display}` : "Menunggu pembayaran"}
                       </p>
                     </div>
-                    <span className="inline-flex items-center self-start md:self-center px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: st.bg, color: st.text, fontFamily: "Inter, sans-serif" }}>
+                    <span className="inline-flex items-center self-start md:self-center px-3 py-1.5 rounded-full text-xs font-bold" style={{ backgroundColor: st.bg, color: st.text, textTransform: "uppercase", fontFamily: "Inter, sans-serif" }}>
                       {st.label}
                     </span>
                   </div>
@@ -374,63 +439,42 @@ export default function SavingsOverviewPage() {
       {/* Table card */}
       <div className="bg-white rounded-2xl overflow-hidden" style={{ border: "1px solid #F1F5F9" }}>
         
+        
         {/* Toolbar */}
-        <div className="px-6 py-3 flex flex-wrap items-center gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
-          <h3 className="font-bold text-lg" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
+        <div className="px-6 py-4 flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4" style={{ borderBottom: "1px solid #F1F5F9" }}>
+          <h3 className="font-bold text-base" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
             Riwayat Simpanan
-          </h3> 
-        </div>
-        <div className="px-6 py-3 flex flex-wrap items-center gap-3" style={{ borderBottom: "1px solid #F1F5F9" }}>
-          
-          {/* Status pill filters */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
-            Status Transaksi
-            </p>
-            {STATUS_FILTERS.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setStatusFilter(f.key)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor: statusFilter === f.key ? "#242F43" : "#F1F5F9",
-                  color: statusFilter === f.key ? "#fff" : "#525E71",
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
+          </h3>
+
+          <div className="flex flex-wrap items-center gap-3">
+            {/* Status Filter Dropdown */}
+            <select
+              value={statusFilter}
+              onChange={(e) => setStatusFilter(e.target.value as any)}
+              className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer font-semibold"
+              style={{ border: "1px solid #E5E7EB", backgroundColor: "#FAFAFA", color: "#525E71", fontFamily: "Inter, sans-serif" }}
+            >
+              {STATUS_FILTERS.map((f) => (
+                <option key={f.key} value={f.key}>
+                  {f.key === "ALL" ? "Semua Status" : f.label}
+                </option>
+              ))}
+            </select>
+
+            {/* Type Filter Dropdown */}
+            <select
+              value={typeFilter}
+              onChange={(e) => setTypeFilter(e.target.value as any)}
+              className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer font-semibold"
+              style={{ border: "1px solid #E5E7EB", backgroundColor: "#FAFAFA", color: "#525E71", fontFamily: "Inter, sans-serif" }}
+            >
+              {TYPE_FILTERS.map((f) => (
+                <option key={f.key} value={f.key}>
+                  {f.key === "ALL" ? "Semua Jenis" : f.label}
+                </option>
+              ))}
+            </select>
           </div>
-
-          <div className="h-4 w-px" style={{ backgroundColor: "#E5E7EB" }} />
-
-          {/* Type pill filters */}
-          <div className="flex items-center gap-1.5 flex-wrap">
-            <p className="px-3 py-1.5 rounded-lg text-xs" style={{ fontFamily: "Montserrat, sans-serif", color: "#242F43" }}>
-              Jenis Simpanan
-            </p>
-            {TYPE_FILTERS.map((f) => (
-              <button
-                key={f.key}
-                type="button"
-                onClick={() => setTypeFilter(f.key)}
-                className="px-3 py-1.5 rounded-lg text-xs font-semibold transition-all"
-                style={{
-                  backgroundColor: typeFilter === f.key ? "#11447D" : "#F1F5F9",
-                  color: typeFilter === f.key ? "#fff" : "#525E71",
-                  fontFamily: "Inter, sans-serif",
-                }}
-              >
-                {f.label}
-              </button>
-            ))}
-          </div>
-
-          <span className="ml-auto text-xs" style={{ color: "#B0BAC5", fontFamily: "Inter, sans-serif" }}>
-            {visibleTransactions.length} transaksi
-          </span>
         </div>
 
         {/* Table */}
@@ -500,7 +544,7 @@ export default function SavingsOverviewPage() {
                       <td className="px-5 py-4">
                         <span
                           className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
-                          style={{ backgroundColor: st.bg, color: st.text, fontFamily: "Inter, sans-serif" }}
+                          style={{ backgroundColor: st.bg, color: st.text, textTransform: "uppercase", fontFamily: "Inter, sans-serif" }}
                         >
                           <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
                           {st.label}
@@ -515,30 +559,30 @@ export default function SavingsOverviewPage() {
                             {item.loan_pk ? (
                               <Link
                                 href={`/dashboard/member/loans/${item.loan_pk}`}
-                                className="text-sm font-bold transition-opacity hover:opacity-60"
-                                style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                                className="self-start inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap mt-1"
+                                style={{ backgroundColor: "#242F43", fontFamily: "Inter, sans-serif" }}
                               >
-                                Lihat Pinjaman →
+                                Lihat Pinjaman
                               </Link>
                             ) : null}
                           </div>
                         ) : item.source === "SAVINGS_WITHDRAWAL" ? (
                           <Link
                             href={`/dashboard/member/withdrawals/${encodeURIComponent(item.saving_id)}`}
-                            className="text-sm font-bold transition-opacity hover:opacity-60"
-                            style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: "#242F43", fontFamily: "Inter, sans-serif" }}
                           >
-                            Lihat Penarikan →
+                            Lihat Penarikan
                           </Link>
                         ) : item.transfer_proof_url ? (
                           <a
                             href={item.transfer_proof_url}
                             target="_blank"
                             rel="noreferrer"
-                            className="text-sm font-bold transition-opacity hover:opacity-60"
-                            style={{ color: "#11447D", fontFamily: "Inter, sans-serif" }}
+                            className="inline-flex items-center justify-center text-xs font-bold px-3 py-1.5 rounded-lg text-white transition-all hover:opacity-90 whitespace-nowrap"
+                            style={{ backgroundColor: "#242F43", fontFamily: "Inter, sans-serif" }}
                           >
-                            Lihat Bukti →
+                            Lihat Bukti
                           </a>
                         ) : (
                           <span className="text-xs" style={{ color: "#B0BAC5" }}>—</span>

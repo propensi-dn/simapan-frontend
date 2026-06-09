@@ -28,6 +28,16 @@ const INSTALLMENT_STATUS: Record<InstallmentStatus, { bg: string; text: string; 
   PAID:    { bg: '#D1FAE5', text: '#065F46', dot: '#10B981', label: 'Paid' },
 }
 
+const LOAN_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
+}
+
 const STATUS_FILTERS = [
   { key: '', label: 'Semua' },
   { key: 'UNPAID', label: 'Unpaid' },
@@ -165,17 +175,14 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                       style={{ fontFamily: 'Montserrat, sans-serif', color: '#242F43' }}>
                       Loan ID: #{loan.loan_id}
                     </h2>
-                    <span className="text-xs font-bold px-2.5 py-1 rounded-md"
+                    <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2.5 py-1 rounded-md"
                       style={{
-                        backgroundColor: loan.status === 'ACTIVE' ? '#D1FAE5'
-                          : loan.status === 'OVERDUE' ? '#FEE2E2'
-                          : loan.status === 'LUNAS' ? '#DBEAFE'
-                          : '#F3F4F6',
-                        color: loan.status === 'ACTIVE' ? '#065F46'
-                          : loan.status === 'OVERDUE' ? '#991B1B'
-                          : loan.status === 'LUNAS' ? '#1E40AF'
-                          : '#6B7280',
+                        backgroundColor: (LOAN_STATUS_STYLE[loan.status] ?? { bg: '#F3F4F6' }).bg,
+                        color: (LOAN_STATUS_STYLE[loan.status] ?? { text: '#6B7280' }).text,
+                        textTransform: 'uppercase',
                       }}>
+                      <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                        style={{ backgroundColor: (LOAN_STATUS_STYLE[loan.status] ?? { dot: '#9CA3AF' }).dot }} />
                       {loan.status_display}
                     </span>
                   </div>
@@ -191,7 +198,32 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
               </button>
             </div>
 
-            {/* Summary Cards */}
+            {/* Rejection notice — tampil khusus saat status REJECTED */}
+            {loan.status === 'REJECTED' && (
+              <div className="bg-white rounded-2xl p-6 flex gap-4 items-start"
+                style={{ border: '1px solid #FECACA', backgroundColor: '#FEF2F2' }}>
+                <div className="w-10 h-10 rounded-xl flex items-center justify-center flex-shrink-0"
+                  style={{ backgroundColor: '#FEE2E2' }}>
+                  <svg width="20" height="20" fill="none" viewBox="0 0 24 24" stroke="#991B1B" strokeWidth={2}>
+                    <path strokeLinecap="round" strokeLinejoin="round"
+                      d="M12 9v3.75m-9.303 3.376c-.866 1.5.217 3.374 1.948 3.374h14.71c1.73 0 2.813-1.874 1.948-3.374L13.949 3.378c-.866-1.5-3.032-1.5-3.898 0L2.697 16.126zM12 15.75h.007v.008H12v-.008z" />
+                  </svg>
+                </div>
+                <div className="flex-1">
+                  <p className="font-bold text-sm" style={{ color: '#991B1B', fontFamily: 'Montserrat, sans-serif' }}>
+                    Pengajuan Pinjaman Ditolak
+                  </p>
+                  <p className="text-sm mt-1" style={{ color: '#525E71' }}>
+                    {loan.rejection_reason
+                      ? `Alasan: ${loan.rejection_reason}`
+                      : 'Pengajuan pinjaman ini telah ditolak oleh manajer. Anda dapat mengajukan pinjaman baru kapan saja.'}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Summary Cards — disembunyiin kalau REJECTED (tidak ada saldo aktif / tagihan) */}
+            {loan.status !== 'REJECTED' && (
             <div className="grid grid-cols-2 gap-5">
               {/* Outstanding Balance */}
               <div className="bg-white rounded-2xl p-6 space-y-3"
@@ -250,8 +282,10 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                 )}
               </div>
             </div>
+            )}
 
-            {/* Installment Schedule Table */}
+            {/* Installment Schedule Table — REJECTED loan tidak punya jadwal cicilan */}
+            {loan.status !== 'REJECTED' && (
             <div className="bg-white rounded-2xl overflow-hidden"
               style={{ border: '1px solid #F1F5F9' }}>
               {/* Table header */}
@@ -372,6 +406,7 @@ export default function LoanDetailPage({ params }: { params: Promise<{ id: strin
                 </div>
               )}
             </div>
+            )}
           </>
         )}
       </main>
