@@ -139,6 +139,10 @@ export default function MemberResignationsPage() {
 
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState('')
+
+  const [profile, setProfile] = useState<{ full_name?: string } | null>(null)
+  const [agreed, setAgreed] = useState(false)
+
   const CHECKLIST = [
     'Saya ingin menutup akun dan menerima estimasi pengembalian dana.',
     'Saya telah memeriksa rincian simpanan dan pinjaman di atas dan setuju dengan jumlahnya.',
