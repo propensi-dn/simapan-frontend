@@ -27,6 +27,16 @@ const fmtDate = (iso: string | null) => {
   })
 }
 
+const LOAN_STATUS_STYLE: Record<string, { bg: string; text: string; dot: string }> = {
+  PENDING:             { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  APPROVED:            { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  REJECTED:            { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  ACTIVE:              { bg: '#ECFDF5', text: '#047857', dot: '#10B981' },
+  LUNAS:               { bg: '#F0FDFA', text: '#0F766E', dot: '#14B8A6' },
+  OVERDUE:             { bg: '#FFF1F2', text: '#BE123C', dot: '#BE123C' },
+  LUNAS_AFTER_OVERDUE: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
+}
+
 // ── File Upload Zone ──────────────────────────────────────────────────────
 
 function FileUploadZone({
@@ -466,11 +476,14 @@ function PayLoanPageContent() {
                                 {fmtRp(lo.outstanding_balance)}
                               </td>
                               <td className="px-4 py-3">
-                                <span className="text-xs font-bold px-2 py-0.5 rounded-md"
+                                <span className="inline-flex items-center gap-1.5 text-xs font-bold px-2 py-0.5 rounded-md"
                                   style={{
-                                    backgroundColor: lo.status === 'OVERDUE' ? '#FEE2E2' : '#D1FAE5',
-                                    color: lo.status === 'OVERDUE' ? '#991B1B' : '#065F46',
+                                    backgroundColor: (LOAN_STATUS_STYLE[lo.status] ?? { bg: '#F3F4F6' }).bg,
+                                    color: (LOAN_STATUS_STYLE[lo.status] ?? { text: '#6B7280' }).text,
+                                    textTransform: 'uppercase',
                                   }}>
+                                  <span className="w-1.5 h-1.5 rounded-full flex-shrink-0"
+                                    style={{ backgroundColor: (LOAN_STATUS_STYLE[lo.status] ?? { dot: '#9CA3AF' }).dot }} />
                                   {lo.status_display}
                                 </span>
                               </td>
