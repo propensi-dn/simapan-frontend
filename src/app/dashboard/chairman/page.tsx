@@ -62,19 +62,9 @@ const MemberIcon = () => (
 function formatRupiah(value: string | number): string {
   const num = typeof value === 'string' ? parseFloat(value) : value
   if (isNaN(num)) return 'Rp 0'
-  if (num >= 1_000_000_000) {
-    const m = num / 1_000_000_000
-    return `Rp ${m % 1 === 0 ? m.toFixed(0) : m.toFixed(1)}M`
-  }
-  if (num >= 1_000_000) {
-    const jt = num / 1_000_000
-    return `Rp ${jt % 1 === 0 ? jt.toFixed(0) : jt.toFixed(1)}Jt`
-  }
-  if (num >= 1_000) {
-    return `Rp ${(num / 1_000).toFixed(0)}Rb`
-  }
   return `Rp ${num.toLocaleString('id-ID')}`
 }
+
 
 // ── Skeleton ───────────────────────────────────────────────────────────────
 

@@ -1,4 +1,4 @@
-﻿'use client'
+'use client'
 
 import { useCallback, useEffect, useRef, useState } from 'react'
 import Link from 'next/link'
@@ -29,11 +29,30 @@ const SEVERITY_BADGE: Record<OverdueSeverity, { bg: string; text: string; label:
   CRITICAL: { bg: '#7F1D1D', text: '#FFFFFF', label: 'Kritis' },
 }
 
-const STATUS_BADGE: Record<BadDebtStatus, { bg: string; text: string }> = {
-  PENDING: { bg: '#FEF3C7', text: '#92400E' },
-  WARNING_SENT: { bg: '#DBEAFE', text: '#1E40AF' },
-  LEGAL_NOTICE: { bg: '#FECACA', text: '#991B1B' },
-  VISIT_SCHEDULED: { bg: '#E9D5FF', text: '#6B21A8' },
+const STATUS_BADGE: Record<BadDebtStatus, { bg: string; text: string; dot: string }> = {
+  PENDING: { bg: '#FEF3C7', text: '#B45309', dot: '#F59E0B' },
+  WARNING_SENT: { bg: '#EFF6FF', text: '#1D4ED8', dot: '#3B82F6' },
+  LEGAL_NOTICE: { bg: '#FEF2F2', text: '#991B1B', dot: '#EF4444' },
+  VISIT_SCHEDULED: { bg: '#F5F3FF', text: '#6D28D9', dot: '#8B5CF6' },
+}
+
+const STATUS_LABELS_EN: Record<string, string> = {
+  PENDING: 'PENDING',
+  WARNING_SENT: 'WARNING SENT',
+  LEGAL_NOTICE: 'LEGAL NOTICE',
+  VISIT_SCHEDULED: 'VISIT SCHEDULED',
+}
+
+const getPaginationRange = (current: number, total: number) => {
+  const delta = 2
+  const range: (number | '...')[] = []
+  for (let i = Math.max(1, current - delta); i <= Math.min(total, current + delta); i++) {
+    range.push(i)
+  }
+  if (range.length === 0) return range
+  if (range[0] !== 1) { range.unshift('...'); range.unshift(1) }
+  if (range[range.length - 1] !== total) { range.push('...'); range.push(total) }
+  return range
 }
 
 const EmailIcon = () => (
@@ -236,71 +255,73 @@ export default function ManagerCreditPage() {
 
         <div className="bg-white rounded-2xl overflow-hidden" style={{ border: '1px solid #F1F5F9' }}>
           <div
-            className="px-6 py-4 flex flex-wrap items-center gap-3"
+            className="px-6 py-4 flex flex-col lg:flex-row lg:items-center lg:justify-between gap-4"
             style={{ borderBottom: '1px solid #F1F5F9' }}
           >
             <h3
-              className="font-bold text-base mr-auto"
+              className="font-bold text-base"
               style={{ color: '#242F43', fontFamily: 'Montserrat, sans-serif' }}
             >
               Daftar Anggota dengan Tunggakan
             </h3>
 
-            <form onSubmit={handleSearch} className="flex items-center gap-2">
-              <input
-                type="text"
-                placeholder="Cari nama anggota..."
-                value={searchInput}
-                onChange={(e) => setSearchInput(e.target.value)}
-                className="px-3 py-2 rounded-xl text-xs outline-none"
+            <div className="flex flex-wrap items-center gap-3">
+              <form onSubmit={handleSearch} className="flex items-center gap-2">
+                <input
+                  type="text"
+                  placeholder="Cari nama anggota..."
+                  value={searchInput}
+                  onChange={(e) => setSearchInput(e.target.value)}
+                  className="px-3 py-2 rounded-xl text-xs outline-none"
+                  style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
+                />
+                <button
+                  type="submit"
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:opacity-90"
+                  style={{ backgroundColor: '#242F43', color: '#fff' }}
+                >
+                  Cari
+                </button>
+              </form>
+
+              <select
+                value={statusFilter}
+                onChange={(e) => setStatusFilter(e.target.value as '' | BadDebtStatus)}
+                className="px-3 py-2 rounded-xl text-xs outline-none cursor-pointer"
                 style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-              />
-              <button
-                type="submit"
-                className="px-3 py-2 rounded-xl text-xs font-bold"
-                style={{ backgroundColor: '#242F43', color: '#fff' }}
               >
-                Cari
-              </button>
-            </form>
+                <option value="">Semua Status</option>
+                {statuses.map((s) => (
+                  <option key={s.value} value={s.value}>
+                    {STATUS_LABELS_EN[s.value] || s.label}
+                  </option>
+                ))}
+              </select>
 
-            <select
-              value={statusFilter}
-              onChange={(e) => setStatusFilter(e.target.value as '' | BadDebtStatus)}
-              className="px-3 py-2 rounded-xl text-xs outline-none"
-              style={{ border: '1px solid #E5E7EB', backgroundColor: '#FAFAFA', color: '#242F43' }}
-            >
-              <option value="">Semua Status</option>
-              {statuses.map((s) => (
-                <option key={s.value} value={s.value}>
-                  {s.label}
-                </option>
-              ))}
-            </select>
+              {(search || statusFilter) && (
+                <button
+                  type="button"
+                  onClick={() => {
+                    setSearchInput('')
+                    setSearch('')
+                    setStatusFilter('')
+                  }}
+                  className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
+                  style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                >
+                  Reset
+                </button>
+              )}
 
-            {(search || statusFilter) && (
               <button
                 type="button"
-                onClick={() => {
-                  setSearchInput('')
-                  setSearch('')
-                  setStatusFilter('')
-                }}
-                className="px-3 py-2 rounded-xl text-xs font-bold"
+                onClick={handleExport}
+                className="px-4 py-2 rounded-xl text-xs font-bold transition-all hover:bg-gray-50"
                 style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
               >
-                Atur Ulang
+                Ekspor
               </button>
-            )}
-
-            <button
-              type="button"
-              onClick={handleExport}
-              className="px-3 py-2 rounded-xl text-xs font-bold"
-              style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
-            >
-              Ekspor CSV
-            </button>
+            </div>
           </div>
 
           {error ? (
@@ -376,10 +397,11 @@ export default function ManagerCreditPage() {
                         </td>
                         <td className="px-6 py-4">
                           <span
-                            className="inline-flex items-center px-2.5 py-1 rounded-md text-xs font-bold"
-                            style={{ backgroundColor: st.bg, color: st.text }}
+                            className="inline-flex items-center gap-1.5 px-2.5 py-1 rounded-md text-xs font-bold"
+                            style={{ backgroundColor: st.bg, color: st.text, textTransform: 'uppercase', fontFamily: 'Inter, sans-serif' }}
                           >
-                            {row.status_display}
+                            <span className="w-1.5 h-1.5 rounded-full flex-shrink-0" style={{ backgroundColor: st.dot }} />
+                            {STATUS_LABELS_EN[row.status] || row.status}
                           </span>
                         </td>
                         <td className="px-6 py-4">
@@ -443,7 +465,7 @@ export default function ManagerCreditPage() {
           {!loading && !error && rows.length > 0 && (
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
-              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8' }}
+              style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
             >
               <span>
                 Halaman {page} dari {totalPages} • {count} total data
@@ -452,18 +474,39 @@ export default function ManagerCreditPage() {
                 <button
                   onClick={() => handlePage(page - 1)}
                   disabled={page === 1}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'<'}
+                  {'‹'}
                 </button>
+
+                {getPaginationRange(page, totalPages).map((p, idx) =>
+                  p === '...' ? (
+                    <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#8E99A8' }}>
+                      ...
+                    </span>
+                  ) : (
+                    <button
+                      key={p}
+                      onClick={() => handlePage(p as number)}
+                      className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                      style={{
+                        backgroundColor: p === page ? '#242F43' : 'transparent',
+                        color: p === page ? '#FFFFFF' : '#525E71',
+                        border: p === page ? 'none' : '1px solid #E5E7EB',
+                      }}>
+                      {p}
+                    </button>
+                  )
+                )}
+
                 <button
                   onClick={() => handlePage(page + 1)}
                   disabled={page === totalPages}
-                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30"
+                  className="w-8 h-8 rounded-lg flex items-center justify-center text-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
                 >
-                  {'>'}
+                  {'›'}
                 </button>
               </div>
             </div>
@@ -503,7 +546,7 @@ export default function ManagerCreditPage() {
               >
                 {statuses.map((s) => (
                   <option key={s.value} value={s.value}>
-                    {s.label}
+                    {STATUS_LABELS_EN[s.value] || s.label}
                   </option>
                 ))}
               </select>
