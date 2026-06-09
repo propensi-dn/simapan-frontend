@@ -400,11 +400,9 @@ export default function StaffDashboardPage() {
           </table>
 
           {/* Footer pagination */}
-          {(data?.recent_tasks ?? []).length > 0 && (() => {
+          {(() => {
             const allTasks = data?.recent_tasks ?? []
-            const totalPages = Math.ceil(allTasks.length / TASKS_PER_PAGE)
-            const start = (currentPage - 1) * TASKS_PER_PAGE + 1
-            const end   = Math.min(currentPage * TASKS_PER_PAGE, allTasks.length)
+            const totalPages = Math.max(1, Math.ceil(allTasks.length / TASKS_PER_PAGE))
 
             const pages: (number | '...')[] = []
             if (totalPages <= 5) {
@@ -420,7 +418,7 @@ export default function StaffDashboardPage() {
             return (
               <div
                 className="px-6 py-3 flex items-center justify-between text-sm"
-                style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
+                style={{ borderTop: '1px solid #F1F5F9', color: '#94A3B8', fontFamily: 'Inter, sans-serif' }}
               >
                 <span>Halaman {currentPage} dari {totalPages} • {allTasks.length} total data</span>
                 <div className="flex items-center gap-1">
@@ -437,7 +435,7 @@ export default function StaffDashboardPage() {
                   </button>
                   {pages.map((p, idx) =>
                     p === '...' ? (
-                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm">…</span>
+                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#94A3B8' }}>…</span>
                     ) : (
                       <button
                         key={p}

@@ -596,51 +596,6 @@ export default function StaffLoanDashboardPage() {
                   </tbody>
                 </table>
               </div>
-
-              {/* Pagination */}
-              {pageInfo.total_pages > 1 && (
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: 20,
-                    paddingTop: 16,
-                    borderTop: '1px solid #F1F5F9',
-                  }}
-                >
-                  <span style={{ fontSize: 13, color: '#94A3B8' }}>
-                    {(pageInfo.current_page - 1) * pageInfo.page_size + 1}–
-                    {Math.min(pageInfo.current_page * pageInfo.page_size, pageInfo.count)} dari {pageInfo.count}
-                  </span>
-                  <div style={{ display: 'flex', gap: 8 }}>
-                    <button
-                      onClick={() => setPage(Math.max(1, page - 1))}
-                      disabled={page === 1}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === 1 ? '#D1D5DB' : '#374151',
-                        fontSize: 13, fontWeight: 600, cursor: page === 1 ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      <ChevronLeft size={14} /> Sebelumnya
-                    </button>
-                    <button
-                      onClick={() => setPage(Math.min(pageInfo.total_pages, page + 1))}
-                      disabled={page === pageInfo.total_pages}
-                      style={{
-                        display: 'flex', alignItems: 'center', gap: 4,
-                        padding: '6px 14px', borderRadius: 8, border: '1px solid #E5E7EB',
-                        background: '#fff', color: page === pageInfo.total_pages ? '#D1D5DB' : '#374151',
-                        fontSize: 13, fontWeight: 600, cursor: page === pageInfo.total_pages ? 'not-allowed' : 'pointer',
-                      }}
-                    >
-                      Selanjutnya <ChevronRight size={14} />
-                    </button>
-                  </div>
-                </div>
-              )}
             </>
           ) : (
             <div
@@ -657,6 +612,65 @@ export default function StaffLoanDashboardPage() {
               </p>
             </div>
           )}
+
+          {/* Footer always visible */}
+          {(() => {
+            const totalPages = Math.max(1, pageInfo.total_pages)
+            const pages: (number | '...')[] = []
+            if (totalPages <= 5) {
+              for (let i = 1; i <= totalPages; i++) pages.push(i)
+            } else {
+              pages.push(1)
+              if (page > 3) pages.push('...')
+              for (let i = Math.max(2, page - 1); i <= Math.min(totalPages - 1, page + 1); i++) pages.push(i)
+              if (page < totalPages - 2) pages.push('...')
+              pages.push(totalPages)
+            }
+            return (
+              <div
+                className="px-3 py-3 flex items-center justify-between text-sm"
+                style={{ borderTop: '1px solid #F1F5F9', color: '#94A3B8', fontFamily: 'Inter, sans-serif', marginTop: 16 }}
+              >
+                <span>Halaman {page} dari {totalPages} • {pageInfo.count} total data</span>
+                <div className="flex items-center gap-1">
+                  <button
+                    onClick={() => setPage(Math.max(1, page - 1))}
+                    disabled={page === 1}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  >
+                    ‹
+                  </button>
+                  {pages.map((p, idx) =>
+                    p === '...' ? (
+                      <span key={`ellipsis-${idx}`} className="w-8 h-8 flex items-center justify-center text-sm" style={{ color: '#94A3B8' }}>…</span>
+                    ) : (
+                      <button
+                        key={p}
+                        onClick={() => setPage(p as number)}
+                        className="w-8 h-8 rounded-lg flex items-center justify-center text-sm font-medium transition-colors"
+                        style={{
+                          backgroundColor: p === page ? '#242F43' : 'transparent',
+                          color: p === page ? '#FFFFFF' : '#525E71',
+                          border: p === page ? 'none' : '1px solid #E5E7EB',
+                        }}
+                      >
+                        {p}
+                      </button>
+                    )
+                  )}
+                  <button
+                    onClick={() => setPage(Math.min(totalPages, page + 1))}
+                    disabled={page === totalPages}
+                    className="w-8 h-8 rounded-lg flex items-center justify-center text-sm transition-colors disabled:opacity-30 disabled:cursor-not-allowed"
+                    style={{ border: '1px solid #E5E7EB', color: '#525E71' }}
+                  >
+                    ›
+                  </button>
+                </div>
+              </div>
+            )
+          })()}
         </div>
       </main>
     </DashboardLayout>

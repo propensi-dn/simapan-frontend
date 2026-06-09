@@ -462,7 +462,7 @@ export default function ManagerCreditPage() {
             </div>
           )}
 
-          {!loading && !error && rows.length > 0 && (
+          {!loading && !error && (
             <div
               className="px-6 py-3 flex items-center justify-between text-sm"
               style={{ borderTop: '1px solid #F1F5F9', color: '#8E99A8', fontFamily: 'Inter, sans-serif' }}
